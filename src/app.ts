@@ -16,6 +16,7 @@ import { apiRoutes } from "./routes/routes";
 import { morganStream } from "./common/winston/winston";
 import { errorInterceptor } from "./middlewares/error-interceptor";
 import { cors } from "./middlewares/cors";
+import { authMiddleware } from "./middlewares/auth-middleware";
 
 dotenv.config();
 
@@ -101,6 +102,8 @@ app.use((_, res, next) => {
   res.append("Permissions-Policy", "browsing-topics=()");
   next();
 });
+
+app.use(authMiddleware);
 
 // Routes
 app.post("/api", apiRoutes);

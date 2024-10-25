@@ -1,31 +1,31 @@
 import { createLogger, format, transports } from "winston";
-import 'winston-daily-rotate-file';
-import fs from 'fs';
+import "winston-daily-rotate-file";
+import fs from "fs";
 
-const logDir = 'logs';
+const logDir = "logs";
 
 if (!fs.existsSync(logDir)) {
   fs.mkdirSync(logDir);
 }
 
 const infoTransport = new transports.DailyRotateFile({
-  filename: 'info-%DATE%.log',
+  filename: "info-%DATE%.log",
   dirname: logDir,
-  datePattern: 'YYYY-MM-DD',
-  level: 'info',
+  datePattern: "YYYY-MM-DD",
+  level: "info",
   zippedArchive: false,
-  maxSize: '20m',
-  maxFiles: process.env.LOG_FILE_DURATION || '30d',
+  maxSize: "20m",
+  maxFiles: process.env.LOG_FILE_DURATION || "30d",
 });
 
 const errorTransport = new transports.DailyRotateFile({
-  filename: 'error-%DATE%.log',
+  filename: "error-%DATE%.log",
   dirname: logDir,
-  datePattern: 'YYYY-MM-DD',
-  level: 'error',
+  datePattern: "YYYY-MM-DD",
+  level: "error",
   zippedArchive: false,
-  maxSize: '20m',
-  maxFiles: process.env.LOG_FILE_DURATION || '30d',
+  maxSize: "20m",
+  maxFiles: process.env.LOG_FILE_DURATION || "30d",
 });
 
 const { combine, timestamp, align, splat, printf, colorize } = format;
@@ -47,24 +47,21 @@ const logLevels = {
   },
 };
 
-const customFormat = printf(({ level, message, timestamp }) => `\n[${timestamp}] [${level}]: ${message}`);
+const customFormat = printf(
+  ({ level, message, timestamp }) => `\n[${timestamp}] [${level}]: ${message}`,
+);
 
 const winstonLogger = createLogger({
   levels: logLevels.levels,
-  format: combine(
-    timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
-    customFormat,
-    splat(),
-    align(),
-  ),
+  format: combine(timestamp({ format: "YYYY-MM-DD HH:mm:ss" }), customFormat, splat(), align()),
   transports: [
-    new transports.Console(({
+    new transports.Console({
       format: combine(
         colorize({ colors: logLevels.colors }),
         timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
         customFormat,
       ),
-    })),
+    }),
     infoTransport,
     errorTransport,
   ],
@@ -73,7 +70,7 @@ const winstonLogger = createLogger({
 
 export const morganStream = {
   write: (message: string) => {
-    const statusCode = parseInt(message.split(' ')[2], 10);
+    const statusCode = parseInt(message.split(" ")[2], 10);
     if (statusCode >= 400) {
       logger.error(message.trim());
     } else {

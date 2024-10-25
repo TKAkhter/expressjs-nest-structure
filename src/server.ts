@@ -1,5 +1,5 @@
-import app from './app';
-import { logger } from './common/winston/winston';
+import app from "./app";
+import { logger } from "./common/winston/winston";
 
 const PORT = process.env.PORT || 3000;
 const ENV = process.env.NODE_ENV;

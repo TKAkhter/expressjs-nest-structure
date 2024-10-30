@@ -1,7 +1,7 @@
-import swaggerJSDoc from 'swagger-jsdoc';
-import swaggerUi from 'swagger-ui-express';
-import { Express } from 'express';
-import { env } from '../../config/env';
+import swaggerJSDoc from "swagger-jsdoc";
+import swaggerUi from "swagger-ui-express";
+import { Express } from "express";
+import { env } from "../../config/env";
 
 const swaggerOptions: swaggerJSDoc.Options = {
   definition: {
@@ -27,12 +27,12 @@ const swaggerOptions: swaggerJSDoc.Options = {
       },
     ],
   },
-  apis: ['../../entities/user/user.routes.ts'], // Path to your route files for Swagger to generate docs
+  apis: ["../../entities/user/user.routes.ts"], // Path to your route files for Swagger to generate docs
 };
 
 // Initialize swagger-jsdoc with options
 const swaggerSpec = swaggerJSDoc(swaggerOptions);
 
 export const setupSwagger = (app: Express): void => {
-  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, { explorer: true }));
+  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, { explorer: true }));
 };

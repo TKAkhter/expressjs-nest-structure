@@ -27,25 +27,27 @@ app.set("trust proxy", 1);
 setupSwagger(app);
 
 // Middlewares
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "trusted-scripts.com"],
-      objectSrc: ["'none'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "trusted-scripts.com"],
+        objectSrc: ["'none'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+      },
     },
-  },
-  hsts: {
-    maxAge: 31_536_000, // 1 year
-    includeSubDomains: true,
-    preload: true,
-  },
-  noSniff: true,
-  referrerPolicy: { policy: "same-origin" },
-  frameguard: { action: "deny" },
-  crossOriginEmbedderPolicy: true,
-}));
+    hsts: {
+      maxAge: 31_536_000, // 1 year
+      includeSubDomains: true,
+      preload: true,
+    },
+    noSniff: true,
+    referrerPolicy: { policy: "same-origin" },
+    frameguard: { action: "deny" },
+    crossOriginEmbedderPolicy: true,
+  }),
+);
 
 // Additional Security Headers
 app.use((_, res: Response, next: NextFunction) => {
@@ -93,7 +95,7 @@ app.use(speedLimiter);
 app.use(responseTime());
 
 // Timeout Middleware
-app.use(timeout(env.SERVER_TIMEOUT as string || "150s")); // Set a 150-second timeout for all routes
+app.use(timeout((env.SERVER_TIMEOUT as string) || "150s")); // Set a 150-second timeout for all routes
 
 // Permissions Policy
 app.use((_, res, next) => {

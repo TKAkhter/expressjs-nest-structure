@@ -1,12 +1,14 @@
 import { NextFunction, Request, Response } from "express";
-import jwt from "jsonwebtoken";
 import { env } from "../config/env";
+import jwt from "jsonwebtoken";
 
 interface RequestWithUser extends Request {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     user?: any;
 }
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const authMiddleware = (req: RequestWithUser, res: Response, next: NextFunction): any => {
+
     // Check if the request URL contains 'login'
     if (req.url.includes("login")) {
 

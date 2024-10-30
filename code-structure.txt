@@ -1,0 +1,25 @@
+src
+├── common
+│   ├── redis
+│   │   ├── redis.ts
+│   ├── winston
+│   │   ├── winston.ts
+├── databases
+│   ├── knex
+│   │   ├── index.ts
+│   │   ├── knex-file.ts
+├── entities
+│   ├── user
+│   │   ├── user.controller.ts
+│   │   ├── user.dto.ts
+│   │   ├── user.service.ts
+│   │   ├── user.route.ts
+├── middleware
+│   ├── auth-middleware.ts
+│   ├── cors.ts
+│   ├── error-handler.ts
+│   ├── zod-validation.ts
+├── routes
+│   ├── routes.ts
+├── app.ts
+└── server.ts 

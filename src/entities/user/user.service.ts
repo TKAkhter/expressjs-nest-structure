@@ -1,4 +1,4 @@
-import { CreateUserDto } from "./dto/user.dto";
+import { CreateUserDto } from "./user.dto";
 
 export class UserService {
   async createUser(userData: CreateUserDto) {

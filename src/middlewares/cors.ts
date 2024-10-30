@@ -1,6 +1,7 @@
 import corsLibrary from "cors";
+import { env } from "../config/env";
 
-const allowedOrigins = (process.env.ALLOW_ORIGIN || "").split(",");
+const allowedOrigins = (env.ALLOW_ORIGIN || "").split(",");
 
 export const config = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -22,7 +23,7 @@ export const config = {
     "credentials": true,
     "exposedHeaders": ["Content-Type", "set-cookie"],
     "options": {
-        "Access-Control-Allow-Origin": process.env.ALLOW_ORIGIN || "*",
+        "Access-Control-Allow-Origin": env.ALLOW_ORIGIN || "*",
         "Access-Control-Allow-Headers": "Origin, X-Requested-With, Content-Type, Accept",
         "Access-Control-Allow-Methods": "GET,HEAD,OPTIONS,PUT,POST,DELETE"
     }

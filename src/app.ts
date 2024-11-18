@@ -13,18 +13,15 @@ import responseTime from "response-time";
 import timeout from "connect-timeout";
 import { apiRoutes } from "./routes/routes";
 import { morganStream } from "./common/winston/winston";
-import { setupSwagger } from "./common/swagger/swagger";
 import { errorHandler, cors } from "./middlewares";
 import { env } from "./config/env";
-import { healthCheckRouter } from "./routes/health-check";
+import { openAPIRouter } from "./common/swagger/swagger.router";
+import { healthCheckRouter } from "./entities/health-check/health-check";
 
 const app = express();
 
 // Set the trust proxy to handle X-Forwarded-For correctly
 app.set("trust proxy", 1);
-
-// Setup Swagger
-setupSwagger(app);
 
 // Middlewares
 app.use(
@@ -106,6 +103,9 @@ app.use((_, res, next) => {
 // Routes
 app.use("/", healthCheckRouter);
 app.use("/api", apiRoutes);
+
+// Swagger UI
+app.use(openAPIRouter);
 
 // Custom Error Handler Middleware
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {

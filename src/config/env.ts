@@ -9,7 +9,7 @@ const envSchema = z.object({
     "PORT": z.string().transform((val) => parseInt(val, 10)),
     "SERVER_TIMEOUT": z.string().default("150s"),
     "LOG_FILE_DURATION": z.string().default("3d"),
-    "ALLOW_ORIGIN": z.string().url(),
+    "ALLOW_ORIGIN": z.string(),
 
     // Redis Configuration
     "REDIS_URL": z.string(),

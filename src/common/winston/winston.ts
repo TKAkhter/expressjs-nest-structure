@@ -1,6 +1,7 @@
 import { createLogger, format, transports } from "winston";
 import "winston-daily-rotate-file";
 import fs from "fs";
+import { env } from "../../config/env";
 
 const logDir = "logs";
 
@@ -15,7 +16,7 @@ const infoTransport = new transports.DailyRotateFile({
   level: "info",
   zippedArchive: false,
   maxSize: "20m",
-  maxFiles: process.env.LOG_FILE_DURATION || "30d",
+  maxFiles: env.LOG_FILE_DURATION || "30d",
 });
 
 const errorTransport = new transports.DailyRotateFile({
@@ -25,7 +26,7 @@ const errorTransport = new transports.DailyRotateFile({
   level: "error",
   zippedArchive: false,
   maxSize: "20m",
-  maxFiles: process.env.LOG_FILE_DURATION || "30d",
+  maxFiles: env.LOG_FILE_DURATION || "30d",
 });
 
 const { combine, timestamp, align, splat, printf, colorize } = format;
@@ -48,7 +49,7 @@ const logLevels = {
 };
 
 const customFormat = printf(
-  ({ level, message, timestamp }) => `\n[${timestamp}] [${level}]: ${message}`,
+  ({ level, message, timestamp }) => `[${timestamp}] [${level}]: ${message}`,
 );
 
 const winstonLogger = createLogger({
@@ -81,20 +82,20 @@ export const morganStream = {
 
 export const logger = {
   info: (message: any, req?: any) => {
-    const formattedMessage = req?.user.sub ? { userId: req?.user.sub, message: message } : message;
+    // const formattedMessage = req?.user.sub ? { userId: req?.user.sub, message: message } : message;
     // console.log(formattedMessage);
-    winstonLogger.info(formattedMessage);
+    winstonLogger.info(message);
   },
 
   http: (message: any, req?: any) => {
-    const formattedMessage = req?.user.sub ? { userId: req?.user.sub, message: message } : message;
+    // const formattedMessage = req?.user.sub ? { userId: req?.user.sub, message: message } : message;
     // console.log(formattedMessage);
-    winstonLogger.http(formattedMessage);
+    winstonLogger.http(message);
   },
 
   error: (message: any, req?: any) => {
-    const formattedMessage = req?.user.sub ? { userId: req?.user.sub, message: message } : message;
+    // const formattedMessage = req?.user.sub ? { userId: req?.user.sub, message: message } : message;
     // console.error(formattedMessage);
-    winstonLogger.error(formattedMessage);
+    winstonLogger.error(message);
   },
 };

@@ -1,11 +1,21 @@
-import { NextFunction, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { HttpError } from "http-errors";
 import { StatusCodes } from "http-status-codes";
 import { env } from "../config/env";
 import { logger } from "../common/winston/winston";
 
+interface RequestWithUser extends Request {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  user?: any;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const errorHandler = (err: any, req: any, res: Response, _: NextFunction): Response => {
+export const errorHandler = (
+  err: any,
+  req: RequestWithUser,
+  res: Response,
+  _: NextFunction,
+): Response => {
   // eslint-disable-line @typescript-eslint/no-explicit-any
   const { message, ...details } = err;
   const isHttpError = err instanceof HttpError;

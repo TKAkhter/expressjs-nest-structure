@@ -3,20 +3,20 @@ import { StatusCodes } from "http-status-codes";
 import type { z } from "zod";
 
 export function createApiResponse(
-    schema: z.ZodTypeAny,
-    description: string,
-    statusCode = StatusCodes.OK
+  schema: z.ZodTypeAny,
+  description: string,
+  statusCode = StatusCodes.OK,
 ) {
-    return {
-        [statusCode]: {
-            description,
-            "content": {
-                "application/json": {
-                    "schema": ServiceResponseSchema(schema)
-                }
-            }
-        }
-    };
+  return {
+    [statusCode]: {
+      description,
+      content: {
+        "application/json": {
+          schema: ServiceResponseSchema(schema),
+        },
+      },
+    },
+  };
 }
 
 // Use if you want multiple responses for a single endpoint

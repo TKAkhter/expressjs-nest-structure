@@ -1,6 +1,6 @@
 import express from "express";
 import { UserController } from "./user.controller";
-import { CreateUserDto, UpdateUserDto, UserSchema } from "./user.dto";
+import { CreateUserSchema, UpdateUserSchema, UserSchema } from "./user.dto";
 import { zodValidation } from "../../middlewares/zod-validation";
 import { OpenAPIRegistry } from "@asteasolutions/zod-to-openapi";
 import { createApiResponse } from "../../common/swagger/swagger-response-builder";
@@ -54,12 +54,12 @@ userRegistry.registerPath({
     tags: ["User"],
     request: {
         body: {
-            content: { 'application/json': { schema: CreateUserDto } },
+            content: { 'application/json': { schema: CreateUserSchema } },
         },
     },
-    responses: createApiResponse(CreateUserDto, "User Created Successfully"),
+    responses: createApiResponse(CreateUserSchema, "User Created Successfully"),
 });
-userRouter.post("/", zodValidation(CreateUserDto), userController.createUser);
+userRouter.post("/", zodValidation(CreateUserSchema), userController.createUser);
 
 userRegistry.registerPath({
     method: "put",
@@ -68,12 +68,12 @@ userRegistry.registerPath({
     request: {
         params: z.object({ id: z.string() }),
         body: {
-            content: { 'application/json': { schema: UpdateUserDto } },
+            content: { 'application/json': { schema: UpdateUserSchema } },
         },
     },
-    responses: createApiResponse(UpdateUserDto, "User Updated Successfully"),
+    responses: createApiResponse(UpdateUserSchema, "User Updated Successfully"),
 });
-userRouter.put("/:id", zodValidation(UpdateUserDto), userController.updateUser);
+userRouter.put("/:id", zodValidation(UpdateUserSchema), userController.updateUser);
 
 userRegistry.registerPath({
     method: "delete",

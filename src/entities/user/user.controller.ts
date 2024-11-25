@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { UserService } from "./user.service";
-import { UserDto } from "./user.dto";
+import { CreateUserDto } from "./user.dto";
 
 const userService = new UserService();
 
@@ -50,7 +50,7 @@ export class UserController {
   };
 
   async createUser(req: Request, res: Response): Promise<any> {
-    const userDto: UserDto = req.body;
+    const userDto: CreateUserDto = req.body;
     try {
       const user = await userService.createUser(userDto);
       return res.status(201).json(user);

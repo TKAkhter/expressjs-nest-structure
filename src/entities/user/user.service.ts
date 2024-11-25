@@ -1,4 +1,4 @@
-import { UserDto, User } from "./user.dto";
+import { UserModel, UpdateUserDto, CreateUserDto } from "./user.dto";
 import { hash } from "bcrypt";
 import { v4 as uuidv4 } from "uuid";
 import { env } from "../../config/env";
@@ -6,7 +6,7 @@ import { env } from "../../config/env";
 export class UserService {
   async getAllUsers() {
     try {
-      const users = await User.find();
+      const users = await UserModel.find();
       return users;
     } catch (error) {
       if (error instanceof Error) {
@@ -18,7 +18,7 @@ export class UserService {
 
   async getUserByUuid(uuid: string) {
     try {
-      const user = await User.findOne({ uuid });
+      const user = await UserModel.findOne({ uuid });
       return user;
     } catch (error) {
       if (error instanceof Error) {
@@ -30,7 +30,7 @@ export class UserService {
 
   async getUserByUsername(username: string) {
     try {
-      const user = await User.findOne({ username });
+      const user = await UserModel.findOne({ username });
       return user;
     } catch (error) {
       if (error instanceof Error) {
@@ -40,7 +40,7 @@ export class UserService {
     }
   }
 
-  async createUser(userData: UserDto) {
+  async createUser(userData: CreateUserDto) {
     try {
       const user = await this.getUserByUsername(userData.username);
 
@@ -50,7 +50,7 @@ export class UserService {
 
       const hashedPassword = await hash(userData.password, env.HASH!);
       const currentTime = new Date();
-      const newUser = new User({ ...userData, uuid: uuidv4(), password: hashedPassword, createdAt: currentTime, updatedAt: currentTime });
+      const newUser = new UserModel({ ...userData, uuid: uuidv4(), password: hashedPassword, createdAt: currentTime, updatedAt: currentTime });
 
       return await newUser.save();
     } catch (error) {
@@ -61,7 +61,7 @@ export class UserService {
     }
   }
 
-  async updateUser(uuid: string, updateData: Partial<UserDto>) {
+  async updateUser(uuid: string, updateData: UpdateUserDto) {
     try {
       const user = await this.getUserByUuid(uuid);
 
@@ -76,7 +76,7 @@ export class UserService {
       const currentTime = new Date();
       updateData.updatedAt = currentTime;
 
-      return await User.findByIdAndUpdate(user.id, updateData, { new: true });
+      return await UserModel.findByIdAndUpdate(user.id, updateData, { new: true });
     } catch (error) {
       if (error instanceof Error) {
         throw new Error("Error updating user: " + error.message);
@@ -93,7 +93,7 @@ export class UserService {
         throw new Error("User does not exist!");
       }
 
-      return await User.findByIdAndDelete(user.id);
+      return await UserModel.findByIdAndDelete(user.id);
     } catch (error) {
       if (error instanceof Error) {
         throw new Error("Error deleting user: " + error.message);
@@ -107,7 +107,7 @@ export class UserService {
       throw new Error("Invalid array of IDs.");
     }
 
-    const result = await User.deleteMany({ uuid: { $in: ids } });
+    const result = await UserModel.deleteMany({ uuid: { $in: ids } });
 
     if (result.deletedCount === 0) {
       throw new Error("No users found to delete.");

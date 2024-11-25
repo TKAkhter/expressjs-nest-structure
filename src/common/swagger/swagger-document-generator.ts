@@ -5,19 +5,22 @@ import { env } from "../../config/env";
 
 export function generateOpenAPIDocument() {
   const registry = new OpenAPIRegistry([healthCheckRegistry, userRegistry]);
+
+  registry.registerComponent("securitySchemes", "bearerAuth", {
+    type: "http",
+    scheme: "bearer",
+    bearerFormat: "JWT",
+  });
+
   const generator = new OpenApiGeneratorV3(registry.definitions);
 
   return generator.generateDocument({
-    openapi: "3.0.0",
+    openapi: "3.1.0",
     info: {
       version: "1.0.0",
       title: "Swagger API",
       description: "This is a simple CRUD API application made with Express and documented with Swagger",
-      // contact: {
-      //   name: "LogRocket",
-      //   url: "https://logrocket.com",
-      //   email: "info@email.com",
-      // },
+      termsOfService: "http://swagger.io/terms/",
     },
     externalDocs: {
       description: "View the raw OpenAPI Specification in JSON format",
@@ -26,20 +29,16 @@ export function generateOpenAPIDocument() {
     servers: [
       {
         url: `${env.BASE_URL}/api`,
+        description: "http protocol"
+      },
+      {
+        url: `${env.BASE_URL_HTTPS}/api`,
+        description: "https protocol"
       },
     ],
-    components: {
-      securitySchemes: {
-        BearerAuth: {
-          type: "http",
-          scheme: "bearer",
-          bearerFormat: "JWT", // Optional, but helpful to specify token format
-        },
-      },
-    },
     security: [
       {
-        BearerAuth: [], // Applies the BearerAuth security globally
+        bearerAuth: [],
       },
     ],
   });

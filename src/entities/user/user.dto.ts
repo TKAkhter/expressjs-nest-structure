@@ -15,22 +15,21 @@ export const UserSchema = z.object({
   updatedAt: z.date().optional(),
 });
 
-
-export const CreateUserDto = UserSchema.omit({
+export const CreateUserSchema = UserSchema.omit({
   uuid: true,
   createdAt: true,
   updatedAt: true,
 });
 
-export const UpdateUserDto = UserSchema.omit({
+export const UpdateUserSchema = UserSchema.omit({
   uuid: true,
   createdAt: true,
-  updatedAt: true,
   username: true,
 });
 
 export type UserDto = z.infer<typeof UserSchema>;
+export type CreateUserDto = z.infer<typeof CreateUserSchema>;
+export type UpdateUserDto = z.infer<typeof UpdateUserSchema>;
 
 const schema = zodSchema(UserSchema);
-
-export const User = model("User", schema);
+export const UserModel = model("User", schema);

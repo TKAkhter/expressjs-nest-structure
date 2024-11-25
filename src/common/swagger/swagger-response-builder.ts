@@ -1,8 +1,12 @@
+import { ServiceResponseSchema } from "../../models/swagger-response";
 import { StatusCodes } from "http-status-codes";
 import type { z } from "zod";
-import { ServiceResponseSchema } from "../../models/swagger-response";
 
-export function createApiResponse(schema: z.ZodTypeAny, description: string, statusCode = StatusCodes.OK) {
+export function createApiResponse(
+  schema: z.ZodTypeAny,
+  description: string,
+  statusCode = StatusCodes.OK,
+) {
   return {
     [statusCode]: {
       description,
@@ -17,24 +21,24 @@ export function createApiResponse(schema: z.ZodTypeAny, description: string, sta
 
 // Use if you want multiple responses for a single endpoint
 
-// import { ResponseConfig } from '@asteasolutions/zod-to-openapi';
-// import { ApiResponseConfig } from '@common/models/openAPIResponseConfig';
-// export type ApiResponseConfig = {
-//   schema: z.ZodTypeAny;
-//   description: string;
-//   statusCode: StatusCodes;
+// Import { ResponseConfig } from '@asteasolutions/zod-to-openapi';
+// Import { ApiResponseConfig } from '@common/models/openAPIResponseConfig';
+// Export type ApiResponseConfig = {
+//   Schema: z.ZodTypeAny;
+//   Description: string;
+//   StatusCode: StatusCodes;
 // };
-// export function createApiResponses(configs: ApiResponseConfig[]) {
-//   const responses: { [key: string]: ResponseConfig } = {};
-//   configs.forEach(({ schema, description, statusCode }) => {
-//     responses[statusCode] = {
-//       description,
-//       content: {
+// Export function createApiResponses(configs: ApiResponseConfig[]) {
+//   Const responses: { [key: string]: ResponseConfig } = {};
+//   Configs.forEach(({ schema, description, statusCode }) => {
+//     Responses[statusCode] = {
+//       Description,
+//       Content: {
 //         'application/json': {
-//           schema: ServiceResponseSchema(schema),
+//           Schema: ServiceResponseSchema(schema),
 //         },
 //       },
 //     };
 //   });
-//   return responses;
+//   Return responses;
 // }

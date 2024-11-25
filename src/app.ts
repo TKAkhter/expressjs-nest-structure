@@ -1,22 +1,21 @@
-import path from "node:path";
-
+import { errorHandler, cors } from "./middlewares";
 import express, { NextFunction, Request, Response } from "express";
-import morgan from "morgan";
-import helmet from "helmet";
+import { apiRoutes } from "./routes/routes";
+import { env } from "./config/env";
+import { healthCheckRouter } from "./entities/health-check/health-check";
+import { morganStream } from "./common/winston/winston";
+import { openAPIRouter } from "./common/swagger/swagger.router";
+import { slowDown } from "express-slow-down";
 import compression from "compression";
 import cookieParser from "cookie-parser";
-import rateLimit from "express-rate-limit";
-import nocache from "nocache";
+import helmet from "helmet";
 import hpp from "hpp";
-import { slowDown } from "express-slow-down";
+import morgan from "morgan";
+import nocache from "nocache";
+import path from "node:path";
+import rateLimit from "express-rate-limit";
 import responseTime from "response-time";
 import timeout from "connect-timeout";
-import { apiRoutes } from "./routes/routes";
-import { morganStream } from "./common/winston/winston";
-import { errorHandler, cors } from "./middlewares";
-import { env } from "./config/env";
-import { openAPIRouter } from "./common/swagger/swagger.router";
-import { healthCheckRouter } from "./entities/health-check/health-check";
 
 const app = express();
 
@@ -65,14 +64,14 @@ app.use((_, res: Response, next: NextFunction) => {
 // Rate limiting middleware
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 1000, // limit each IP to 1000 requests per windowMs
+  max: 1000, // Limit each IP to 1000 requests per windowMs
 });
 
 // Slow down requests from a single IP to prevent abuse
 const speedLimiter = slowDown({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  delayAfter: 1000, // allow 1000 requests, then start delaying
-  delayMs: (hits) => hits * 500, // add a 500ms delay per request above 1000
+  delayAfter: 1000, // Allow 1000 requests, then start delaying
+  delayMs: (hits) => hits * 500, // Add a 500ms delay per request above 1000
 });
 
 // Apply middlewares

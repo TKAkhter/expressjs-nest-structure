@@ -1,6 +1,7 @@
 import globals from "globals";
 import pluginJs from "@eslint/js";
 import tseslint from "typescript-eslint";
+import importPlugin from "eslint-plugin-import";
 
 
 export default [{ files: ["**/*.{js,mjs,cjs,ts}"] },
@@ -8,6 +9,9 @@ export default [{ files: ["**/*.{js,mjs,cjs,ts}"] },
 pluginJs.configs.recommended,
 ...tseslint.configs.recommended,
 {
+  plugins: {
+    importPlugin
+  },
   "rules": {
     "accessor-pairs": ["error"],
     // "array-bracket-newline": ["error"],
@@ -22,7 +26,7 @@ pluginJs.configs.recommended,
     // "brace-style": ["error"],
     "camelcase": ["error"],
     "capitalized-comments": ["error"],
-    "class-methods-use-this": ["error"],
+    // "class-methods-use-this": "off",
     "comma-dangle": ["error"],
     "comma-spacing": ["error"],
     // "comma-style": ["error"],
@@ -186,7 +190,7 @@ pluginJs.configs.recommended,
     "no-shadow-restricted-names": ["error"],
     "no-spaced-func": ["error"],
     "no-sparse-arrays": ["error"],
-    "no-sync": ["error"],
+    "no-sync": "off",
     "no-tabs": ["error"],
     "no-template-curly-in-string": ["error"],
     "no-this-before-super": ["error"],
@@ -203,7 +207,8 @@ pluginJs.configs.recommended,
     "no-unsafe-finally": ["error"],
     "no-unsafe-negation": ["error"],
     "no-unsafe-optional-chaining": ["error"],
-    "no-unused-expressions": ["error"],
+    "no-unused-expressions": "off",
+    "@typescript-eslint/no-unused-expressions": ["error", { "allowShortCircuit": true }],
     "no-unused-labels": ["error"],
     "no-unused-private-class-members": ["error"],
     "no-use-before-define": ["error"],
@@ -248,13 +253,13 @@ pluginJs.configs.recommended,
     "quote-props": ["error"],
     "quotes": ["error"],
     "radix": ["error"],
-    "require-atomic-updates": ["error"],
+    // "require-atomic-updates": "off",
     "require-yield": ["error"],
     "rest-spread-spacing": ["error"],
     "semi": ["error"],
     "semi-spacing": ["error"],
     // "semi-style": ["error"],
-    "sort-imports": ["error"],
+    "sort-imports": ["off"],
     // "space-before-blocks": ["error"],
     // "space-before-function-paren": ["error"],
     // "space-in-parens": ["error"],
@@ -273,7 +278,7 @@ pluginJs.configs.recommended,
     "wrap-iife": ["error"],
     "wrap-regex": ["error"],
     // "yield-star-spacing": ["error"],
-    "yoda": ["error"]
-  },
+    "yoda": ["error"],
+  }
 }
 ];

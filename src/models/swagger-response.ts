@@ -14,11 +14,17 @@ export class ServiceResponse<T = null> {
     this.statusCode = statusCode;
   }
 
+  // eslint-disable-next-line no-shadow
   static success<T>(message: string, responseObject: T, statusCode: number = StatusCodes.OK) {
     return new ServiceResponse(true, message, responseObject, statusCode);
   }
 
-  static failure<T>(message: string, responseObject: T, statusCode: number = StatusCodes.BAD_REQUEST) {
+  // eslint-disable-next-line no-shadow
+  static failure<T>(
+    message: string,
+    responseObject: T,
+    statusCode: number = StatusCodes.BAD_REQUEST,
+  ) {
     return new ServiceResponse(false, message, responseObject, statusCode);
   }
 }

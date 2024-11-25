@@ -1,7 +1,7 @@
 import { UserModel, UpdateUserDto, CreateUserDto } from "./user.dto";
+import { env } from "../../config/env";
 import { hash } from "bcrypt";
 import { v4 as uuidv4 } from "uuid";
-import { env } from "../../config/env";
 
 export class UserService {
   async getAllUsers() {
@@ -10,7 +10,7 @@ export class UserService {
       return users;
     } catch (error) {
       if (error instanceof Error) {
-        throw new Error("Error fetching users: " + error.message);
+        throw new Error(`Error fetching users: ${error.message}`);
       }
       throw new Error("Unknown error occurred while fetching users.");
     }
@@ -22,7 +22,7 @@ export class UserService {
       return user;
     } catch (error) {
       if (error instanceof Error) {
-        throw new Error("Error fetching user by UUID: " + error.message);
+        throw new Error(`Error fetching user by UUID: ${error.message}`);
       }
       throw new Error("Unknown error occurred while fetching user by UUID.");
     }
@@ -34,7 +34,7 @@ export class UserService {
       return user;
     } catch (error) {
       if (error instanceof Error) {
-        throw new Error("Error fetching user by username: " + error.message);
+        throw new Error(`Error fetching user by username: ${error.message}`);
       }
       throw new Error("Unknown error occurred while fetching user by username.");
     }
@@ -50,12 +50,18 @@ export class UserService {
 
       const hashedPassword = await hash(userData.password, env.HASH!);
       const currentTime = new Date();
-      const newUser = new UserModel({ ...userData, uuid: uuidv4(), password: hashedPassword, createdAt: currentTime, updatedAt: currentTime });
+      const newUser = new UserModel({
+        ...userData,
+        uuid: uuidv4(),
+        password: hashedPassword,
+        createdAt: currentTime,
+        updatedAt: currentTime,
+      });
 
       return await newUser.save();
     } catch (error) {
       if (error instanceof Error) {
-        throw new Error("Error creating user: " + error.message);
+        throw new Error(`Error creating user: ${error.message}`);
       }
       throw new Error("Unknown error occurred while creating user.");
     }
@@ -79,7 +85,7 @@ export class UserService {
       return await UserModel.findByIdAndUpdate(user.id, updateData, { new: true });
     } catch (error) {
       if (error instanceof Error) {
-        throw new Error("Error updating user: " + error.message);
+        throw new Error(`Error updating user: ${error.message}`);
       }
       throw new Error("Unknown error occurred while updating user.");
     }
@@ -96,7 +102,7 @@ export class UserService {
       return await UserModel.findByIdAndDelete(user.id);
     } catch (error) {
       if (error instanceof Error) {
-        throw new Error("Error deleting user: " + error.message);
+        throw new Error(`Error deleting user: ${error.message}`);
       }
       throw new Error("Unknown error occurred while deleting user.");
     }

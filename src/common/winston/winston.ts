@@ -1,7 +1,8 @@
-import { createLogger, format, transports } from "winston";
 import "winston-daily-rotate-file";
-import fs from "fs";
+import { createLogger, format, transports } from "winston";
+import { StatusCodes } from "http-status-codes";
 import { env } from "../../config/env";
+import fs from "fs";
 
 const logDir = "logs";
 
@@ -49,7 +50,7 @@ const logLevels = {
 };
 
 const customFormat = printf(
-  ({ level, message, timestamp }) => `[${timestamp}] [${level}]: ${message}`,
+  ({ level, message, timestamp: stamp }) => `[${stamp}] [${level}]: ${message}`,
 );
 
 const winstonLogger = createLogger({
@@ -66,36 +67,37 @@ const winstonLogger = createLogger({
     infoTransport,
     errorTransport,
   ],
-  // exitOnError: false,
+  // ExitOnError: false,
 });
+
+export const logger = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  info: (message: any) => {
+    // Const formattedMessage = req?.user.sub ? { userId: req?.user.sub, message: message } : message;
+    // Console.log(formattedMessage);
+    winstonLogger.info(message);
+  },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  http: (message: any) => {
+    // Const formattedMessage = req?.user.sub ? { userId: req?.user.sub, message: message } : message;
+    // Console.log(formattedMessage);
+    winstonLogger.http(message);
+  },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  error: (message: any) => {
+    // Const formattedMessage = req?.user.sub ? { userId: req?.user.sub, message: message } : message;
+    // Console.error(formattedMessage);
+    winstonLogger.error(message);
+  },
+};
 
 export const morganStream = {
   write: (message: string) => {
     const statusCode = parseInt(message.split(" ")[2], 10);
-    if (statusCode >= 400) {
+    if (statusCode >= StatusCodes.BAD_REQUEST) {
       logger.error(message.trim());
     } else {
       logger.http(message.trim());
     }
-  },
-};
-
-export const logger = {
-  info: (message: any, req?: any) => {
-    // const formattedMessage = req?.user.sub ? { userId: req?.user.sub, message: message } : message;
-    // console.log(formattedMessage);
-    winstonLogger.info(message);
-  },
-
-  http: (message: any, req?: any) => {
-    // const formattedMessage = req?.user.sub ? { userId: req?.user.sub, message: message } : message;
-    // console.log(formattedMessage);
-    winstonLogger.http(message);
-  },
-
-  error: (message: any, req?: any) => {
-    // const formattedMessage = req?.user.sub ? { userId: req?.user.sub, message: message } : message;
-    // console.error(formattedMessage);
-    winstonLogger.error(message);
   },
 };

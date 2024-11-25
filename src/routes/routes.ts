@@ -1,6 +1,6 @@
 import { Router } from "express";
-import userRoutes from "../entities/user/user.route";
 import { healthCheckRouter } from "../entities/health-check/health-check";
+import userRoutes from "../entities/user/user.route";
 
 export const apiRoutes = Router();
 // AuthMiddleware

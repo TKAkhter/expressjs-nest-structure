@@ -1,7 +1,7 @@
 import { OpenAPIRegistry, OpenApiGeneratorV3 } from "@asteasolutions/zod-to-openapi";
-import { userRegistry } from "../../entities/user/user.route";
-import { healthCheckRegistry } from "../../entities/health-check/health-check";
 import { env } from "../../config/env";
+import { healthCheckRegistry } from "../../entities/health-check/health-check";
+import { userRegistry } from "../../entities/user/user.route";
 
 export function generateOpenAPIDocument() {
   const registry = new OpenAPIRegistry([healthCheckRegistry, userRegistry]);
@@ -19,7 +19,8 @@ export function generateOpenAPIDocument() {
     info: {
       version: "1.0.0",
       title: "Swagger API",
-      description: "This is a simple CRUD API application made with Express and documented with Swagger",
+      description:
+        "This is a simple CRUD API application made with Express and documented with Swagger",
       termsOfService: "http://swagger.io/terms/",
     },
     externalDocs: {
@@ -29,11 +30,11 @@ export function generateOpenAPIDocument() {
     servers: [
       {
         url: `${env.BASE_URL}/api`,
-        description: "http protocol"
+        description: "http protocol",
       },
       {
         url: `${env.BASE_URL_HTTPS}/api`,
-        description: "https protocol"
+        description: "https protocol",
       },
     ],
     security: [

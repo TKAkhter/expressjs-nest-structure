@@ -1,40 +1,39 @@
 import { NextFunction, Request, Response } from "express";
-import createHttpError from "http-errors";
 import { env } from "../config/env";
+import { logger } from "../common/winston/winston";
+import { HttpError } from "http-errors";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const errorHandler = (err: any, _: Request, res: Response, __: NextFunction) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+export const errorHandler = (err: any, req: any, res: Response, _: NextFunction): Response => { // eslint-disable-line @typescript-eslint/no-explicit-any
+    const { message, ...details } = err;
+    const isHttpError = err instanceof HttpError;
 
-    const { message, status, stack } = err;
+    const statusCode = isHttpError ? err.status || 500 : 500;
+    const name = isHttpError ? err.name : "AppError";
+    const user = req.user?.email || "Unknown User";
+    const method = req.method;
+    const url = req.originalUrl;
 
-    let messages;
-    try {
+    const stack = err.stack;
 
-        messages = JSON.parse(message);
+    const errorPayload = {
+        status: statusCode,
+        message,
+        method,
+        url,
+        user,
+        name,
+        details,
+        stack,
+    };
 
-    } catch {
+    logger.error(JSON.stringify(errorPayload));
 
-        messages = message;
+    const responsePayload = {
+        status: statusCode,
+        message,
+        ...(env.NODE_ENV !== "production" && { method, url, user, name, details, stack }),
+    };
 
-    }
-
-    if (createHttpError.isHttpError(err)) {
-
-        return res.status(status || 500).json({
-            status,
-            "error": name,
-            "message": messages,
-            "stack": env.NODE_ENV !== "production"
-                ? stack
-                : undefined
-        });
-
-    }
-
-    return res.status(500).json({
-        "status": 500,
-        "error": "Internal Server Error",
-        "message": message || "Something went wrong"
-    });
-
+    return res.status(statusCode).json(responsePayload);
 };

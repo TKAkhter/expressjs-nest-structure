@@ -101,7 +101,7 @@ app.use((_, res, next) => {
 });
 
 // Routes
-app.use("/", healthCheckRouter);
+app.use("/health-check", healthCheckRouter);
 app.use("/api", apiRoutes);
 
 // Swagger UI

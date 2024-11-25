@@ -1,9 +1,8 @@
 import app from "./app";
-import redis from "./common/redis/redis";
 import { logger } from "./common/winston/winston";
 import { env } from "./config/env";
-import knex from "./database/knex";
 import mongoose from "mongoose";
+import { checkPostgres, checkRedis } from "./entities/health-check/health-check-services-status";
 
 const PORT = env.PORT || 3000;
 const ENV = env.NODE_ENV;
@@ -12,9 +11,9 @@ const ALLOW_ORIGIN = env.ALLOW_ORIGIN;
 
 async function checkConnections() {
   try {
-    await knex.raw("SELECT 1+1 AS result");
+    await checkPostgres();
     logger.info("Postgres connections verified successfully.");
-    await redis.ping();
+    await checkRedis();
     logger.info("Redis connections verified successfully.");
     await mongoose.connect(env.MONGODB_URI || "");
     logger.info("MongoDB connections verified successfully.");

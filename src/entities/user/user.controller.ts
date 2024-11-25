@@ -1,39 +1,34 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { UserService } from "./user.service";
 import { CreateUserDto } from "./user.dto";
+import createHttpError from "http-errors";
 
 const userService = new UserService();
 
 export class UserController {
-  async getAllUsers(_req: Request, res: Response): Promise<any> {
+  async getAllUsers(_req: Request, res: Response, next: NextFunction): Promise<any> {
     try {
       const users = await userService.getAllUsers();
       return res.json(users);
     } catch (error) {
-      if (error instanceof Error) {
-        return res.status(500).json({ message: error.message });
-      }
-      return res.status(500).json({ message: "Unknown error occurred while fetching users." });
+      next(error);
     }
   };
 
-  async getUser(req: Request, res: Response): Promise<any> {
+  async getUser(req: Request, res: Response, next: NextFunction): Promise<any> {
     const { id } = req.params;
     try {
       const user = await userService.getUserByUuid(id);
       if (!user) {
-        return res.status(404).json({ message: "User not found" });
+        throw createHttpError(400, "User not found", { resource: "User" });
       }
       return res.json(user);
     } catch (error) {
-      if (error instanceof Error) {
-        return res.status(500).json({ message: error.message });
-      }
-      return res.status(500).json({ message: "Unknown error occurred while fetching user by UUID." });
+      next(error);
     }
   };
 
-  async getUserByUsername(req: Request, res: Response): Promise<any> {
+  async getUserByUsername(req: Request, res: Response, next: NextFunction): Promise<any> {
     const { username } = req.params;
     try {
       const user = await userService.getUserByUsername(username);
@@ -42,58 +37,46 @@ export class UserController {
       }
       return res.json(user);
     } catch (error) {
-      if (error instanceof Error) {
-        return res.status(500).json({ message: error.message });
-      }
-      return res.status(500).json({ message: "Unknown error occurred while fetching user by username." });
+      next(error);
     }
   };
 
-  async createUser(req: Request, res: Response): Promise<any> {
+  async createUser(req: Request, res: Response, next: NextFunction): Promise<any> {
     const userDto: CreateUserDto = req.body;
     try {
       const user = await userService.createUser(userDto);
       return res.status(201).json(user);
     } catch (error) {
-      if (error instanceof Error) {
-        return res.status(400).json({ message: error.message });
-      }
-      return res.status(500).json({ message: "Unknown error occurred while creating user." });
+      next(error);
     }
   };
 
-  async updateUser(req: Request, res: Response): Promise<any> {
+  async updateUser(req: Request, res: Response, next: NextFunction): Promise<any> {
     const { id } = req.params;
     const updateData = req.body;
     try {
       const user = await userService.updateUser(id, updateData);
       return res.json(user);
     } catch (error) {
-      if (error instanceof Error) {
-        return res.status(404).json({ message: error.message });
-      }
-      return res.status(500).json({ message: "Unknown error occurred while updating user." });
+      next(error);
     }
   };
 
-  async deleteUser(req: Request, res: Response): Promise<any> {
+  async deleteUser(req: Request, res: Response, next: NextFunction): Promise<any> {
     const { id } = req.params;
     try {
-      const user = await userService.deleteUser(id);
+      await userService.deleteUser(id);
       return res.status(201).send("User Deleted Successfully");
     } catch (error) {
-      if (error instanceof Error) {
-        return res.status(404).json({ message: error.message });
-      }
-      return res.status(500).json({ message: "Unknown error occurred while deleting user." });
+      next(error);
     }
   };
 
-  async deleteAllUsers(req: Request, res: Response): Promise<any> {
+  async deleteAllUsers(req: Request, res: Response, next: NextFunction): Promise<any> {
     const { ids } = req.body;
     try {
       if (!Array.isArray(ids) || ids.length === 0) {
-        return res.status(400).json({ message: "Invalid or empty array of IDs." });
+        throw createHttpError(400, "Invalid or empty array of IDs.", { resource: "User" });
       }
 
       const result = await userService.deleteAllUsers(ids);
@@ -102,10 +85,7 @@ export class UserController {
         message: `${result.deletedCount} users deleted successfully.`,
       });
     } catch (error) {
-      if (error instanceof Error) {
-        return res.status(404).json({ message: error.message });
-      }
-      return res.status(500).json({ message: "Unknown error occurred while deleting users." });
+      next(error);
     }
   };
 }

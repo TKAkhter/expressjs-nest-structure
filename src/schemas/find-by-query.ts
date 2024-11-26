@@ -3,6 +3,14 @@ import { z } from "zod";
 
 extendZodWithOpenApi(z);
 
+// Example of a schema for a find by query endpoint
+// {
+//     "page": 1,
+//     "rowsPerPage": 7,
+//     "sort": "username:asc",
+//     "filter": { "username" : { "$regex": "test23", "$options": "i" }}
+// }
+
 export const FindByQuerySchema = z.object({
   page: z.number().min(1).default(1),
   rowsPerPage: z.number().min(1).default(10),

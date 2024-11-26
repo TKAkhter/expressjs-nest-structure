@@ -1,4 +1,4 @@
-import { ServiceResponseSchema } from "../../models/swagger-response";
+import { ServiceResponseSchema } from "./swagger-response";
 import { StatusCodes } from "http-status-codes";
 import type { z } from "zod";
 

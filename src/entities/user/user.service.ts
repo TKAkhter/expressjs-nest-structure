@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 import { FindByQueryDto } from "../../schemas/find-by-query";
 import createHttpError from "http-errors";
 import { StatusCodes } from "http-status-codes";
+import { logger } from "../../common/winston/winston";
 
 export class UserService {
   async getAllUsers() {
@@ -46,9 +47,8 @@ export class UserService {
       const user = await UserModel.findOne({ username });
 
       if (!user) {
-        throw createHttpError(StatusCodes.BAD_REQUEST, "User not found.", {
-          resource: "User",
-        });
+        logger.error(`User with username ${username} not found.`);
+        return false;
       }
 
       return user;

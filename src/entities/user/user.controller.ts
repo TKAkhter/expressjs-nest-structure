@@ -22,9 +22,6 @@ export class UserController {
     const { id } = req.params;
     try {
       const user = await userService.getUserByUuid(id);
-      if (!user) {
-        throw createHttpError(StatusCodes.BAD_REQUEST, "User not found", { resource: "User" });
-      }
       return res.json(user);
     } catch (error) {
       next(error);
@@ -36,9 +33,6 @@ export class UserController {
     const { username } = req.params;
     try {
       const user = await userService.getUserByUsername(username);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
       return res.json(user);
     } catch (error) {
       next(error);
@@ -57,9 +51,9 @@ export class UserController {
       };
 
       const result = await userService.findByQuery(queryOptions);
-      res.status(200).json(result);
+      res.json(result);
     } catch (error) {
-      next(createHttpError(500, error instanceof Error ? error.message : "Internal Server Error"));
+      next(error);
     }
   }
 
@@ -68,7 +62,7 @@ export class UserController {
     const userDto: CreateUserDto = req.body;
     try {
       const user = await userService.createUser(userDto);
-      return res.status(StatusCodes.OK).json(user);
+      return res.json(user);
     } catch (error) {
       next(error);
     }
@@ -91,7 +85,7 @@ export class UserController {
     const { id } = req.params;
     try {
       await userService.deleteUser(id);
-      return res.status(StatusCodes.CREATED).send("User Deleted Successfully");
+      return res.json({ message: "User Deleted Successfully" });
     } catch (error) {
       next(error);
     }
@@ -109,7 +103,7 @@ export class UserController {
 
       const result = await userService.deleteAllUsers(ids);
 
-      return res.status(StatusCodes.OK).json({
+      return res.json({
         message: `${result.deletedCount} users deleted successfully.`,
       });
     } catch (error) {

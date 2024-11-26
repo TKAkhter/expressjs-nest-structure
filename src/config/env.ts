@@ -17,6 +17,7 @@ const envSchema = z.object({
 
   // Basic Auth Secrets
   JWT_SECRET: z.string(),
+  JWT_SECRET_EXPIRATION: z.string(),
   HASH: z.string().transform((val) => parseInt(val, 10)),
 
   // Database URLs

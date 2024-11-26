@@ -3,6 +3,8 @@ import { env } from "../../config/env";
 import { hash } from "bcrypt";
 import { v4 as uuidv4 } from "uuid";
 import { FindByQueryDto } from "../../schemas/find-by-query";
+import createHttpError from "http-errors";
+import { StatusCodes } from "http-status-codes";
 
 export class UserService {
   async getAllUsers() {
@@ -20,8 +22,18 @@ export class UserService {
   async getUserByUuid(uuid: string) {
     try {
       const user = await UserModel.findOne({ uuid });
+
+      if (!user) {
+        throw createHttpError(StatusCodes.BAD_REQUEST, "User not found.", {
+          resource: "User",
+        });
+      }
+
       return user;
     } catch (error) {
+      if (createHttpError.isHttpError(error)) {
+        throw error;
+      }
       if (error instanceof Error) {
         throw new Error(`Error fetching user by UUID: ${error.message}`);
       }
@@ -32,8 +44,19 @@ export class UserService {
   async getUserByUsername(username: string) {
     try {
       const user = await UserModel.findOne({ username });
+
+      if (!user) {
+        throw createHttpError(StatusCodes.BAD_REQUEST, "User not found.", {
+          resource: "User",
+        });
+      }
+
       return user;
     } catch (error) {
+      if (createHttpError.isHttpError(error)) {
+        throw error;
+      }
+
       if (error instanceof Error) {
         throw new Error(`Error fetching user by username: ${error.message}`);
       }
@@ -75,7 +98,9 @@ export class UserService {
       const user = await this.getUserByUsername(userData.username);
 
       if (user) {
-        throw new Error("User already exists!");
+        throw createHttpError(StatusCodes.BAD_REQUEST, "User already exists!", {
+          resource: "User",
+        });
       }
 
       const hashedPassword = await hash(userData.password, env.HASH!);
@@ -90,6 +115,10 @@ export class UserService {
 
       return await newUser.save();
     } catch (error) {
+      if (createHttpError.isHttpError(error)) {
+        throw error;
+      }
+
       if (error instanceof Error) {
         throw new Error(`Error creating user: ${error.message}`);
       }
@@ -102,7 +131,9 @@ export class UserService {
       const user = await this.getUserByUuid(uuid);
 
       if (!user) {
-        throw new Error("User does not exist!");
+        throw createHttpError(StatusCodes.BAD_REQUEST, "User does not exist!", {
+          resource: "User",
+        });
       }
 
       if (updateData.password) {
@@ -114,6 +145,10 @@ export class UserService {
 
       return await UserModel.findByIdAndUpdate(user.id, updateData, { new: true });
     } catch (error) {
+      if (createHttpError.isHttpError(error)) {
+        throw error;
+      }
+
       if (error instanceof Error) {
         throw new Error(`Error updating user: ${error.message}`);
       }
@@ -126,11 +161,17 @@ export class UserService {
       const user = await this.getUserByUuid(uuid);
 
       if (!user) {
-        throw new Error("User does not exist!");
+        throw createHttpError(StatusCodes.BAD_REQUEST, "User does not exist!", {
+          resource: "User",
+        });
       }
 
       return await UserModel.findByIdAndDelete(user.id);
     } catch (error) {
+      if (createHttpError.isHttpError(error)) {
+        throw error;
+      }
+
       if (error instanceof Error) {
         throw new Error(`Error deleting user: ${error.message}`);
       }

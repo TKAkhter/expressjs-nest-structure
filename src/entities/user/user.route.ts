@@ -5,10 +5,10 @@ import { authMiddleware } from "../../middlewares";
 import { createApiResponse } from "../../common/swagger/swagger-response-builder";
 import { zodValidation } from "../../middlewares/zod-validation";
 import { z } from "zod";
-import express from "express";
 import { FindByQuerySchema } from "../../schemas/find-by-query";
+import { Router } from "express";
 
-const userRouter = express.Router();
+const userRouter = Router();
 userRouter.use(authMiddleware);
 
 export const userRegistry = new OpenAPIRegistry();

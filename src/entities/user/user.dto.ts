@@ -6,13 +6,13 @@ import { zodSchema } from "@zodyac/zod-mongoose";
 extendZodWithOpenApi(z);
 
 export const UserSchema = z.object({
-  uuid: z.string().optional(),
+  uuid: z.string(),
   name: z.string().min(4, "Name is required"),
   username: z.string().min(4, "Username is required"),
-  // Email: z.string().email("Invalid email address"),
+  email: z.string().email("Invalid email address").optional(),
   password: z.string().min(6, "Password must be at least 6 characters"),
-  createdAt: z.date().optional(),
-  updatedAt: z.date().optional(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
 });
 
 export const CreateUserSchema = UserSchema.omit({

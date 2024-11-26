@@ -17,11 +17,11 @@ async function checkConnections() {
     logger.info("Redis connections verified successfully.");
     await mongoose.connect(env.MONGODB_URI || "");
     logger.info("MongoDB connections verified successfully.");
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (error: any) {
+  } catch (error) {
     logger.error("Postgres, MongoDb or Redis connection failed");
     logger.error(JSON.stringify(error));
-    throw new Error("HTTP server closed.");
+    // eslint-disable-next-line no-process-exit
+    process.exit(1);
   }
 }
 
@@ -36,7 +36,8 @@ checkConnections().then(() => {
     logger.info("SIGTERM signal received. Closing server...");
     server.close(() => {
       logger.info("HTTP server closed.");
-      throw new Error("HTTP server closed.");
+      // eslint-disable-next-line no-process-exit
+      process.exit();
     });
   };
 

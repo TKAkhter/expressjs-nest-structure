@@ -2,7 +2,7 @@ import { Router, Request, Response, NextFunction } from "express";
 import { checkMongoDB, checkPostgres, checkRedis } from "./health-check-services-status";
 import { createHealthCheckResponse, formatMemoryUsage } from "./health-check-helper";
 import { createApiResponse } from "../../common/swagger/swagger-response-builder";
-import { OpenAPIRegistry } from "@asteasolutions/zod-to-openapi";
+import { extendZodWithOpenApi, OpenAPIRegistry } from "@asteasolutions/zod-to-openapi";
 import { StatusCodes } from "http-status-codes";
 import { z } from "zod";
 
@@ -10,7 +10,9 @@ export const healthCheckRouter = Router();
 
 export const healthCheckRegistry = new OpenAPIRegistry();
 
-healthCheckRegistry.register("HealthCheck", z.object({}));
+extendZodWithOpenApi(z);
+
+healthCheckRegistry.register("HealthCheck", z.any());
 
 healthCheckRegistry.registerPath({
   method: "get",
@@ -18,7 +20,7 @@ healthCheckRegistry.registerPath({
   summary: "Get health check",
   tags: ["HealthCheck"],
   security: [],
-  responses: createApiResponse(z.array(z.object({})), "Success"),
+  responses: createApiResponse(z.any(), "Success"),
 });
 
 healthCheckRouter.get("/", async (_: Request, res: Response, next: NextFunction) => {

@@ -6,6 +6,7 @@ import { createApiResponse } from "../../common/swagger/swagger-response-builder
 import { zodValidation } from "../../middlewares/zod-validation";
 import { z } from "zod";
 import express from "express";
+import { FindByQuerySchema } from "../../schemas/find-by-query";
 
 const userRouter = express.Router();
 userRouter.use(authMiddleware);
@@ -47,6 +48,19 @@ userRegistry.registerPath({
   responses: createApiResponse(UserSchema, "Success"),
 });
 userRouter.get("/username/:username", userController.getUserByUsername);
+
+userRegistry.registerPath({
+  method: "post",
+  path: "/users/find",
+  tags: ["User"],
+  request: {
+    body: {
+      content: { "application/json": { schema: FindByQuerySchema } },
+    },
+  },
+  responses: createApiResponse(z.array(FindByQuerySchema), "Success"),
+});
+userRouter.post("/find", zodValidation(FindByQuerySchema), userController.findByQuery);
 
 userRegistry.registerPath({
   method: "post",

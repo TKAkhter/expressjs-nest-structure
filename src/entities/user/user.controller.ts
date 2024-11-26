@@ -45,6 +45,24 @@ export class UserController {
     }
   }
 
+  async findByQuery(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { page, rowsPerPage, sort, filter } = req.body;
+
+      const queryOptions = {
+        page,
+        rowsPerPage,
+        sort,
+        filter,
+      };
+
+      const result = await userService.findByQuery(queryOptions);
+      res.status(200).json(result);
+    } catch (error) {
+      next(createHttpError(500, error instanceof Error ? error.message : "Internal Server Error"));
+    }
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async createUser(req: Request, res: Response, next: NextFunction): Promise<any> {
     const userDto: CreateUserDto = req.body;

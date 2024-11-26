@@ -2,6 +2,7 @@ import { UserModel, UpdateUserDto, CreateUserDto } from "./user.dto";
 import { env } from "../../config/env";
 import { hash } from "bcrypt";
 import { v4 as uuidv4 } from "uuid";
+import { FindByQueryDto } from "../../schemas/find-by-query";
 
 export class UserService {
   async getAllUsers() {
@@ -37,6 +38,35 @@ export class UserService {
         throw new Error(`Error fetching user by username: ${error.message}`);
       }
       throw new Error("Unknown error occurred while fetching user by username.");
+    }
+  }
+
+  async findByQuery(options: FindByQueryDto) {
+    const { page, rowsPerPage, sort, filter } = options;
+
+    try {
+      const [sortField, sortOrder] = sort.split(":");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const sortOptions: any = { [sortField]: sortOrder };
+
+      const skip = (page - 1) * rowsPerPage;
+      const limit = rowsPerPage;
+
+      const [users, total] = await Promise.all([
+        UserModel.find(filter).sort(sortOptions).skip(skip).limit(limit),
+        UserModel.countDocuments(filter),
+      ]);
+
+      return {
+        data: users,
+        total,
+        page,
+        rowsPerPage,
+      };
+    } catch (error) {
+      throw new Error(
+        `Error querying users: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
     }
   }
 

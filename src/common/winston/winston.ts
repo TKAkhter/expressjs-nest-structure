@@ -1,5 +1,5 @@
 import "winston-daily-rotate-file";
-import { createLogger, format, transports } from "winston";
+import { createLogger, format, transports, Logger } from "winston";
 import { StatusCodes } from "http-status-codes";
 import { env } from "../../config/env";
 import fs from "fs";
@@ -10,27 +10,16 @@ if (!fs.existsSync(logDir)) {
   fs.mkdirSync(logDir);
 }
 
-const infoTransport = new transports.DailyRotateFile({
-  filename: "info-%DATE%.log",
-  dirname: logDir,
-  datePattern: "YYYY-MM-DD",
-  level: "info",
-  zippedArchive: false,
-  maxSize: "20m",
-  maxFiles: env.LOG_FILE_DURATION || "30d",
-});
-
-const errorTransport = new transports.DailyRotateFile({
-  filename: "error-%DATE%.log",
-  dirname: logDir,
-  datePattern: "YYYY-MM-DD",
-  level: "error",
-  zippedArchive: false,
-  maxSize: "20m",
-  maxFiles: env.LOG_FILE_DURATION || "30d",
-});
-
-const { combine, timestamp, align, splat, printf, colorize } = format;
+const createDailyRotateTransport = (level: string) =>
+  new transports.DailyRotateFile({
+    filename: `${level}-%DATE%.log`,
+    dirname: logDir,
+    datePattern: "YYYY-MM-DD",
+    level,
+    zippedArchive: false,
+    maxSize: "20m",
+    maxFiles: env.LOG_FILE_DURATION || "30d",
+  });
 
 const logLevels = {
   levels: {
@@ -49,46 +38,45 @@ const logLevels = {
   },
 };
 
-const customFormat = printf(
-  ({ level, message, timestamp: stamp }) => `[${stamp}] [${level}]: ${message}`,
+const customFormat = format.combine(
+  format.printf(({ level, message, timestamp: stamp, ...meta }) => {
+    const metaData = meta ? JSON.stringify(meta) : "";
+    return `\n[${stamp}] [${level}]: ${message} ${
+      JSON.stringify(metaData) === "{}" ? metaData : ""
+    }`;
+  }),
 );
 
-const winstonLogger = createLogger({
+const winstonLogger: Logger = createLogger({
   levels: logLevels.levels,
-  format: combine(timestamp({ format: "YYYY-MM-DD HH:mm:ss" }), customFormat, splat(), align()),
+  format: format.combine(
+    format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
+    customFormat,
+    format.splat(),
+    format.align(),
+  ),
   transports: [
     new transports.Console({
-      format: combine(
-        colorize({ colors: logLevels.colors }),
-        timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
+      format: format.combine(
+        format.colorize({ colors: logLevels.colors }),
+        format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
+        format.errors({ stack: true }),
         customFormat,
       ),
     }),
-    infoTransport,
-    errorTransport,
+    createDailyRotateTransport("info"),
+    createDailyRotateTransport("error"),
   ],
   // ExitOnError: false,
 });
 
 export const logger = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  info: (message: any) => {
-    // Const formattedMessage = req?.user.sub ? { userId: req?.user.sub, message: message } : message;
-    // Console.log(formattedMessage);
-    winstonLogger.info(message);
-  },
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  http: (message: any) => {
-    // Const formattedMessage = req?.user.sub ? { userId: req?.user.sub, message: message } : message;
-    // Console.log(formattedMessage);
-    winstonLogger.http(message);
-  },
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  error: (message: any) => {
-    // Const formattedMessage = req?.user.sub ? { userId: req?.user.sub, message: message } : message;
-    // Console.error(formattedMessage);
-    winstonLogger.error(message);
-  },
+  info: (message: string, metadata?: Record<string, unknown>) =>
+    winstonLogger.info(message, metadata),
+  http: (message: string, metadata?: Record<string, unknown>) =>
+    winstonLogger.http(message, metadata),
+  error: (message: string, metadata?: Record<string, unknown>) =>
+    winstonLogger.error(message, metadata),
 };
 
 export const morganStream = {

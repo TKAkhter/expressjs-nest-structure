@@ -1,17 +1,25 @@
-import { NextFunction, Request, Response } from "express";
+import { NextFunction, Response } from "express";
 import { HttpError } from "http-errors";
 import { StatusCodes } from "http-status-codes";
 import { env } from "../config/env";
 import { logger } from "../common/winston/winston";
+import { RequestWithUser } from "../types/request";
 
-interface RequestWithUser extends Request {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  user?: any;
-}
-
+/**
+ * Error handler middleware for catching and logging errors.
+ *
+ * Params:
+ * - err: The error object (could be a HttpError or general error).
+ * - req: The request object (with optional user data).
+ * - res: The response object.
+ * - _: The NextFunction (unused in this case).
+ *
+ * Response:
+ * - Responds with the appropriate status code and error message in the response.
+ * - If not in production, detailed error info is included (method, URL, stack trace).
+ */
 export const errorHandler = (
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  err: any,
+  err: Error | HttpError,
   req: RequestWithUser,
   res: Response,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -23,8 +31,10 @@ export const errorHandler = (
   const statusCode = isHttpError
     ? err.status || StatusCodes.INTERNAL_SERVER_ERROR
     : StatusCodes.INTERNAL_SERVER_ERROR;
+
   const name = isHttpError ? err.name : "AppError";
-  const user = req.user?.email || "Unknown User";
+
+  const user = req.user || "Unknown User";
   const { method } = req;
   const url = req.originalUrl;
 

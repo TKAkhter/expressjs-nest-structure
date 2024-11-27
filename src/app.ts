@@ -3,7 +3,7 @@ import express, { NextFunction, Request, Response } from "express";
 import { apiRoutes } from "./routes/routes";
 import { env } from "./config/env";
 import { healthCheckRouter } from "./entities/health-check/health-check";
-import { morganStream } from "./common/winston/winston";
+import { logger, morganStream } from "./common/winston/winston";
 import { openAPIRouter } from "./common/swagger/swagger.router";
 import { slowDown } from "express-slow-down";
 import compression from "compression";
@@ -58,6 +58,7 @@ app.use((_, res: Response, next: NextFunction) => {
   // Expect-CT Header
   res.setHeader("Expect-CT", "enforce, max-age=30");
 
+  logger.info("Additional security headers set.");
   next();
 });
 
@@ -76,6 +77,7 @@ const speedLimiter = slowDown({
 
 // Apply middlewares
 app.use(cors); // Make sure this middleware is defined properly
+logger.info("CORS middleware applied.");
 app.use(cookieParser());
 app.use(morgan("dev", { stream: morganStream }));
 app.use(express.json());
@@ -85,26 +87,34 @@ app.use(compression());
 app.use(nocache()); // Prevent caching
 app.use(hpp());
 app.use(limiter);
+logger.info("Rate limiting middleware applied.");
 app.use(speedLimiter);
+logger.info("Speed limiting middleware applied.");
 
 // Response Time Middleware
 app.use(responseTime());
+logger.info("Response time middleware applied.");
 
 // Timeout Middleware
 app.use(timeout((env.SERVER_TIMEOUT as string) || "150s")); // Set a 150-second timeout for all routes
+logger.info("Timeout middleware applied."); // Log timeout middleware
 
 // Permissions Policy
 app.use((_, res, next) => {
   res.append("Permissions-Policy", "browsing-topics=()");
+  logger.info("Permissions policy applied."); // Log permissions policy setup
   next();
 });
 
 // Routes
 app.use("/health-check", healthCheckRouter);
+logger.info("Health check route set up.");
 app.use("/api", apiRoutes);
+logger.info("API routes set up.");
 
 // Swagger UI
 app.use(openAPIRouter);
+logger.info("Swagger UI routes set up.");
 
 // Custom Error Handler Middleware
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
@@ -113,6 +123,7 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 
 // Catch 404 and forward to error handler
 app.use((_: Request, res: Response) => {
+  logger.error("Route not found");
   res.status(404).send("Route not found");
 });
 

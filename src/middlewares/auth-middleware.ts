@@ -1,23 +1,27 @@
-import { NextFunction, Request, Response } from "express";
+import { NextFunction, Response } from "express";
 import { env } from "../config/env";
 import jwt from "jsonwebtoken";
+import { RequestWithUser } from "../types/request";
+import createHttpError from "http-errors";
+import { StatusCodes } from "http-status-codes";
 
-interface RequestWithUser extends Request {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  user?: any;
-}
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const authMiddleware = (req: RequestWithUser, res: Response, next: NextFunction): any => {
+export const authMiddleware = (req: RequestWithUser, _: Response, next: NextFunction): any => {
   const token = req.headers.authorization?.split(" ")[1];
   if (!token) {
-    return res.status(401).json({ message: "Unauthorized" });
+    throw createHttpError(StatusCodes.UNAUTHORIZED, "Unauthorized", {
+      resource: "Auth Middleware",
+    });
   }
 
-  jwt.verify(token, env.JWT_SECRET as string, (err, decoded) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  jwt.verify(token, env.JWT_SECRET as string, (err, decoded: any) => {
     if (err) {
-      return res.status(403).json({ message: "Forbidden" });
+      throw createHttpError(StatusCodes.FORBIDDEN, "Forbidden", {
+        resource: "Auth Middleware",
+      });
     }
-    req.user = decoded;
+    req.user = decoded.email || decoded.username || decoded.type;
     next();
   });
 };

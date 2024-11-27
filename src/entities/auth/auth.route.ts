@@ -1,9 +1,9 @@
-import { Router } from 'express';
-import { authMiddleware, zodValidation } from '../../middlewares';
-import { OpenAPIRegistry } from '@asteasolutions/zod-to-openapi';
-import { createApiResponse } from '../../common/swagger/swagger-response-builder';
-import { AuthSchema, ExtendTokenSchema, LogoutSchema, RegisterSchema } from './auth.dto';
-import { AuthController } from './auth.controller';
+import { Router } from "express";
+import { authMiddleware, zodValidation } from "../../middlewares";
+import { OpenAPIRegistry } from "@asteasolutions/zod-to-openapi";
+import { createApiResponse } from "../../common/swagger/swagger-response-builder";
+import { AuthSchema, ExtendTokenSchema, LogoutSchema, RegisterSchema } from "./auth.dto";
+import { AuthController } from "./auth.controller";
 
 const authRouter = Router();
 
@@ -23,7 +23,7 @@ authRegistry.registerPath({
   },
   responses: createApiResponse(AuthSchema, "Login Successfully"),
 });
-authRouter.post('/login', zodValidation(AuthSchema), authController.login);
+authRouter.post("/login", zodValidation(AuthSchema), authController.login);
 
 authRegistry.registerPath({
   method: "post",
@@ -36,7 +36,7 @@ authRegistry.registerPath({
   },
   responses: createApiResponse(RegisterSchema, "Register Successfully"),
 });
-authRouter.post('/register', zodValidation(RegisterSchema), authController.register);
+authRouter.post("/register", zodValidation(RegisterSchema), authController.register);
 
 authRegistry.registerPath({
   method: "post",
@@ -49,7 +49,7 @@ authRegistry.registerPath({
   },
   responses: createApiResponse(ExtendTokenSchema, "Token Extended Successfully"),
 });
-authRouter.post('/extend-token', authMiddleware, authController.extendToken);
+authRouter.post("/extend-token", authMiddleware, authController.extendToken);
 
 authRegistry.registerPath({
   method: "post",
@@ -62,6 +62,6 @@ authRegistry.registerPath({
   },
   responses: createApiResponse(LogoutSchema, "Logout Successfully"),
 });
-authRouter.post('/logout', authMiddleware, authController.logout);
+authRouter.post("/logout", authMiddleware, authController.logout);
 
 export default authRouter;

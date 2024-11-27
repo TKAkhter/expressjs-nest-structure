@@ -17,9 +17,9 @@ async function checkConnections() {
     logger.info("Redis connections verified successfully.");
     await mongoose.connect(env.MONGODB_URI || "");
     logger.info("MongoDB connections verified successfully.");
-  } catch (error) {
-    logger.error("Postgres, MongoDb or Redis connection failed");
-    logger.error(JSON.stringify(error));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+    logger.error("Postgres, MongoDb or Redis connection failed", error);
     // eslint-disable-next-line no-process-exit
     process.exit(1);
   }

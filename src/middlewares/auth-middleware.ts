@@ -8,11 +8,6 @@ interface RequestWithUser extends Request {
 }
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const authMiddleware = (req: RequestWithUser, res: Response, next: NextFunction): any => {
-  // Check if the request URL contains 'login'
-  if (req.url.includes("login")) {
-    next(); // Skip the middleware and continue to the next handler
-  }
-
   const token = req.headers.authorization?.split(" ")[1];
   if (!token) {
     return res.status(401).json({ message: "Unauthorized" });

@@ -41,7 +41,7 @@ export const errorHandler = (
     stack,
   };
 
-  logger.error(JSON.stringify(errorPayload));
+  logger.error("Error Middleware", errorPayload);
 
   const responsePayload = {
     status: statusCode,

@@ -26,8 +26,8 @@ export const updateImageToDisk = async (fileName: string, file: any) => {
         if (renameErr) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           logger.error("Error replacing file:", renameErr as any);
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          throw new Error(renameErr as any);
+
+          return false;
         }
 
         logger.info(`Image updated successfully: ${newFilePath}`);

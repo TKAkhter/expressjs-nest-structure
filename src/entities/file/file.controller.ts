@@ -65,7 +65,7 @@ export class FileController {
       if (!existFile) {
         throw new Error("File not found");
       }
-      const { fileName, filePath } = await updateImageToDisk(existFile.fileName, req.file);
+      const { fileName, filePath } = await updateImageToDisk(existFile.fileName!, req.file);
       const fileText = `data:${mimetype};base64,${buffer.toString("base64")}`;
       const fileData: UpdateFileDto = {
         fileName,
@@ -92,7 +92,7 @@ export class FileController {
       if (!existFile) {
         throw new Error("File not found");
       }
-      await deleteFileFromDisk(existFile.fileName);
+      await deleteFileFromDisk(existFile.fileName!);
       await fileService.deleteFile(id);
       res.status(204).send();
     } catch (error) {

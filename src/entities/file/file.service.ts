@@ -15,7 +15,7 @@ export class FileService {
         uuid: uuidv4(),
         createdAt: new Date(),
         updatedAt: new Date(),
-        views: 0,
+        views: "0",
         userId: "talhaakhter01@gmail.com",
       };
       return await this.fileRepository.createFile(fileUpload);

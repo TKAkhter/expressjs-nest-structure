@@ -24,8 +24,8 @@
   },
   "lint-staged": {
     "*.{ts,tsx}": [
-      "eslint src/**/*.ts --fix",
-      "prettier --write src/**"
+      "eslint --fix",
+      "prettier --write"
     ]
   },
   "homepage": "https://github.com/TKAkhter/epressjs-nest-structure#readme",

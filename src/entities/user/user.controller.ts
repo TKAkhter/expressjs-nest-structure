@@ -4,20 +4,20 @@ import { CreateUserDto } from "./user.dto";
 import createHttpError from "http-errors";
 import { StatusCodes } from "http-status-codes";
 import { logger } from "../../common/winston/winston";
-import { RequestWithUser } from "../../types/request";
+import { CustomRequest } from "../../types/request";
 
 const userService = new UserService();
 
 export class UserController {
   /**
    * Get all users
-   * @param _req - RequestWithUser object
+   * @param _req - CustomRequest object
    * @param res - Response object
    * @param next - Next middleware function
    * @returns JSON list of users
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async getAllUsers(_req: RequestWithUser, res: Response, next: NextFunction): Promise<any> {
+  async getAllUsers(_req: CustomRequest, res: Response, next: NextFunction): Promise<any> {
     try {
       logger.info("Fetching all users");
       const users = await userService.getAllUsers();
@@ -32,13 +32,13 @@ export class UserController {
 
   /**
    * Get user by ID
-   * @param req - RequestWithUser object
+   * @param req - CustomRequest object
    * @param res - Response object
    * @param next - Next middleware function
    * @returns JSON user object
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async getUser(req: RequestWithUser, res: Response, next: NextFunction): Promise<any> {
+  async getUser(req: CustomRequest, res: Response, next: NextFunction): Promise<any> {
     const { id } = req.params;
     const { user } = req;
     try {
@@ -55,13 +55,13 @@ export class UserController {
 
   /**
    * Get user by username
-   * @param req - RequestWithUser object
+   * @param req - CustomRequest object
    * @param res - Response object
    * @param next - Next middleware function
    * @returns JSON user object
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async getUserByUsername(req: RequestWithUser, res: Response, next: NextFunction): Promise<any> {
+  async getUserByUsername(req: CustomRequest, res: Response, next: NextFunction): Promise<any> {
     const { username } = req.params;
     const { user } = req;
     try {
@@ -78,12 +78,12 @@ export class UserController {
 
   /**
    * Find users by query (pagination, sorting, filtering)
-   * @param req - RequestWithUser object
+   * @param req - CustomRequest object
    * @param res - Response object
    * @param next - Next middleware function
    * @returns JSON result of the query
    */
-  async findByQuery(req: RequestWithUser, res: Response, next: NextFunction): Promise<void> {
+  async findByQuery(req: CustomRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const { page, rowsPerPage, sort, filter } = req.body;
       const queryOptions = { page, rowsPerPage, sort, filter };
@@ -101,13 +101,13 @@ export class UserController {
 
   /**
    * Create a new user
-   * @param req - RequestWithUser object
+   * @param req - CustomRequest object
    * @param res - Response object
    * @param next - Next middleware function
    * @returns JSON created user
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async createUser(req: RequestWithUser, res: Response, next: NextFunction): Promise<any> {
+  async createUser(req: CustomRequest, res: Response, next: NextFunction): Promise<any> {
     const userDto: CreateUserDto = req.body;
     const { user } = req;
     try {
@@ -124,13 +124,13 @@ export class UserController {
 
   /**
    * Update an existing user
-   * @param req - RequestWithUser object
+   * @param req - CustomRequest object
    * @param res - Response object
    * @param next - Next middleware function
    * @returns JSON updated user
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async updateUser(req: RequestWithUser, res: Response, next: NextFunction): Promise<any> {
+  async updateUser(req: CustomRequest, res: Response, next: NextFunction): Promise<any> {
     const { id } = req.params;
     const updateData = req.body;
     const { user } = req;
@@ -148,13 +148,13 @@ export class UserController {
 
   /**
    * Delete a user by ID
-   * @param req - RequestWithUser object
+   * @param req - CustomRequest object
    * @param res - Response object
    * @param next - Next middleware function
    * @returns JSON success message
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async deleteUser(req: RequestWithUser, res: Response, next: NextFunction): Promise<any> {
+  async deleteUser(req: CustomRequest, res: Response, next: NextFunction): Promise<any> {
     const { id } = req.params;
     const { user } = req;
     try {
@@ -171,13 +171,13 @@ export class UserController {
 
   /**
    * Delete multiple users
-   * @param req - RequestWithUser object
+   * @param req - CustomRequest object
    * @param res - Response object
    * @param next - Next middleware function
    * @returns JSON success message
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async deleteAllUsers(req: RequestWithUser, res: Response, next: NextFunction): Promise<any> {
+  async deleteAllUsers(req: CustomRequest, res: Response, next: NextFunction): Promise<any> {
     const { ids } = req.body;
     const { user } = req;
     try {

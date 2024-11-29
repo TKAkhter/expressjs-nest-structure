@@ -2,18 +2,18 @@ import { NextFunction, Response } from "express";
 import { AuthDto, RegisterDto } from "./auth.dto";
 import { AuthService } from "./auth.services";
 import { logger } from "../../common/winston/winston";
-import { RequestWithUser } from "../../types/request";
+import { CustomRequest } from "../../types/request";
 
 const authService = new AuthService();
 
 export class AuthController {
   /**
    * Handles user login by verifying credentials and returning a token.
-   * @param _req - RequestWithUser object
+   * @param _req - CustomRequest object
    * @param res - Response object
    * @param next - Next middleware function
    */
-  async login(req: RequestWithUser, res: Response, next: NextFunction): Promise<void> {
+  async login(req: CustomRequest, res: Response, next: NextFunction): Promise<void> {
     const userDto: AuthDto = req.body;
     const { user } = req;
     logger.info("Login API invoked", { username: userDto.username, user });
@@ -38,11 +38,11 @@ export class AuthController {
 
   /**
    * Handles user registration by creating a new user and returning the registered user details.
-   * @param _req - RequestWithUser object
+   * @param _req - CustomRequest object
    * @param res - Response object
    * @param next - Next middleware function
    */
-  async register(req: RequestWithUser, res: Response, next: NextFunction): Promise<void> {
+  async register(req: CustomRequest, res: Response, next: NextFunction): Promise<void> {
     const registerDto: RegisterDto = req.body;
     const { user } = req;
     logger.info("Register API invoked", { username: registerDto.username, user });
@@ -67,11 +67,11 @@ export class AuthController {
 
   /**
    * Handles user logout by invalidating the user's token.
-   * @param _req - RequestWithUser object
+   * @param _req - CustomRequest object
    * @param res - Response object
    * @param next - Next middleware function
    */
-  async logout(req: RequestWithUser, res: Response, next: NextFunction): Promise<void> {
+  async logout(req: CustomRequest, res: Response, next: NextFunction): Promise<void> {
     const token = req.headers.authorization?.split(" ")[1];
     const { user } = req;
     logger.info("Logout API invoked", { token, user });
@@ -96,11 +96,11 @@ export class AuthController {
 
   /**
    * Extends the user's token and returns a new token.
-   * @param _req - RequestWithUser object
+   * @param _req - CustomRequest object
    * @param res - Response object
    * @param next - Next middleware function
    */
-  async extendToken(req: RequestWithUser, res: Response, next: NextFunction): Promise<void> {
+  async extendToken(req: CustomRequest, res: Response, next: NextFunction): Promise<void> {
     const token = req.headers.authorization?.split(" ")[1];
     const { user } = req;
     logger.info("ExtendToken API invoked", { token, user });

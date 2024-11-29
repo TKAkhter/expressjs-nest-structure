@@ -1,12 +1,12 @@
 import { NextFunction, Response } from "express";
 import { env } from "../config/env";
 import jwt from "jsonwebtoken";
-import { RequestWithUser } from "../types/request";
+import { CustomRequest } from "../types/request";
 import createHttpError from "http-errors";
 import { StatusCodes } from "http-status-codes";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const authMiddleware = (req: RequestWithUser, _: Response, next: NextFunction): any => {
+export const authMiddleware = (req: CustomRequest, _: Response, next: NextFunction): any => {
   const token = req.headers.authorization?.split(" ")[1];
   if (!token) {
     throw createHttpError(StatusCodes.UNAUTHORIZED, "Unauthorized", {

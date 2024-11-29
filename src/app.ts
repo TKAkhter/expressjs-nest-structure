@@ -24,24 +24,8 @@ app.set("trust proxy", 1);
 
 // Middlewares
 app.use(
-  helmet({
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'", "trusted-scripts.com"],
-        objectSrc: ["'none'"],
-        styleSrc: ["'self'", "'unsafe-inline'"],
-      },
-    },
-    hsts: {
-      maxAge: 31_536_000, // 1 year
-      includeSubDomains: true,
-      preload: true,
-    },
-    noSniff: true,
-    referrerPolicy: { policy: "same-origin" },
-    frameguard: { action: "deny" },
-    crossOriginEmbedderPolicy: true,
+  helmet.crossOriginResourcePolicy({
+    policy: "cross-origin",
   }),
 );
 
@@ -82,7 +66,6 @@ app.use(cookieParser());
 app.use(morgan("dev", { stream: morganStream }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(express.static(path.join(__dirname, "public")));
 app.use(compression());
 app.use(nocache()); // Prevent caching
 app.use(hpp());
@@ -107,8 +90,8 @@ app.use((_, res, next) => {
 });
 
 // Routes
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 app.use("/health-check", healthCheckRouter);
-logger.info("Health check route set up.");
 app.use("/api", apiRoutes);
 logger.info("API routes set up.");
 

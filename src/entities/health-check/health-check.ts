@@ -28,7 +28,7 @@ healthCheckRouter.get("/", async (_: Request, res: Response, next: NextFunction)
     const healthCheck = {
       pg: await checkPostgres(),
       redis: await checkRedis(),
-      mongo: checkMongoDB(),
+      mongo: await checkMongoDB(),
       server: {
         status: "healthy",
         uptime: process.uptime(),

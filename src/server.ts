@@ -1,8 +1,12 @@
 import app from "./app";
-import mongoose from "mongoose";
-import { checkPostgres, checkRedis } from "./entities/health-check/health-check-services-status";
+import {
+  checkMongoDB,
+  checkPostgres,
+  checkRedis,
+} from "./entities/health-check/health-check-services-status";
 import { env } from "./config/env";
 import { logger } from "./common/winston/winston";
+import connectMongoDB from "./config/mongodb/mongodb";
 
 const PORT = env.PORT || 3000;
 const ENV = env.NODE_ENV;
@@ -22,7 +26,8 @@ async function checkConnections() {
     await checkRedis();
     logger.info("Redis connections verified successfully.");
 
-    await mongoose.connect(env.MONGODB_URI || "");
+    await connectMongoDB();
+    await checkMongoDB();
     logger.info("MongoDB connections verified successfully.");
   } catch (error) {
     if (error instanceof Error) {

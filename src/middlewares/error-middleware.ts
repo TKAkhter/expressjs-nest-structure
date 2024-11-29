@@ -3,7 +3,7 @@ import { HttpError } from "http-errors";
 import { StatusCodes } from "http-status-codes";
 import { env } from "../config/env";
 import { logger } from "../common/winston/winston";
-import { RequestWithUser } from "../types/request";
+import { CustomRequest } from "../types/request";
 
 /**
  * Error handler middleware for catching and logging errors.
@@ -20,7 +20,7 @@ import { RequestWithUser } from "../types/request";
  */
 export const errorHandler = (
   err: Error | HttpError,
-  req: RequestWithUser,
+  req: CustomRequest,
   res: Response,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _: NextFunction,

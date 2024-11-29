@@ -28,7 +28,7 @@ export class AuthService {
         });
       }
 
-      if (await compare(authData.password, user.password)) {
+      if (!(await compare(authData.password, user.password))) {
         logger.error("Invalid password during login", { username: authData.username });
         throw createHttpError(StatusCodes.BAD_REQUEST, "Invalid email or password", {
           resource: "Auth",
@@ -36,7 +36,7 @@ export class AuthService {
       }
 
       const token = generateToken({
-        id: user.id,
+        id: user.uuid,
         username: user.username,
         name: user.name,
         email: user.email,

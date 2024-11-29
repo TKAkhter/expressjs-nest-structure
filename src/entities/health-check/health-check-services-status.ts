@@ -1,6 +1,6 @@
-import knex from "../../database/knex";
 import mongoose from "mongoose";
-import redis from "../../common/redis/redis";
+import knex from "../../config/knex";
+import redis from "../../config/redis/redis";
 
 export const checkPostgres = async () => {
   try {
@@ -22,7 +22,7 @@ export const checkRedis = async () => {
   }
 };
 
-export const checkMongoDB = () => {
+export const checkMongoDB = async () => {
   try {
     const isConnected = mongoose.connection.readyState === 1;
     return {

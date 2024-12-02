@@ -4,7 +4,7 @@ import { z } from "zod";
 extendZodWithOpenApi(z);
 
 export const AuthSchema = z.object({
-  username: z.string().min(4, "Username is required"),
+  email: z.string().email(),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 

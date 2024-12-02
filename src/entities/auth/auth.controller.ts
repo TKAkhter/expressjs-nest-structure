@@ -16,16 +16,16 @@ export class AuthController {
   async login(req: CustomRequest, res: Response, next: NextFunction): Promise<void> {
     const userDto: AuthDto = req.body;
     const { user } = req;
-    logger.info("Login API invoked", { username: userDto.username, user });
+    logger.info("Login API invoked", { email: userDto.email, user });
 
     try {
       const result = await authService.login(userDto);
-      logger.info("User login successful", { username: userDto.username, user });
+      logger.info("User login successful", { email: userDto.email, user });
       res.json(result);
     } catch (error) {
       if (error instanceof Error) {
         logger.error("Login API error", {
-          username: userDto.username,
+          email: userDto.email,
           error: error.message,
           user,
         });
@@ -45,16 +45,16 @@ export class AuthController {
   async register(req: CustomRequest, res: Response, next: NextFunction): Promise<void> {
     const registerDto: RegisterDto = req.body;
     const { user } = req;
-    logger.info("Register API invoked", { username: registerDto.username, user });
+    logger.info("Register API invoked", { email: registerDto.email, user });
 
     try {
       const result = await authService.register(registerDto);
-      logger.info("User registration successful", { username: registerDto.username, user });
+      logger.info("User registration successful", { email: registerDto.email, user });
       res.json(result);
     } catch (error) {
       if (error instanceof Error) {
         logger.error("Register API error", {
-          username: registerDto.username,
+          email: registerDto.email,
           error: error.message,
           user,
         });

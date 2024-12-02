@@ -39,15 +39,15 @@ userRouter.get("/:id", userController.getUser);
 
 userRegistry.registerPath({
   method: "get",
-  path: "/users/username/{username}",
+  path: "/users/email/{email}",
   tags: ["User"],
-  summary: "Get user by username",
+  summary: "Get user by email",
   request: {
-    params: z.object({ username: z.string() }),
+    params: z.object({ email: z.string() }),
   },
   responses: createApiResponse(UserSchema, "Success"),
 });
-userRouter.get("/username/:username", userController.getUserByUsername);
+userRouter.get("/email/:email", userController.getUserByEmail);
 
 userRegistry.registerPath({
   method: "post",

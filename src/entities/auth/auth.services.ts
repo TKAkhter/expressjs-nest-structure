@@ -16,20 +16,20 @@ export class AuthService {
    * @throws HTTP error if user not found or password is invalid.
    */
   async login(authData: AuthDto) {
-    logger.info("Login service invoked", { username: authData.username });
+    logger.info("Login service invoked", { email: authData.email });
 
     try {
-      const user = await userService.getUserByUsername(authData.username);
+      const user = await userService.getUserByEmail(authData.email);
 
       if (!user) {
-        logger.error("User not found during login", { username: authData.username });
+        logger.error("User not found during login", { email: authData.email });
         throw createHttpError(StatusCodes.BAD_REQUEST, "User does not exist!", {
           resource: "Auth",
         });
       }
 
       if (!(await compare(authData.password, user.password))) {
-        logger.error("Invalid password during login", { username: authData.username });
+        logger.error("Invalid password during login", { email: authData.email });
         throw createHttpError(StatusCodes.BAD_REQUEST, "Invalid email or password", {
           resource: "Auth",
         });
@@ -41,7 +41,7 @@ export class AuthService {
         name: user.name,
         email: user.email,
       });
-      logger.info("Token generated successfully", { username: authData.username });
+      logger.info("Token generated successfully", { email: authData.email });
       return { token };
     } catch (error) {
       if (createHttpError.isHttpError(error)) {
@@ -49,10 +49,10 @@ export class AuthService {
       }
 
       if (error instanceof Error) {
-        logger.error("Error during login", { error: error.message, username: authData.username });
+        logger.error("Error during login", { error: error.message, email: authData.email });
         throw new Error(`Error while login: ${error.message}`);
       }
-      logger.error("Unknown error during login", { username: authData.username });
+      logger.error("Unknown error during login", { email: authData.email });
       throw new Error("Unknown error occurred while login.");
     }
   }
@@ -64,13 +64,13 @@ export class AuthService {
    * @throws HTTP error if user already exists.
    */
   async register(registerDto: RegisterDto) {
-    logger.info("Register service invoked", { username: registerDto.username });
+    logger.info("Register service invoked", { email: registerDto.email });
 
     try {
-      const user = await userService.getUserByUsername(registerDto.username);
+      const user = await userService.getUserByEmail(registerDto.email);
 
       if (user) {
-        logger.error("User already exists during registration", { username: registerDto.username });
+        logger.error("User already exists during registration", { email: registerDto.email });
         throw createHttpError(StatusCodes.BAD_REQUEST, "User already exist!", {
           resource: "Auth",
         });
@@ -78,9 +78,9 @@ export class AuthService {
 
       const registerUser = await userService.createUser(registerDto);
 
-      const token = await this.login(registerDto);
+      const { token } = await this.login(registerDto);
 
-      logger.info("User registered successfully", { username: registerDto.username });
+      logger.info("User registered successfully", { email: registerDto.email });
       return { ...registerUser, token };
     } catch (error) {
       if (createHttpError.isHttpError(error)) {
@@ -90,11 +90,11 @@ export class AuthService {
       if (error instanceof Error) {
         logger.error("Error during registration", {
           error: error.message,
-          username: registerDto.username,
+          email: registerDto.email,
         });
         throw new Error(`Error while login: ${error.message}`);
       }
-      logger.error("Unknown error during registration", { username: registerDto.username });
+      logger.error("Unknown error during registration", { email: registerDto.email });
       throw new Error("Unknown error occurred while login.");
     }
   }

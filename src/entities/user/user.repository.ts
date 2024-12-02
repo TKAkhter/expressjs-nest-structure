@@ -10,7 +10,7 @@ export class UserRepository {
   async getAllUsers(): Promise<UserDto[]> {
     try {
       logger.info("[User Repository] Fetching all users from the database.");
-      return await UserModel.find();
+      return await UserModel.find({}, { _id: 0, password: 0 });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       logger.error("[User Repository] Error fetching all users", { error: error.message });
@@ -26,7 +26,7 @@ export class UserRepository {
   async getUserByUuid(uuid: string): Promise<UserDto | null> {
     try {
       logger.info(`[User Repository] Fetching user with UUID: ${uuid}`);
-      return await UserModel.findOne({ uuid });
+      return await UserModel.findOne({ uuid }, { _id: 0, password: 0 });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       logger.error("[User Repository] Error fetching user by UUID", { uuid, error: error.message });
@@ -35,18 +35,18 @@ export class UserRepository {
   }
 
   /**
-   * Fetches a user by their username.
-   * @param username - User's username
+   * Fetches a user by their email.
+   * @param email - User's email
    * @returns User data or null if not found
    */
-  async getUserByUsername(username: string): Promise<UserDto | null> {
+  async getUserByEmail(email: string): Promise<UserDto | null> {
     try {
-      logger.info(`[User Repository] Fetching user with username: ${username}`);
-      return await UserModel.findOne({ username });
+      logger.info(`[User Repository] Fetching user with email: ${email}`);
+      return await UserModel.findOne({ email });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      logger.error("[User Repository] Error fetching user by username", {
-        username,
+      logger.error("[User Repository] Error fetching user by email", {
+        email,
         error: error.message,
       });
       throw new Error(error);
@@ -98,9 +98,19 @@ export class UserRepository {
    */
   async createUser(userData: CreateUserDto): Promise<UserDto> {
     try {
-      logger.info(`[User Repository] Creating user with username: ${userData.username}`);
+      logger.info(`[User Repository] Creating user with email: ${userData.email}`);
       const newUser = new UserModel(userData);
-      return await newUser.save();
+      const user = await newUser.save();
+      const sanitizedUser = {
+        uuid: user.uuid,
+        name: user.name,
+        username: user.username,
+        email: user.email,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return sanitizedUser as any;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       logger.error("[User Repository] Error creating user", { userData, error: error.message });

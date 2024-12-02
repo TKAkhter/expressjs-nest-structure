@@ -61,16 +61,16 @@ export class UserController {
    * @returns JSON user object
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async getUserByUsername(req: CustomRequest, res: Response, next: NextFunction): Promise<any> {
-    const { username } = req.params;
+  async getUserByEmail(req: CustomRequest, res: Response, next: NextFunction): Promise<any> {
+    const { email } = req.params;
     const { user } = req;
     try {
-      logger.info("Fetching user by username", { user, username });
-      const userData = await userService.getUserByUsername(username);
+      logger.info("Fetching user by email", { user, email });
+      const userData = await userService.getUserByEmail(email);
       return res.json(userData);
     } catch (error) {
       if (error instanceof Error) {
-        logger.error("Error fetching user by username", { error: error.message, user, username });
+        logger.error("Error fetching user by email", { error: error.message, user, email });
       }
       next(error);
     }

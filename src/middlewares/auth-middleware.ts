@@ -1,9 +1,8 @@
 import { NextFunction, Response } from "express";
-import { env } from "../config/env";
-import jwt from "jsonwebtoken";
 import { CustomRequest } from "../types/request";
 import createHttpError from "http-errors";
 import { StatusCodes } from "http-status-codes";
+import { verifyToken } from "../common/jwt/jwt";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const authMiddleware = (req: CustomRequest, _: Response, next: NextFunction): any => {
@@ -14,14 +13,7 @@ export const authMiddleware = (req: CustomRequest, _: Response, next: NextFuncti
     });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  jwt.verify(token, env.JWT_SECRET as string, (err, decoded: any) => {
-    if (err) {
-      throw createHttpError(StatusCodes.FORBIDDEN, "Forbidden", {
-        resource: "Auth Middleware",
-      });
-    }
-    req.user = decoded.email || decoded.username || decoded.type;
-    next();
-  });
+  const verify = verifyToken(token);
+  req.user = verify.email || verify.username || verify.type;
+  next();
 };

@@ -66,17 +66,17 @@ export class UserService {
   }
 
   /**
-   * Fetches a user by their username.
-   * @param username - User's username
+   * Fetches a user by their email.
+   * @param email - User's email
    * @returns User data or false if not found
    */
-  async getUserByUsername(username: string): Promise<UserDto | false> {
+  async getUserByEmail(email: string): Promise<UserDto | false> {
     try {
-      logger.info(`[User Service] Fetching user with username: ${username}`);
-      const user = await this.userRepository.getUserByUsername(username);
+      logger.info(`[User Service] Fetching user with email: ${email}`);
+      const user = await this.userRepository.getUserByEmail(email);
 
       if (!user) {
-        logger.error(`[User Service] User with username ${username} not found.`);
+        logger.error(`[User Service] User with email ${email} not found.`);
         return false;
       }
 
@@ -86,14 +86,14 @@ export class UserService {
         throw error;
       }
       if (error instanceof Error) {
-        logger.error("[User Service] Error fetching user by username", {
-          username,
+        logger.error("[User Service] Error fetching user by email", {
+          email,
           error: error.message,
         });
-        throw new Error(`Error fetching user by username: ${error.message}`);
+        throw new Error(`Error fetching user by email: ${error.message}`);
       }
-      logger.error("[User Service] Unknown error occurred while fetching user by username");
-      throw new Error("Unknown error occurred while fetching user by username.");
+      logger.error("[User Service] Unknown error occurred while fetching user by email");
+      throw new Error("Unknown error occurred while fetching user by email.");
     }
   }
 
@@ -123,11 +123,11 @@ export class UserService {
    */
   async createUser(userData: CreateUserDto): Promise<UserDto> {
     try {
-      logger.info(`[User Service] Creating user with username: ${userData.username}`);
-      const user = await this.userRepository.getUserByUsername(userData.username);
+      logger.info(`[User Service] Creating user with email: ${userData.email}`);
+      const user = await this.userRepository.getUserByEmail(userData.email);
 
       if (user) {
-        logger.error(`[User Service] User with username ${userData.username} already exists.`);
+        logger.error(`[User Service] User with email ${userData.email} already exists.`);
         throw createHttpError(StatusCodes.BAD_REQUEST, "User already exists!", {
           resource: "User",
         });

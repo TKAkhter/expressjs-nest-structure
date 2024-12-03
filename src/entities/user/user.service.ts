@@ -176,11 +176,11 @@ export class UserService {
         });
       }
 
-      if (updateData.password) {
-        updateData.password = await hash(updateData.password, env.HASH!);
-      }
+      // If (updateData.password) {
+      //   UpdateData.password = await hash(updateData.password, env.HASH!);
+      // }
 
-      updateData.updatedAt = new Date();
+      // UpdateData.updatedAt = new Date();
 
       return await this.userRepository.updateUser(uuid, updateData);
     } catch (error) {

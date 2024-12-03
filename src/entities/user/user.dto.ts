@@ -11,6 +11,8 @@ export const UserSchema = z.object({
   username: z.string().min(4, "Username is required"),
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
+  bio: z.string().optional(),
+  phoneNumber: z.string().optional(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
@@ -23,8 +25,9 @@ export const CreateUserSchema = UserSchema.omit({
 
 export const UpdateUserSchema = UserSchema.omit({
   uuid: true,
+  password: true,
   createdAt: true,
-  email: true,
+  updatedAt: true,
 });
 
 export type UserDto = z.infer<typeof UserSchema>;

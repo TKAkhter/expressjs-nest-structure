@@ -54,6 +54,25 @@ export class UserRepository {
   }
 
   /**
+   * Fetches a user by their username.
+   * @param username - User's username
+   * @returns User data or null if not found
+   */
+  async getUserByUsername(username: string): Promise<UserDto | null> {
+    try {
+      logger.info(`[User Repository] Fetching user with username: ${username}`);
+      return await UserModel.findOne({ username });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      logger.error("[User Repository] Error fetching user by username", {
+        username,
+        error: error.message,
+      });
+      throw new Error(error);
+    }
+  }
+
+  /**
    * Finds users based on query parameters.
    * @param options - Query parameters like pagination, sorting, and filtering
    * @returns Paginated user data

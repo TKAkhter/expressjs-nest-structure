@@ -6,8 +6,11 @@ dotenv.config();
 const envSchema = z.object({
   NODE_ENV: z.enum(["local", "development", "production"]).default("local"),
   BASE_URL: z.string().url(),
-  BASE_URL_HTTPS: z.string().url(),
-  PORT: z.string().transform((val) => parseInt(val, 10)),
+  BASE_URL_HTTPS: z.string().url().optional(),
+  PORT: z
+    .string()
+    .transform((val) => parseInt(val, 10))
+    .optional(),
   SERVER_TIMEOUT: z.string().default("150s"),
   LOG_FILE_DURATION: z.string().default("3d"),
   ALLOW_ORIGIN: z.string(),

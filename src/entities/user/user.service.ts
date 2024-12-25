@@ -125,10 +125,18 @@ export class UserService {
     try {
       logger.info(`[User Service] Creating user with email: ${userData.email}`);
       const user = await this.userRepository.getUserByEmail(userData.email);
+      const username = await this.userRepository.getUserByUsername(userData.username);
 
       if (user) {
         logger.error(`[User Service] User with email ${userData.email} already exists.`);
         throw createHttpError(StatusCodes.BAD_REQUEST, "User already exists!", {
+          resource: "User",
+        });
+      }
+
+      if (username) {
+        logger.error(`[User Service] User with username ${userData.username} already exists.`);
+        throw createHttpError(StatusCodes.BAD_REQUEST, "Username is taken!", {
           resource: "User",
         });
       }

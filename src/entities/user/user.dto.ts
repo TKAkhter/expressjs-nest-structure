@@ -7,10 +7,10 @@ extendZodWithOpenApi(z);
 
 export const UserSchema = z.object({
   uuid: z.string(),
-  name: z.string().min(4, "Name is required"),
-  username: z.string().min(4, "Username is required"),
+  name: z.string().min(4, "Name must be at least 4 characters long"),
+  username: z.string().min(4, "Username must be at least 4 characters long"),
   email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z.string().min(8, "Password must be at least 8 characters long"),
   bio: z.string().optional(),
   phoneNumber: z.string().optional(),
   createdAt: z.date(),

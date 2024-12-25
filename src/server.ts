@@ -8,10 +8,7 @@ import { env } from "./config/env";
 import { logger } from "./common/winston/winston";
 import connectMongoDB from "./config/mongodb/mongodb";
 
-const PORT = env.PORT || 3000;
-const ENV = env.NODE_ENV;
-const API = env.BASE_URL;
-const { ALLOW_ORIGIN } = env;
+const { PORT, NODE_ENV, BASE_URL, ALLOW_ORIGIN, KNEX_FLAG, REDIS_FLAG, MONGODB_FLAG } = env;
 
 /**
  * Function to check the connection status for Postgres, Redis, and MongoDB.
@@ -20,15 +17,21 @@ const { ALLOW_ORIGIN } = env;
 async function checkConnections() {
   try {
     logger.info("Checking database connections...");
-    await checkPostgres();
-    logger.info("Postgres connections verified successfully.");
+    if (Number(KNEX_FLAG)) {
+      await checkPostgres();
+      logger.info("Postgres connections verified successfully.");
+    }
 
-    await checkRedis();
-    logger.info("Redis connections verified successfully.");
+    if (Number(REDIS_FLAG)) {
+      await checkRedis();
+      logger.info("Redis connections verified successfully.");
+    }
 
-    await connectMongoDB();
-    await checkMongoDB();
-    logger.info("MongoDB connections verified successfully.");
+    if (Number(MONGODB_FLAG)) {
+      await connectMongoDB();
+      await checkMongoDB();
+      logger.info("MongoDB connections verified successfully.");
+    }
   } catch (error) {
     if (error instanceof Error) {
       logger.error("Postgres, MongoDB, or Redis connection failed", { error: error.message });
@@ -48,7 +51,7 @@ async function checkConnections() {
 checkConnections().then(() => {
   const server = app.listen(PORT, () =>
     logger.info(
-      `Server running on PORT: ${PORT}, ==> ENV: ${ENV}, ==> API: ${API}, ==> ALLOW_ORIGIN: ${ALLOW_ORIGIN}`,
+      `Server running on PORT: ${PORT}, ==> ENV: ${NODE_ENV}, ==> API: ${BASE_URL}, ==> ALLOW_ORIGIN: ${ALLOW_ORIGIN}`,
     ),
   );
 

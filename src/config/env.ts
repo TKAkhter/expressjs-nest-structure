@@ -7,10 +7,7 @@ const envSchema = z.object({
   NODE_ENV: z.enum(["local", "development", "production"]).default("local"),
   BASE_URL: z.string().url(),
   BASE_URL_HTTPS: z.string().url().optional(),
-  PORT: z
-    .string()
-    .transform((val) => parseInt(val, 10))
-    .optional(),
+  PORT: z.string().transform((val) => parseInt(val, 10)),
   SERVER_TIMEOUT: z.string().default("150s"),
   LOG_FILE_DURATION: z.string().default("3d"),
   ALLOW_ORIGIN: z.string(),
@@ -27,6 +24,9 @@ const envSchema = z.object({
   DATABASE_URL: z.string().url(),
   KNEX_REJECT_UNAUTHORIZED: z.string().transform((val) => val === "true"),
   MONGODB_URI: z.string().url(),
+  KNEX_FLAG: z.enum(["0", "1"]).default("0"),
+  REDIS_FLAG: z.enum(["0", "1"]).default("0"),
+  MONGODB_FLAG: z.enum(["0", "1"]).default("0"),
 });
 
 export const env = envSchema.parse(process.env);

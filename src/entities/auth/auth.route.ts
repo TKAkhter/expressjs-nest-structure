@@ -7,15 +7,18 @@ import { AuthController } from "./auth.controller";
 
 const authRouter = Router();
 
+const TAG = "Auth";
+const ROUTE = `/${TAG.toLowerCase()}`;
+
 export const authRegistry = new OpenAPIRegistry();
 const authController = new AuthController();
 
-authRegistry.register("Auth", AuthSchema);
+authRegistry.register(TAG, AuthSchema);
 
 authRegistry.registerPath({
   method: "post",
-  path: "/auth/login",
-  tags: ["Auth"],
+  path: `${ROUTE}/login`,
+  tags: [TAG],
   request: {
     body: {
       content: { "application/json": { schema: AuthSchema } },
@@ -25,10 +28,12 @@ authRegistry.registerPath({
 });
 authRouter.post("/login", zodValidation(AuthSchema), authController.login);
 
+//====================================================================================================
+
 authRegistry.registerPath({
   method: "post",
-  path: "/auth/register",
-  tags: ["Auth"],
+  path: `${ROUTE}/register`,
+  tags: [TAG],
   request: {
     body: {
       content: { "application/json": { schema: RegisterSchema } },
@@ -38,10 +43,12 @@ authRegistry.registerPath({
 });
 authRouter.post("/register", zodValidation(RegisterSchema), authController.register);
 
+//====================================================================================================
+
 authRegistry.registerPath({
   method: "post",
-  path: "/auth/extend-token",
-  tags: ["Auth"],
+  path: `${ROUTE}/extend-token`,
+  tags: [TAG],
   request: {
     body: {
       content: { "application/json": { schema: ExtendTokenSchema } },
@@ -51,10 +58,12 @@ authRegistry.registerPath({
 });
 authRouter.post("/extend-token", authMiddleware, authController.extendToken);
 
+//====================================================================================================
+
 authRegistry.registerPath({
   method: "post",
-  path: "/auth/logout",
-  tags: ["Auth"],
+  path: `${ROUTE}/logout`,
+  tags: [TAG],
   request: {
     body: {
       content: { "application/json": { schema: {} } },

@@ -8,6 +8,9 @@ import { StatusCodes } from "http-status-codes";
 import { logger } from "../../common/winston/winston";
 import { UserRepository } from "./user.repository";
 
+const TAG = "User";
+const LOG_FILE_NAME = `[${TAG} service]`;
+
 export class UserService {
   private userRepository: UserRepository;
 
@@ -16,247 +19,253 @@ export class UserService {
   }
 
   /**
-   * Fetches all users from the database.
-   * @returns Array of users
+   * Fetches all entities from the database.
+   * @returns Array of entities
    */
-  async getAllUsers(): Promise<UserDto[]> {
+  async getAll(): Promise<UserDto[]> {
     try {
-      logger.info("[User Service] Fetching all users");
-      const users = await this.userRepository.getAllUsers();
-      return users;
+      logger.info(`${LOG_FILE_NAME} Fetching all ${TAG}`);
+      const data = await this.userRepository.getAll();
+      return data;
     } catch (error) {
       if (error instanceof Error) {
-        logger.error("[User Service] Error fetching all users", { error: error.message });
-        throw new Error(`Error fetching users: ${error.message}`);
+        logger.error(`${LOG_FILE_NAME} Error fetching all ${TAG}`, { error: error.message });
+        throw new Error(`Error fetching ${TAG}: ${error.message}`);
       }
-      logger.error("[User Service] Unknown error occurred while fetching all users");
-      throw new Error("Unknown error occurred while fetching users.");
+      logger.error(`${LOG_FILE_NAME} Unknown error occurred while fetching all ${TAG}`);
+      throw new Error(`Unknown error occurred while fetching ${TAG}`);
     }
   }
 
   /**
-   * Fetches a user by their UUID.
-   * @param uuid - User's unique identifier
-   * @returns User data
+   * Fetches a entity by their id.
+   * @param uuid - entity's unique identifier
+   * @returns entity data
    */
-  async getUserByUuid(uuid: string): Promise<UserDto> {
+  async getByUuid(uuid: string): Promise<UserDto> {
     try {
-      logger.info(`[User Service] Fetching user with UUID: ${uuid}`);
-      const user = await this.userRepository.getUserByUuid(uuid);
+      logger.info(`${LOG_FILE_NAME} Fetching ${TAG} with uuid: ${uuid}`);
+      const data = await this.userRepository.getByUuid(uuid);
 
-      if (!user) {
-        logger.error(`[User Service] User with UUID ${uuid} not found.`);
-        throw createHttpError(StatusCodes.BAD_REQUEST, "User not found.", {
-          resource: "User",
+      if (!data) {
+        logger.error(`${LOG_FILE_NAME} ${TAG} with uuid ${uuid} not found`);
+        throw createHttpError(StatusCodes.BAD_REQUEST, `${TAG} not found`, {
+          resource: TAG,
         });
       }
 
-      return user;
+      return data;
     } catch (error) {
       if (createHttpError.isHttpError(error)) {
         throw error;
       }
       if (error instanceof Error) {
-        logger.error("[User Service] Error fetching user by UUID", { uuid, error: error.message });
-        throw new Error(`Error fetching user by UUID: ${error.message}`);
+        logger.error(`${LOG_FILE_NAME} Error fetching ${TAG} by uuid`, {
+          uuid,
+          error: error.message,
+        });
+        throw new Error(`Error fetching ${TAG} by uuid: ${error.message}`);
       }
-      logger.error("[User Service] Unknown error occurred while fetching user by UUID");
-      throw new Error("Unknown error occurred while fetching user by UUID.");
+      logger.error(`${LOG_FILE_NAME} Unknown error occurred while fetching ${TAG} by uuid`);
+      throw new Error(`Unknown error occurred while fetching ${TAG} by uuid`);
     }
   }
 
   /**
-   * Fetches a user by their email.
-   * @param email - User's email
-   * @returns User data or false if not found
+   * Fetches a entity by their email.
+   * @param email - entity's email
+   * @returns entity data or false if not found
    */
-  async getUserByEmail(email: string): Promise<UserDto | false> {
+  async getByEmail(email: string): Promise<UserDto | false> {
     try {
-      logger.info(`[User Service] Fetching user with email: ${email}`);
-      const user = await this.userRepository.getUserByEmail(email);
+      logger.info(`${LOG_FILE_NAME} Fetching ${TAG} with email: ${email}`);
+      const data = await this.userRepository.getByEmail(email);
 
-      if (!user) {
-        logger.error(`[User Service] User with email ${email} not found.`);
+      if (!data) {
+        logger.error(`${LOG_FILE_NAME} ${TAG} with email ${email} not found`);
         return false;
       }
 
-      return user;
+      return data;
     } catch (error) {
       if (createHttpError.isHttpError(error)) {
         throw error;
       }
       if (error instanceof Error) {
-        logger.error("[User Service] Error fetching user by email", {
+        logger.error(`${LOG_FILE_NAME} Error fetching ${TAG} by email`, {
           email,
           error: error.message,
         });
-        throw new Error(`Error fetching user by email: ${error.message}`);
+        throw new Error(`Error fetching ${TAG} by email: ${error.message}`);
       }
-      logger.error("[User Service] Unknown error occurred while fetching user by email");
-      throw new Error("Unknown error occurred while fetching user by email.");
+      logger.error(`${LOG_FILE_NAME} Unknown error occurred while fetching ${TAG} by email`);
+      throw new Error(`Unknown error occurred while fetching ${TAG} by email`);
     }
   }
 
   /**
-   * Finds users based on query parameters.
+   * Finds entities based on query parameters.
    * @param options - Query parameters like pagination, sorting, and filtering
-   * @returns Paginated user data
+   * @returns Paginated entity data
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async findByQuery(options: FindByQueryDto): Promise<any> {
     try {
-      logger.info(`[User Service] Querying users with options: ${JSON.stringify(options)}`);
+      logger.info(`${LOG_FILE_NAME} Querying ${TAG} with options: ${JSON.stringify(options)}`);
       return await this.userRepository.findByQuery(options);
     } catch (error) {
-      logger.error("[User Service] Error querying users", {
+      logger.error(`${LOG_FILE_NAME} Error querying ${TAG}`, {
         options,
         error: error instanceof Error ? error.message : "Unknown error",
       });
-      throw new Error("Error querying users.");
+      throw new Error(`Error querying ${TAG}`);
     }
   }
 
   /**
-   * Creates a new user.
-   * @param userData - Data for creating a new user
-   * @returns Created user data
+   * Creates a new entity.
+   * @param createDto - Data for creating a new entity
+   * @returns Created entity data
    */
-  async createUser(userData: CreateUserDto): Promise<UserDto> {
+  async create(createDto: CreateUserDto): Promise<UserDto> {
     try {
-      logger.info(`[User Service] Creating user with email: ${userData.email}`);
-      const user = await this.userRepository.getUserByEmail(userData.email);
-      const username = await this.userRepository.getUserByUsername(userData.username);
+      logger.info(`${LOG_FILE_NAME} Creating ${TAG} with email: ${createDto.email}`);
+      const data = await this.userRepository.getByEmail(createDto.email);
+      const username = await this.userRepository.getByUsername(createDto.username);
 
-      if (user) {
-        logger.error(`[User Service] User with email ${userData.email} already exists.`);
-        throw createHttpError(StatusCodes.BAD_REQUEST, "User already exists!", {
-          resource: "User",
+      if (data) {
+        logger.error(`${LOG_FILE_NAME} ${TAG} with email ${createDto.email} already exists`);
+        throw createHttpError(StatusCodes.BAD_REQUEST, `${TAG} already exists!`, {
+          resource: TAG,
         });
       }
 
       if (username) {
-        logger.error(`[User Service] User with username ${userData.username} already exists.`);
+        logger.error(`${LOG_FILE_NAME} ${TAG} with username ${createDto.username} already exists.`);
         throw createHttpError(StatusCodes.BAD_REQUEST, "Username is taken!", {
           resource: "User",
         });
       }
 
-      const hashedPassword = await hash(userData.password, env.HASH!);
+      const hashedPassword = await hash(createDto.password, env.HASH!);
       const currentTime = new Date();
-      const newUser = {
-        ...userData,
+      const newDto = {
+        ...createDto,
         uuid: uuidv4(),
         password: hashedPassword,
         createdAt: currentTime,
         updatedAt: currentTime,
       };
 
-      return await this.userRepository.createUser(newUser);
+      return await this.userRepository.create(newDto);
     } catch (error) {
       if (createHttpError.isHttpError(error)) {
         throw error;
       }
 
       if (error instanceof Error) {
-        logger.error("[User Service] Error creating user", { userData, error: error.message });
-        throw new Error(`Error creating user: ${error.message}`);
-      }
-      logger.error("[User Service] Unknown error occurred while creating user");
-      throw new Error("Unknown error occurred while creating user.");
-    }
-  }
-
-  /**
-   * Updates an existing user.
-   * @param uuid - User's unique identifier
-   * @param updateData - Data to update the user with
-   * @returns Updated user data
-   */
-  async updateUser(uuid: string, updateData: UpdateUserDto): Promise<UserDto | null> {
-    try {
-      logger.info(`[User Service] Updating user with UUID: ${uuid}`);
-      const user = await this.getUserByUuid(uuid);
-
-      if (!user) {
-        logger.error(`[User Service] User with UUID ${uuid} does not exist.`);
-        throw createHttpError(StatusCodes.BAD_REQUEST, "User does not exist!", {
-          resource: "User",
-        });
-      }
-
-      // If (updateData.password) {
-      //   UpdateData.password = await hash(updateData.password, env.HASH!);
-      // }
-
-      // UpdateData.updatedAt = new Date();
-
-      return await this.userRepository.updateUser(uuid, updateData);
-    } catch (error) {
-      if (createHttpError.isHttpError(error)) {
-        throw error;
-      }
-
-      if (error instanceof Error) {
-        logger.error("[User Service] Error updating user", {
-          uuid,
-          updateData,
+        logger.error(`${LOG_FILE_NAME} Error creating ${TAG}`, {
+          createDto,
           error: error.message,
         });
-        throw new Error(`Error updating user: ${error.message}`);
+        throw new Error(`Error creating ${TAG}: ${error.message}`);
       }
-      logger.error("[User Service] Unknown error occurred while updating user");
-      throw new Error("Unknown error occurred while updating user.");
+      logger.error(`${LOG_FILE_NAME} Unknown error occurred while creating ${TAG}`);
+      throw new Error(`Unknown error occurred while creating ${TAG}`);
     }
   }
 
   /**
-   * Deletes a user.
-   * @param uuid - User's unique identifier
-   * @returns Deletion result
+   * Updates an existing entity.
+   * @param uuid - entity's unique identifier
+   * @param updateDto - Data to update the entity with
+   * @returns Updated entity data
    */
-  async deleteUser(uuid: string): Promise<UserDto | null> {
+  async update(uuid: string, updateDto: UpdateUserDto): Promise<UserDto | null> {
     try {
-      logger.info(`[User Service] Deleting user with UUID: ${uuid}`);
-      const user = await this.getUserByUuid(uuid);
+      logger.info(`${LOG_FILE_NAME} Updating ${TAG} with uuid: ${uuid}`);
+      const data = await this.getByUuid(uuid);
 
-      if (!user) {
-        logger.error(`[User Service] User with UUID ${uuid} does not exist.`);
-        throw createHttpError(StatusCodes.BAD_REQUEST, "User does not exist!", {
-          resource: "User",
+      if (!data) {
+        logger.error(`${LOG_FILE_NAME} ${TAG} with uuid ${uuid} does not exist!`);
+        throw createHttpError(StatusCodes.BAD_REQUEST, `${TAG} does not exist!`, {
+          resource: TAG,
         });
       }
 
-      return await this.userRepository.deleteUser(uuid);
+      // If(updateDto.password) {
+      //   UpdateDto.password = await hash(updateDto.password, env.HASH!);
+      // }
+
+      // UpdateDto.updatedAt = new Date();
+
+      return await this.userRepository.update(uuid, updateDto);
     } catch (error) {
       if (createHttpError.isHttpError(error)) {
         throw error;
       }
 
       if (error instanceof Error) {
-        logger.error("[User Service] Error deleting user", { uuid, error: error.message });
-        throw new Error(`Error deleting user: ${error.message}`);
+        logger.error(`${LOG_FILE_NAME} Error updating ${TAG}`, {
+          uuid,
+          updateDto,
+          error: error.message,
+        });
+        throw new Error(`Error updating ${TAG}: ${error.message}`);
       }
-      logger.error("[User Service] Unknown error occurred while deleting user");
-      throw new Error("Unknown error occurred while deleting user.");
+      logger.error(`${LOG_FILE_NAME} Unknown error occurred while updating ${TAG}`);
+      throw new Error(`Unknown error occurred while updating ${TAG}`);
     }
   }
 
   /**
-   * Deletes multiple users by their UUIDs.
-   * @param ids - List of user UUIDs to delete
+   * Deletes a entity.
+   * @param uuid - entity's unique identifier
    * @returns Deletion result
    */
-  async deleteAllUsers(ids: string[]): Promise<{ deletedCount: number }> {
+  async delete(uuid: string): Promise<UserDto | null> {
+    try {
+      logger.info(`${LOG_FILE_NAME} Deleting ${TAG} with uuid: ${uuid}`);
+      const data = await this.getByUuid(uuid);
+
+      if (!data) {
+        logger.error(`${LOG_FILE_NAME} ${TAG} with uuid ${uuid} does not exist!`);
+        throw createHttpError(StatusCodes.BAD_REQUEST, `${TAG} does not exist!`, {
+          resource: TAG,
+        });
+      }
+
+      return await this.userRepository.delete(uuid);
+    } catch (error) {
+      if (createHttpError.isHttpError(error)) {
+        throw error;
+      }
+
+      if (error instanceof Error) {
+        logger.error(`${LOG_FILE_NAME} Error deleting ${TAG}`, { uuid, error: error.message });
+        throw new Error(`Error deleting ${TAG}: ${error.message}`);
+      }
+      logger.error(`${LOG_FILE_NAME} Unknown error occurred while deleting ${TAG}`);
+      throw new Error(`Unknown error occurred while deleting ${TAG}`);
+    }
+  }
+
+  /**
+   * Deletes multiple entities by their ids.
+   * @param ids - List of entity ids to delete
+   * @returns Deletion result
+   */
+  async deleteAll(ids: string[]): Promise<{ deletedCount: number }> {
     if (!Array.isArray(ids) || ids.length === 0) {
-      logger.error("[User Service] Invalid array of IDs for bulk delete.");
-      throw new Error("Invalid array of IDs.");
+      logger.error(`${LOG_FILE_NAME} Invalid array of IDs for bulk delete`);
+      throw new Error("Invalid array of IDs");
     }
 
-    const result = await this.userRepository.deleteAllUsers(ids);
+    const result = await this.userRepository.deleteAll(ids);
 
     if (result.deletedCount === 0) {
-      logger.error("[User Service] No users found to delete.", { ids });
-      throw new Error("No users found to delete.");
+      logger.error(`${LOG_FILE_NAME} No ${TAG} found to delete`, { ids });
+      throw new Error(`No ${TAG} found to delete`);
     }
 
     return result;

@@ -7,6 +7,7 @@ import createHttpError from "http-errors";
 import { StatusCodes } from "http-status-codes";
 
 const userService = new UserService();
+const LOG_FILE_NAME = "[Auth service]";
 
 export class AuthService {
   /**
@@ -16,20 +17,20 @@ export class AuthService {
    * @throws HTTP error if user not found or password is invalid.
    */
   async login(authData: AuthDto) {
-    logger.info("Login service invoked", { email: authData.email });
+    logger.info(`${LOG_FILE_NAME} Login service invoked`, { email: authData.email });
 
     try {
-      const user = await userService.getUserByEmail(authData.email);
+      const user = await userService.getByEmail(authData.email);
 
       if (!user) {
-        logger.error("User not found during login", { email: authData.email });
+        logger.error(`${LOG_FILE_NAME} User not found during login`, { email: authData.email });
         throw createHttpError(StatusCodes.BAD_REQUEST, "User does not exist!", {
           resource: "Auth",
         });
       }
 
       if (!(await compare(authData.password, user.password))) {
-        logger.error("Invalid password during login", { email: authData.email });
+        logger.error(`${LOG_FILE_NAME} Invalid password during login`, { email: authData.email });
         throw createHttpError(StatusCodes.BAD_REQUEST, "Invalid email or password", {
           resource: "Auth",
         });
@@ -41,7 +42,8 @@ export class AuthService {
         name: user.name,
         email: user.email,
       });
-      logger.info("Token generated successfully", { email: authData.email });
+
+      logger.info(`${LOG_FILE_NAME} Token generated successfully`, { email: authData.email });
       return { token };
     } catch (error) {
       if (createHttpError.isHttpError(error)) {
@@ -49,11 +51,14 @@ export class AuthService {
       }
 
       if (error instanceof Error) {
-        logger.error("Error during login", { error: error.message, email: authData.email });
+        logger.error(`${LOG_FILE_NAME} Error during login`, {
+          error: error.message,
+          email: authData.email,
+        });
         throw new Error(`Error while login: ${error.message}`);
       }
-      logger.error("Unknown error during login", { email: authData.email });
-      throw new Error("Unknown error occurred while login.");
+      logger.error(`${LOG_FILE_NAME} Unknown error during login`, { email: authData.email });
+      throw new Error("Unknown error occurred while login");
     }
   }
 
@@ -64,23 +69,25 @@ export class AuthService {
    * @throws HTTP error if user already exists.
    */
   async register(registerDto: RegisterDto) {
-    logger.info("Register service invoked", { email: registerDto.email });
+    logger.info(`${LOG_FILE_NAME} Register service invoked`, { email: registerDto.email });
 
     try {
-      const user = await userService.getUserByEmail(registerDto.email);
+      const user = await userService.getByEmail(registerDto.email);
 
       if (user) {
-        logger.error("User already exists during registration", { email: registerDto.email });
+        logger.error(`${LOG_FILE_NAME} User already exists during registration`, {
+          email: registerDto.email,
+        });
         throw createHttpError(StatusCodes.BAD_REQUEST, "User already exist!", {
           resource: "Auth",
         });
       }
 
-      const registerUser = await userService.createUser(registerDto);
+      const registerUser = await userService.create(registerDto);
 
       const { token } = await this.login(registerDto);
 
-      logger.info("User registered successfully", { email: registerDto.email });
+      logger.info(`${LOG_FILE_NAME} User registered successfully`, { email: registerDto.email });
       return { ...registerUser, token };
     } catch (error) {
       if (createHttpError.isHttpError(error)) {
@@ -88,14 +95,16 @@ export class AuthService {
       }
 
       if (error instanceof Error) {
-        logger.error("Error during registration", {
+        logger.error(`${LOG_FILE_NAME} Error during registration`, {
           error: error.message,
           email: registerDto.email,
         });
-        throw new Error(`Error while login: ${error.message}`);
+        throw new Error(`${LOG_FILE_NAME} Error while login: ${error.message}`);
       }
-      logger.error("Unknown error during registration", { email: registerDto.email });
-      throw new Error("Unknown error occurred while login.");
+      logger.error(`${LOG_FILE_NAME} Unknown error during registration`, {
+        email: registerDto.email,
+      });
+      throw new Error(`${LOG_FILE_NAME} Unknown error occurred while login`);
     }
   }
 
@@ -106,7 +115,7 @@ export class AuthService {
    * @throws Error if token extension fails.
    */
   async extendToken(token: string) {
-    logger.info("Extend token service invoked", { token });
+    logger.info(`${LOG_FILE_NAME} Extend token service invoked`, { token });
 
     try {
       const payload = verifyToken(token);
@@ -116,15 +125,15 @@ export class AuthService {
         name: payload.name,
         email: payload.email,
       });
-      logger.info("Token extended successfully", { newToken });
+      logger.info(`${LOG_FILE_NAME} Token extended successfully`, { newToken });
       return newToken;
     } catch (error) {
       if (error instanceof Error) {
-        logger.error("Error extending token", { error: error.message, token });
-        throw new Error(`Error extend token: ${error.message}`);
+        logger.error(`${LOG_FILE_NAME} Error extending token`, { error: error.message, token });
+        throw new Error(`${LOG_FILE_NAME} Error extend token: ${error.message}`);
       }
-      logger.error("Unknown error while extending token", { token });
-      throw new Error("Unknown error occurred while extend token.");
+      logger.error(`${LOG_FILE_NAME} Unknown error while extending token`, { token });
+      throw new Error(`${LOG_FILE_NAME} Unknown error occurred while extend token`);
     }
   }
 
@@ -135,17 +144,17 @@ export class AuthService {
    * @throws Error if logout fails.
    */
   async logout(token: string) {
-    logger.info("Logout service invoked", { token });
+    logger.info(`${LOG_FILE_NAME} Logout service invoked`, { token });
 
     try {
       return { token, success: true };
     } catch (error) {
       if (error instanceof Error) {
-        logger.error("Error during logout", { error: error.message, token });
+        logger.error(`${LOG_FILE_NAME} Error during logout`, { error: error.message, token });
         throw new Error(`Error logout: ${error.message}`);
       }
-      logger.error("Unknown error during logout", { token });
-      throw new Error("Unknown error occurred while logout.");
+      logger.error(`${LOG_FILE_NAME} Unknown error during logout`, { token });
+      throw new Error("Unknown error occurred while logout");
     }
   }
 }

@@ -1,5 +1,5 @@
 import { Router, Request, Response, NextFunction } from "express";
-import { checkMongoDB, checkPostgres, checkRedis } from "./health-check-services-status";
+import { checkMongoDB, checkRedis } from "./health-check-services-status";
 import { createHealthCheckResponse, formatMemoryUsage } from "./health-check-helper";
 import { createApiResponse } from "../../common/swagger/swagger-response-builder";
 import { extendZodWithOpenApi, OpenAPIRegistry } from "@asteasolutions/zod-to-openapi";
@@ -26,7 +26,6 @@ healthCheckRegistry.registerPath({
 healthCheckRouter.get("/", async (_: Request, res: Response, next: NextFunction) => {
   try {
     const healthCheck = {
-      pg: await checkPostgres(),
       redis: await checkRedis(),
       mongo: await checkMongoDB(),
       server: {

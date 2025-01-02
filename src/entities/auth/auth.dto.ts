@@ -3,9 +3,44 @@ import { z } from "zod";
 
 extendZodWithOpenApi(z);
 
+const PASSWORD_SCHEMA = z
+  .string()
+  .min(8)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  .superRefine((value: string, context: any) => {
+    if (value === value.toLowerCase()) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Missing a capital letter",
+      });
+    }
+
+    if (value === value.toUpperCase()) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Missing a lowercase letter",
+      });
+    }
+
+    if (!/\d/.test(value)) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Missing a number",
+      });
+    }
+
+    // eslint-disable-next-line no-useless-escape
+    if (!/[!"#$%&'()*+,./:;<=>?@[\\\]^_`{|}~\-]/.test(value)) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Missing a special character",
+      });
+    }
+  });
+
 export const AuthSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(8, "Password must be at least 8 characters long"),
+  password: PASSWORD_SCHEMA,
 });
 
 export const LogoutSchema = z.object({
@@ -20,17 +55,9 @@ export const RegisterSchema = z
   .object({
     name: z.string().min(4, { message: "Name must be at least 4 characters long" }),
     username: z.string().min(4, { message: "Username must be at least 4 characters long" }),
-    email: z.string().email({ message: "Invalid email address" }),
-    password: z
-      .string()
-      .min(8, { message: "Password must be at least 8 characters long" })
-      .regex(/[a-z]/, { message: "Password must contain at least one lowercase letter" })
-      .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter" })
-      .regex(/\d/, { message: "Password must contain at least one number" })
-      .regex(/[!@#$%^&*(),.?":{}|<>]/, {
-        message: "Password must contain at least one special character",
-      }),
-    confirmPassword: z.string(),
+    email: z.string().email(),
+    password: PASSWORD_SCHEMA,
+    confirmPassword: z.string().min(8),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",

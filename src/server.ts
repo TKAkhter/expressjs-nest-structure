@@ -1,40 +1,31 @@
 import app from "./app";
-import {
-  checkMongoDB,
-  checkPostgres,
-  checkRedis,
-} from "./entities/health-check/health-check-services-status";
+import { checkMongoDB, checkRedis } from "./entities/health-check/health-check-services-status";
 import { env } from "./config/env";
 import { logger } from "./common/winston/winston";
 import connectMongoDB from "./config/mongodb/mongodb";
 
-const { PORT, NODE_ENV, BASE_URL, ALLOW_ORIGIN, KNEX_FLAG, REDIS_FLAG, MONGODB_FLAG } = env;
+const { PORT, NODE_ENV, BASE_URL, ALLOW_ORIGIN, ENABLE_REDIS, ENABLE_MONGODB } = env;
 
 /**
- * Function to check the connection status for Postgres, Redis, and MongoDB.
+ * Function to check the connection status for Redis, and MongoDB.
  * Logs the success or failure of each connection check.
  */
 async function checkConnections() {
   try {
     logger.info("Checking database connections...");
-    if (Number(KNEX_FLAG)) {
-      await checkPostgres();
-      logger.info("Postgres connections verified successfully.");
-    }
-
-    if (Number(REDIS_FLAG)) {
+    if (Number(ENABLE_REDIS)) {
       await checkRedis();
       logger.info("Redis connections verified successfully.");
     }
 
-    if (Number(MONGODB_FLAG)) {
+    if (Number(ENABLE_MONGODB)) {
       await connectMongoDB();
       await checkMongoDB();
       logger.info("MongoDB connections verified successfully.");
     }
   } catch (error) {
     if (error instanceof Error) {
-      logger.error("Postgres, MongoDB, or Redis connection failed", { error: error.message });
+      logger.error("MongoDB, or Redis connection failed", { error: error.message });
     } else {
       logger.error("Unknown error occurred during connection checks");
     }

@@ -3,24 +3,22 @@ import { z } from "zod";
 
 extendZodWithOpenApi(z);
 
-// Example of a schema for a find by query endpoint
-// {
-//     "page": 1,
-//     "rowsPerPage": 7,
-//     "sort": "username:asc",
-//     "filter": { "username" : { "$regex": "test23", "$options": "i" }}
-// }
+// See query examples in query-examples.txt
+
+const OrderBySchema = z.object({
+  sort: z.string(),
+  order: z.enum(["asc", "desc"]),
+});
+
+const PaginateSchema = z.object({
+  page: z.number().min(1).default(1),
+  perPage: z.number().min(1).default(10),
+});
 
 export const FindByQuerySchema = z.object({
-  page: z.number().min(1).default(1),
-  rowsPerPage: z.number().min(1).default(10),
-  sort: z
-    .string()
-    .regex(/^[a-zA-Z]+:(asc|desc)$/, {
-      message: "Sort must be in the format 'field:asc' or 'field:desc'",
-    })
-    .default("createdAt:asc"),
-  filter: z.record(z.any()).default({}),
+  filter: z.any(),
+  paginate: PaginateSchema.optional(),
+  orderBy: z.array(OrderBySchema).optional(),
 });
 
 export type FindByQueryDto = z.infer<typeof FindByQuerySchema>;

@@ -3,10 +3,12 @@ import { createLogger, format, transports, Logger } from "winston";
 import { StatusCodes } from "http-status-codes";
 import { env } from "../../config/env";
 import fs from "fs";
+import colors from "colors/safe";
 
+const isWinstonEnabled = env.ENABLE_WINSTON === "1";
 const logDir = "logs";
 
-if (!fs.existsSync(logDir)) {
+if (!fs.existsSync(logDir) && isWinstonEnabled) {
   fs.mkdirSync(logDir);
 }
 
@@ -42,7 +44,7 @@ const customFormat = format.combine(
   format.printf(({ level, message, timestamp: stamp, ...meta }) => {
     const metaData = meta ? JSON.stringify(meta) : "";
     return `\n[${stamp}] [${level}]: ${message} ${
-      JSON.stringify(metaData) === "{}" ? metaData : ""
+      JSON.stringify(metaData) === "{}" ? "" : metaData
     }`;
   }),
 );
@@ -55,29 +57,45 @@ const winstonLogger: Logger = createLogger({
     format.splat(),
     format.align(),
   ),
-  transports: [
-    new transports.Console({
-      format: format.combine(
-        format.colorize({ colors: logLevels.colors }),
-        format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
-        format.errors({ stack: true }),
-        customFormat,
-      ),
-    }),
-    createDailyRotateTransport("info"),
-    createDailyRotateTransport("error"),
-  ],
-  // ExitOnError: false,
+  transports: isWinstonEnabled
+    ? [
+        new transports.Console({
+          format: format.combine(
+            format.colorize({ colors: logLevels.colors }),
+            format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
+            format.errors({ stack: true }),
+            customFormat,
+          ),
+        }),
+        createDailyRotateTransport("info"),
+        createDailyRotateTransport("error"),
+      ]
+    : [],
 });
 
-export const logger = {
-  info: (message: string, metadata?: Record<string, unknown>) =>
-    winstonLogger.info(message, metadata),
-  http: (message: string, metadata?: Record<string, unknown>) =>
-    winstonLogger.http(message, metadata),
-  error: (message: string, metadata?: Record<string, unknown>) =>
-    winstonLogger.error(message, metadata),
-};
+export const logger = isWinstonEnabled
+  ? {
+      info: (message: string, metadata?: Record<string, unknown>) =>
+        winstonLogger.info(message, metadata),
+      warn: (message: string, metadata?: Record<string, unknown>) =>
+        winstonLogger.warn(message, metadata),
+      http: (message: string, metadata?: Record<string, unknown>) =>
+        winstonLogger.http(message, metadata),
+      error: (message: string, metadata?: Record<string, unknown>) =>
+        winstonLogger.error(message, metadata),
+    }
+  : {
+      info: (message: string, metadata?: Record<string, unknown>) =>
+        console.log(colors.white(`${message}${metadata ? `, ${JSON.stringify(metadata)}` : ""}\n`)),
+      warn: (message: string, metadata?: Record<string, unknown>) =>
+        console.log(
+          colors.yellow(`${message}${metadata ? `, ${JSON.stringify(metadata)}` : ""}\n`),
+        ),
+      http: (message: string, metadata?: Record<string, unknown>) =>
+        console.log(colors.cyan(`${message}${metadata ? `, ${JSON.stringify(metadata)}` : ""}\n`)),
+      error: (message: string, metadata?: Record<string, unknown>) =>
+        console.log(colors.red(`${message}${metadata ? `, ${JSON.stringify(metadata)}` : ""}\n`)),
+    };
 
 export const morganStream = {
   write: (message: string) => {

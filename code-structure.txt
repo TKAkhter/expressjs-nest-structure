@@ -5,9 +5,8 @@ src
 │   ├── winston
 │   │   ├── winston.ts
 ├── databases
-│   ├── knex
-│   │   ├── index.ts
-│   │   ├── knex-file.ts
+│   ├── mongodb
+│   │   ├── mongodb.ts
 ├── entities
 │   ├── user
 │   │   ├── user.controller.ts

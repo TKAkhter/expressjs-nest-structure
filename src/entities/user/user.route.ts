@@ -8,51 +8,61 @@ import { z } from "zod";
 import { FindByQuerySchema } from "../../schemas/find-by-query";
 import { Router } from "express";
 
-const userRouter = Router();
-userRouter.use(authMiddleware);
+const accountsRouter = Router();
+accountsRouter.use(authMiddleware);
+
+const TAG = "User";
+const ROUTE = `/${TAG.toLowerCase()}s`;
 
 export const userRegistry = new OpenAPIRegistry();
 const userController = new UserController();
 
-userRegistry.register("User", UserSchema);
+userRegistry.register(TAG, UserSchema);
 
 userRegistry.registerPath({
   method: "get",
-  path: "/users",
-  summary: "Get all users",
-  tags: ["User"],
+  path: ROUTE,
+  summary: `Get all ${TAG}`,
+  tags: [TAG],
   responses: createApiResponse(z.array(UserSchema), "Success"),
 });
-userRouter.get("/", userController.getAllUsers);
+accountsRouter.get("/", userController.getAll);
+
+//====================================================================================================
 
 userRegistry.registerPath({
   method: "get",
-  path: "/users/{id}",
-  tags: ["User"],
-  summary: "Get a single user",
+  path: `${ROUTE}/{uuid}`,
+  tags: [TAG],
+  summary: `Get ${TAG} by uuid`,
   request: {
     params: z.object({ id: z.string() }),
   },
   responses: createApiResponse(UserSchema, "Success"),
 });
-userRouter.get("/:id", userController.getUser);
+accountsRouter.get("/:uuid", userController.getByUuid);
+
+//====================================================================================================
 
 userRegistry.registerPath({
   method: "get",
-  path: "/users/email/{email}",
-  tags: ["User"],
-  summary: "Get user by email",
+  path: `${ROUTE}/email/{email}`,
+  tags: [TAG],
+  summary: `Get ${TAG} by email`,
   request: {
     params: z.object({ email: z.string() }),
   },
   responses: createApiResponse(UserSchema, "Success"),
 });
-userRouter.get("/email/:email", userController.getUserByEmail);
+accountsRouter.get("/email/:email", userController.getByEmail);
+
+//====================================================================================================
 
 userRegistry.registerPath({
   method: "post",
-  path: "/users/find",
-  tags: ["User"],
+  path: `${ROUTE}/find`,
+  tags: [TAG],
+  summary: `Find ${TAG} by query`,
   request: {
     body: {
       content: { "application/json": { schema: FindByQuerySchema } },
@@ -60,63 +70,73 @@ userRegistry.registerPath({
   },
   responses: createApiResponse(z.array(FindByQuerySchema), "Success"),
 });
-userRouter.post("/find", zodValidation(FindByQuerySchema), userController.findByQuery);
+accountsRouter.post("/find", zodValidation(FindByQuerySchema), userController.findByQuery);
+
+//====================================================================================================
 
 userRegistry.registerPath({
   method: "post",
-  path: "/users",
-  tags: ["User"],
+  path: ROUTE,
+  tags: [TAG],
+  summary: `Create ${TAG}`,
   request: {
     body: {
       content: { "application/json": { schema: CreateUserSchema } },
     },
   },
-  responses: createApiResponse(CreateUserSchema, "User Created Successfully"),
+  responses: createApiResponse(CreateUserSchema, `${TAG} Created Successfully`),
 });
-userRouter.post("/", zodValidation(CreateUserSchema), userController.createUser);
+accountsRouter.post("/", zodValidation(CreateUserSchema), userController.create);
+
+//====================================================================================================
 
 userRegistry.registerPath({
   method: "put",
-  path: "/users/{id}",
-  tags: ["User"],
+  path: `${ROUTE}/{id}`,
+  tags: [TAG],
+  summary: `Update ${TAG}`,
   request: {
     params: z.object({ id: z.string() }),
     body: {
       content: { "application/json": { schema: UpdateUserSchema } },
     },
   },
-  responses: createApiResponse(UpdateUserSchema, "User Updated Successfully"),
+  responses: createApiResponse(UpdateUserSchema, `${TAG} Updated Successfully`),
 });
-userRouter.put("/:id", zodValidation(UpdateUserSchema), userController.updateUser);
+accountsRouter.put("/:id", zodValidation(UpdateUserSchema), userController.update);
+
+//====================================================================================================
 
 userRegistry.registerPath({
   method: "delete",
-  path: "/users",
-  tags: ["User"],
+  path: ROUTE,
+  tags: [TAG],
+  summary: `Delete ${TAG}s`,
   request: {
     body: {
       content: { "application/json": { schema: z.object({ ids: z.array(z.string()) }) } },
     },
   },
-  responses: createApiResponse(z.null(), "Users Deleted Successfully"),
+  responses: createApiResponse(z.null(), `${TAG}s Deleted Successfully`),
 });
-
-userRouter.delete(
+accountsRouter.delete(
   "/",
   zodValidation(z.object({ ids: z.array(z.string()) })),
-  userController.deleteAllUsers,
+  userController.deleteAll,
 );
+
+//====================================================================================================
 
 userRegistry.registerPath({
   method: "delete",
-  path: "/users/{id}",
-  tags: ["User"],
-  summary: "Delete user",
+  path: `${ROUTE}/{id}`,
+  tags: [TAG],
+  summary: `Delete ${TAG}`,
   request: {
     params: z.object({ id: z.string() }),
   },
-  responses: createApiResponse(z.null(), "User Deleted Successfully"),
+  responses: createApiResponse(z.null(), `${TAG} Deleted Successfully`),
 });
-userRouter.delete("/:id", userController.deleteUser);
+accountsRouter.delete("/:id", userController.delete);
 
-export default userRouter;
+export default accountsRouter;

@@ -1,0 +1,198 @@
+1. Simple Equality Filter
+{
+  "filter": {
+    "data.number": { "$eq": "12345" }
+  },
+  "paginate": {
+    "page": 1,
+      "perPage": 10
+  },
+  "orderBy": [
+    { "sort": "data.name", "order": "asc" }
+  ]
+}
+
+2. Case-Insensitive Text Search
+{
+  "filter": {
+    "data.email": { "$regex": "test" }
+  },
+  "paginate": {
+    "page": 1,
+    "perPage": 10
+  },
+  "orderBy": [
+    { "sort": "data.email", "order": "desc" }
+  ]
+}
+
+3. Range Filter
+json
+{
+  "filter": {
+    "data.age": { "$between": [25, 35] }
+  },
+  "paginate": {
+    "page": 2,
+    "perPage": 20
+  },
+  "orderBy": [
+    { "sort": "data.age", "order": "asc" }
+  ]
+}
+
+4. Null and Not Null Filters
+{
+  "filter": {
+    "data.address": { "$isNull": true }
+  },
+  "paginate": {
+    "page": 1,
+    "perPage": 10
+  },
+  "orderBy": [
+    { "sort": "data.id", "order": "asc" }
+  ]
+}
+{
+  "filter": {
+    "data.phone": { "$isNotNull": true }
+  },
+  "paginate": {
+    "page": 1,
+    "perPage": 10
+  },
+  "orderBy": [
+    { "sort": "data.phone", "order": "asc" }
+  ]
+}
+
+5. Combining $or and $and
+{
+  "filter": {
+    "$or": [
+      {
+        "$and": [
+          { "data.number": { "$eq": "12345" } },
+          { "data.email": { "$regex": "test" } }
+        ]
+      },
+      {
+        "data.age": { "$gte": 30 }
+      }
+    ]
+  },
+  "paginate": {
+    "page": 1,
+    "perPage": 10
+  },
+  "orderBy": [
+    { "sort": "data.name", "order": "asc" }
+  ]
+}
+
+6. Using $and with Multiple Conditions
+{
+  "filter": {
+    "$and": [
+      { "data.status": { "$eq": "active" } },
+      { "data.created_at": { "$between": ["2024-01-01", "2024-12-31"] } }
+    ]
+  },
+  "paginate": {
+    "page": 1,
+    "perPage": 10
+  },
+  "orderBy": [
+    { "sort": "data.created_at", "order": "desc" }
+  ]
+}
+
+7. $or Condition with Multiple Filters
+{
+  "filter": {
+    "$or": [
+      { "data.name": { "$regex": "john" } },
+      { "data.email": { "$regex": "example" } },
+      { "data.age": { "$lt": 30 } }
+    ]
+  },
+  "paginate": {
+    "page": 3,
+    "perPage": 15
+  },
+  "orderBy": [
+    { "sort": "data.name", "order": "asc" },
+    { "sort": "data.age", "order": "desc" }
+  ]
+}
+
+8. Filter with Multiple $and and $or Combinations
+{
+  "filter": {
+    "$and": [
+      {
+        "$or": [
+          { "data.city": { "$eq": "New York" } },
+          { "data.city": { "$eq": "Los Angeles" } }
+        ]
+      },
+      { "data.status": { "$eq": "verified" } },
+      {
+        "$or": [
+          { "data.age": { "$gte": 25 } },
+          { "data.email": { "$regex": "test" } }
+        ]
+      }
+    ]
+  },
+  "paginate": {
+    "page": 2,
+    "perPage": 10
+  },
+  "orderBy": [
+    { "sort": "data.city", "order": "asc" },
+    { "sort": "data.age", "order": "desc" }
+  ]
+}
+
+9. Sorting by Multiple Columns
+{
+  "filter": {
+    "data.status": { "$eq": "active" }
+  },
+  "paginate": {
+    "page": 1,
+    "perPage": 10
+  },
+  "orderBy": [
+    { "sort": "data.name", "order": "asc" },
+    { "sort": "data.created_at", "order": "desc" }
+  ]
+}
+
+10. Combining All Features
+{
+  "filter": {
+    "$and": [
+      { "data.status": { "$eq": "active" } },
+      {
+        "$or": [
+          { "data.number": { "$eq": "12345" } },
+          { "data.email": { "$regex": "test" } }
+        ]
+      },
+      { "data.age": { "$between": [20, 30] } },
+      { "data.address": { "$isNotNull": true } }
+    ]
+  },
+  "paginate": {
+    "page": 4,
+    "perPage": 20
+  },
+  "orderBy": [
+    { "sort": "data.name", "order": "asc" },
+    { "sort": "data.age", "order": "desc" },
+    { "sort": "data.created_at", "order": "asc" }
+  ]
+}

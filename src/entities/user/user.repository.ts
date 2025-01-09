@@ -119,6 +119,7 @@ export class UserRepository {
         total,
         page,
         perPage,
+        totalPages: Math.ceil(total / perPage),
       };
     } catch (error) {
       logger.error(`${LOG_FILE_NAME} Error querying ${TAG}`, {

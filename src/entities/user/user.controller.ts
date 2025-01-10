@@ -13,7 +13,7 @@ export class UserController {
   public userService: UserService;
 
   constructor() {
-    this.tableName = "user";
+    this.tableName = "users";
     this.logFileName = `[${this.tableName} Controller]`;
     this.userService = new UserService(this.tableName, `[${this.tableName} Service]`);
   }

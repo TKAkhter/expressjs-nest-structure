@@ -51,6 +51,17 @@ export const ExtendTokenSchema = z.object({
   token: z.string(),
 });
 
+export const forgotModel = z.object({
+  email: z.string().email().trim(),
+});
+
+export const resetModel = z.object({
+  password: PASSWORD_SCHEMA,
+  confirm: z.string().min(8).optional(),
+  currentPassword: z.string().min(8).optional(),
+  email: z.string().email().trim(),
+});
+
 export const RegisterSchema = z
   .object({
     name: z.string().min(4, { message: "Name must be at least 4 characters long" }),

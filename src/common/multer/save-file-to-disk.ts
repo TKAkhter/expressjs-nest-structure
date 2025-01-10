@@ -1,6 +1,6 @@
 import path from "path";
 import fs from "fs";
-import { logger } from "../winston/winston";
+import { logger } from "@/common/winston/winston";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const saveFileToDisk = async (file: any) => {

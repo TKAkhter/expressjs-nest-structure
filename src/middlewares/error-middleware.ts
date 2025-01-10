@@ -1,9 +1,9 @@
 import { NextFunction, Response } from "express";
 import { HttpError } from "http-errors";
 import { StatusCodes } from "http-status-codes";
-import { env } from "../config/env";
-import { logger } from "../common/winston/winston";
-import { CustomRequest } from "../types/request";
+import { env } from "@/config/env";
+import { logger } from "@/common/winston/winston";
+import { CustomRequest } from "@/types/request";
 
 /**
  * Error handler middleware for catching and logging errors.

@@ -1,5 +1,5 @@
 import { sign, verify } from "jsonwebtoken";
-import { env } from "../../config/env";
+import { env } from "@/config/env";
 import { StatusCodes } from "http-status-codes";
 import createHttpError from "http-errors";
 

@@ -36,3 +36,15 @@ export type UpdateUserDto = z.infer<typeof UpdateUserSchema>;
 
 const schema = zodSchema(UserSchema);
 export const UserModel = model("User", schema);
+
+export type User = {
+  uuid: string;
+  name: string;
+  username: string;
+  email: string;
+  password?: string;
+  bio?: string;
+  phoneNumber?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+};

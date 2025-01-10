@@ -1,10 +1,12 @@
 import fs from "fs";
 import path from "path";
-import { logger } from "../winston/winston";
+import { logger } from "@/common/winston/winston";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const updateImageToDisk = async (fileName: string, file: any) => {
   try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let response: any;
     const uploadDir = "./uploads";
 
     const newFilePath = path.join(uploadDir, fileName);
@@ -22,7 +24,7 @@ export const updateImageToDisk = async (fileName: string, file: any) => {
         throw new Error(err as any);
       }
 
-      fs.rename(tempFilePath, newFilePath, (renameErr) => {
+      response = fs.rename(tempFilePath, newFilePath, (renameErr) => {
         if (renameErr) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           logger.error("Error replacing file:", renameErr as any);
@@ -31,9 +33,12 @@ export const updateImageToDisk = async (fileName: string, file: any) => {
         }
 
         logger.info(`Image updated successfully: ${newFilePath}`);
+        // Was removed from the response
+        return { fileName, filePath: newFilePath };
       });
     });
-    return { fileName, filePath: newFilePath };
+    // Added return statement
+    return response;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     logger.error("Error updating image:", error);

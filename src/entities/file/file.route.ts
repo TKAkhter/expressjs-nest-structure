@@ -1,11 +1,11 @@
 import { Router } from "express";
-import { uploadMiddleware } from "../../common/multer/multer";
+import { uploadMiddleware } from "@/common/multer/multer";
 import { FileController } from "./file.controller";
 import { OpenAPIRegistry } from "@asteasolutions/zod-to-openapi";
 import { FileSchema, UpdateFileSchema, UploadFileSchema } from "./file.dto";
-import { createApiResponse } from "../../common/swagger/swagger-response-builder";
+import { createApiResponse } from "@/common/swagger/swagger-response-builder";
 import { z } from "zod";
-import { authMiddleware, zodValidation } from "../../middlewares";
+import { authMiddleware, zodValidation } from "@/middlewares";
 
 const filesRouter = Router();
 filesRouter.use(authMiddleware);

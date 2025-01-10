@@ -1,5 +1,5 @@
 import { FileDto, FileModel, UpdateFileDto } from "./file.dto";
-import { logger } from "../../common/winston/winston";
+import { logger } from "@/common/winston/winston";
 
 export class FileRepository {
   async getAllFiles(): Promise<FileDto[]> {

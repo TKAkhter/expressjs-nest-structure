@@ -1,10 +1,10 @@
-import { errorHandler, cors } from "./middlewares";
+import { errorHandler, cors } from "@/middlewares";
 import express, { NextFunction, Request, Response } from "express";
-import { apiRoutes } from "./routes/routes";
-import { env } from "./config/env";
-import { healthCheckRouter } from "./entities/health-check/health-check";
-import { logger, morganStream } from "./common/winston/winston";
-import { openAPIRouter } from "./common/swagger/swagger.router";
+import { apiRoutes } from "@/routes/routes";
+import { env } from "@/config/env";
+import { healthCheckRouter } from "@/entities/health-check/health-check";
+import { logger, morganStream } from "@/common/winston/winston";
+import { openAPIRouter } from "@/common/swagger/swagger.router";
 import { slowDown } from "express-slow-down";
 import compression from "compression";
 import cookieParser from "cookie-parser";
@@ -42,9 +42,9 @@ app.use((_, res: Response, next: NextFunction) => {
   // Expect-CT Header
   res.setHeader("Expect-CT", "enforce, max-age=30");
 
-  logger.info("Additional security headers set.");
   next();
 });
+logger.info("Additional security headers set");
 
 // Rate limiting middleware
 const limiter = rateLimit({
@@ -61,31 +61,37 @@ const speedLimiter = slowDown({
 
 // Apply middlewares
 app.use(cors); // Make sure this middleware is defined properly
-logger.info("CORS middleware applied.");
+logger.info("CORS middleware applied");
 app.use(cookieParser());
-app.use(morgan("dev", { stream: morganStream }));
+
+if (env.ENABLE_WINSTON === "1") {
+  app.use(morgan("dev", { stream: morganStream }));
+} else {
+  app.use(morgan("dev"));
+}
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(compression());
 app.use(nocache()); // Prevent caching
 app.use(hpp());
 app.use(limiter);
-logger.info("Rate limiting middleware applied.");
+logger.info("Rate limiting middleware applied");
 app.use(speedLimiter);
-logger.info("Speed limiting middleware applied.");
+logger.info("Speed limiting middleware applied");
 
 // Response Time Middleware
 app.use(responseTime());
-logger.info("Response time middleware applied.");
+logger.info("Response time middleware applied");
 
 // Timeout Middleware
 app.use(timeout((env.SERVER_TIMEOUT as string) || "150s")); // Set a 150-second timeout for all routes
-logger.info("Timeout middleware applied."); // Log timeout middleware
+logger.info("Timeout middleware applied"); // Log timeout middleware
 
 // Permissions Policy
+logger.info("Permissions policy applied"); // Log permissions policy setup
 app.use((_, res, next) => {
   res.append("Permissions-Policy", "browsing-topics=()");
-  logger.info("Permissions policy applied."); // Log permissions policy setup
   next();
 });
 
@@ -93,11 +99,11 @@ app.use((_, res, next) => {
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 app.use("/health", healthCheckRouter);
 app.use("/api", apiRoutes);
-logger.info("API routes set up.");
+logger.info("API routes set up");
 
 // Swagger UI
 app.use(openAPIRouter);
-logger.info("Swagger UI routes set up.");
+logger.info("Swagger UI routes set up");
 
 // Custom Error Handler Middleware
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {

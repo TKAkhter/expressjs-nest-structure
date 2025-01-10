@@ -1,7 +1,7 @@
 import { Model, Document, SortOrder, UpdateQuery } from "mongoose";
-import { FindByQueryDto } from "../../schemas/find-by-query";
-import { logger } from "../winston/winston";
-import { mongoDbApplyFilter } from "../../utils/mongodb-apply-filter";
+import { FindByQueryDto } from "@/schemas/find-by-query";
+import { logger } from "@/common/winston/winston";
+import { mongoDbApplyFilter } from "@/utils/mongodb-apply-filter";
 
 export class MongodbGenericRepository<
   TModel extends Document,

@@ -1,8 +1,8 @@
 import { NextFunction, Response } from "express";
-import { CustomRequest } from "../types/request";
+import { CustomRequest } from "@/types/request";
 import createHttpError from "http-errors";
 import { StatusCodes } from "http-status-codes";
-import { verifyToken } from "../common/jwt/jwt";
+import { verifyToken } from "@/common/jwt/jwt";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const authMiddleware = (req: CustomRequest, _: Response, next: NextFunction): any => {

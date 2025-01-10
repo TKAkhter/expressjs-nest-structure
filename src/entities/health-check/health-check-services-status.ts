@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import redis from "../../config/redis/redis";
+import redis from "@/config/redis/redis";
 
 export const checkRedis = async () => {
   try {

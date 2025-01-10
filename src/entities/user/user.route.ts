@@ -1,15 +1,18 @@
-import { CreateUserSchema, UpdateUserSchema, UserSchema } from "./user.dto";
+import { UserSchema } from "@/entities/user/user.dto";
 import { OpenAPIRegistry } from "@asteasolutions/zod-to-openapi";
-import { UserController } from "./user.controller";
-import { authMiddleware } from "../../middlewares";
-import { createApiResponse } from "../../common/swagger/swagger-response-builder";
-import { zodValidation } from "../../middlewares/zod-validation";
+import { UserController } from "@/entities/user/user.controller";
+import { authMiddleware } from "@/middlewares";
+import { createApiResponse } from "@/common/swagger/swagger-response-builder";
+import { zodValidation } from "@/middlewares/zod-validation";
 import { z } from "zod";
-import { FindByQuerySchema } from "../../schemas/find-by-query";
+import { FindByQuerySchema } from "@/schemas/find-by-query";
 import { Router } from "express";
+import { RegisterSchema } from "@/entities/auth/auth.dto";
+import { ImportFileSchema } from "@/schemas/import-file";
+import { uploadImportMiddleware } from "@/common/multer/multer";
 
-const accountsRouter = Router();
-accountsRouter.use(authMiddleware);
+const userRouter = Router();
+userRouter.use(authMiddleware);
 
 const TAG = "User";
 const ROUTE = `/${TAG.toLowerCase()}s`;
@@ -26,13 +29,54 @@ userRegistry.registerPath({
   tags: [TAG],
   responses: createApiResponse(z.array(UserSchema), "Success"),
 });
-accountsRouter.get("/", userController.getAll);
+userRouter.get("/", userController.getAll);
+
+//====================================================================================================
+
+userRegistry.registerPath({
+  method: "post",
+  path: `${ROUTE}/import`,
+  tags: [TAG],
+  summary: `Import ${TAG}`,
+  request: {
+    body: {
+      content: { "multipart/form-data": { schema: ImportFileSchema } },
+    },
+  },
+  responses: createApiResponse(z.null(), `${TAG}s Imported Successfully`),
+});
+userRouter.post("/import", uploadImportMiddleware, userController.import);
 
 //====================================================================================================
 
 userRegistry.registerPath({
   method: "get",
-  path: `${ROUTE}/{uuid}`,
+  path: `${ROUTE}/export`,
+  summary: `Export ${TAG}`,
+  tags: [TAG],
+  responses: createApiResponse(z.null(), `${TAG}s Exported Successfully`),
+});
+userRouter.get("/export", userController.export);
+
+//====================================================================================================
+
+userRegistry.registerPath({
+  method: "get",
+  path: `${ROUTE}/{id}`,
+  tags: [TAG],
+  summary: `Get ${TAG} by id`,
+  request: {
+    params: z.object({ id: z.string() }),
+  },
+  responses: createApiResponse(UserSchema, "Success"),
+});
+userRouter.get("/:id", userController.getById);
+
+//====================================================================================================
+
+userRegistry.registerPath({
+  method: "get",
+  path: `${ROUTE}/uuid/{uuid}`,
   tags: [TAG],
   summary: `Get ${TAG} by uuid`,
   request: {
@@ -40,7 +84,7 @@ userRegistry.registerPath({
   },
   responses: createApiResponse(UserSchema, "Success"),
 });
-accountsRouter.get("/:uuid", userController.getByUuid);
+userRouter.get("/uuid/:uuid", userController.getByUuid);
 
 //====================================================================================================
 
@@ -54,7 +98,7 @@ userRegistry.registerPath({
   },
   responses: createApiResponse(UserSchema, "Success"),
 });
-accountsRouter.get("/email/:email", userController.getByEmail);
+userRouter.get("/email/:email", userController.getByEmail);
 
 //====================================================================================================
 
@@ -70,7 +114,7 @@ userRegistry.registerPath({
   },
   responses: createApiResponse(z.array(FindByQuerySchema), "Success"),
 });
-accountsRouter.post("/find", zodValidation(FindByQuerySchema), userController.findByQuery);
+userRouter.post("/find", zodValidation(FindByQuerySchema), userController.findByQuery);
 
 //====================================================================================================
 
@@ -81,12 +125,12 @@ userRegistry.registerPath({
   summary: `Create ${TAG}`,
   request: {
     body: {
-      content: { "application/json": { schema: CreateUserSchema } },
+      content: { "application/json": { schema: RegisterSchema } },
     },
   },
-  responses: createApiResponse(CreateUserSchema, `${TAG} Created Successfully`),
+  responses: createApiResponse(RegisterSchema, `${TAG} Created Successfully`),
 });
-accountsRouter.post("/", zodValidation(CreateUserSchema), userController.create);
+userRouter.post("/", zodValidation(RegisterSchema), userController.create);
 
 //====================================================================================================
 
@@ -98,12 +142,12 @@ userRegistry.registerPath({
   request: {
     params: z.object({ id: z.string() }),
     body: {
-      content: { "application/json": { schema: UpdateUserSchema } },
+      content: { "application/json": { schema: UserSchema } },
     },
   },
-  responses: createApiResponse(UpdateUserSchema, `${TAG} Updated Successfully`),
+  responses: createApiResponse(UserSchema, `${TAG} Updated Successfully`),
 });
-accountsRouter.put("/:id", zodValidation(UpdateUserSchema), userController.update);
+userRouter.put("/:id", zodValidation(UserSchema), userController.update);
 
 //====================================================================================================
 
@@ -119,7 +163,7 @@ userRegistry.registerPath({
   },
   responses: createApiResponse(z.null(), `${TAG}s Deleted Successfully`),
 });
-accountsRouter.delete(
+userRouter.delete(
   "/",
   zodValidation(z.object({ ids: z.array(z.string()) })),
   userController.deleteAll,
@@ -137,6 +181,6 @@ userRegistry.registerPath({
   },
   responses: createApiResponse(z.null(), `${TAG} Deleted Successfully`),
 });
-accountsRouter.delete("/:id", userController.delete);
+userRouter.delete("/:id", userController.delete);
 
-export default accountsRouter;
+export default userRouter;

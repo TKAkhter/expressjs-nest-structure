@@ -1,7 +1,7 @@
 import { FileRepository } from "./file.repository";
 import createHttpError from "http-errors";
 import { StatusCodes } from "http-status-codes";
-import { logger } from "../../common/winston/winston";
+import { logger } from "@/common/winston/winston";
 import { UpdateFileDto, UploadFileDto } from "./file.dto";
 import { v4 as uuidv4 } from "uuid";
 export class FileService {

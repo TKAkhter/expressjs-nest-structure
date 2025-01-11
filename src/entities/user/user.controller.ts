@@ -6,16 +6,18 @@ import { StatusCodes } from "http-status-codes";
 import { logger } from "@/common/winston/winston";
 import { CustomRequest } from "@/types/request";
 import { csvToJson } from "@/utils/utils";
+import redis from "@/config/redis/redis";
+import { env } from "@/config/env";
 
 export class UserController {
-  public tableName: string;
+  public collectionName: string;
   public logFileName: string;
   public userService: UserService;
 
   constructor() {
-    this.tableName = "users";
-    this.logFileName = `[${this.tableName} Controller]`;
-    this.userService = new UserService(this.tableName, `[${this.tableName} Service]`);
+    this.collectionName = "users";
+    this.logFileName = `[${this.collectionName} Controller]`;
+    this.userService = new UserService(this.collectionName, `[${this.collectionName} Service]`);
   }
 
   /**
@@ -28,12 +30,16 @@ export class UserController {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getAll = async (_req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
     try {
-      logger.info(`${this.logFileName} Fetching all ${this.tableName}`);
+      logger.info(`${this.logFileName} Fetching all ${this.collectionName}`);
       const data = await this.userService.getAll();
+      const { cacheKey } = res.locals;
+      if (cacheKey) {
+        await redis.set(cacheKey, JSON.stringify(data), "EX", Number(env.REDIS_CACHE_TIME));
+      }
       return res.json(data);
     } catch (error) {
       if (error instanceof Error) {
-        logger.error(`${this.logFileName} Error fetching all ${this.tableName}`, {
+        logger.error(`${this.logFileName} Error fetching all ${this.collectionName}`, {
           error: error.message,
         });
       }
@@ -53,12 +59,12 @@ export class UserController {
     const { id } = req.params;
     const { user } = req;
     try {
-      logger.info(`${this.logFileName} Fetching ${this.tableName} by ID`, { user, id });
+      logger.info(`${this.logFileName} Fetching ${this.collectionName} by ID`, { user, id });
       const data = await this.userService.getById(id);
       return res.json(data);
     } catch (error) {
       if (error instanceof Error) {
-        logger.error(`${this.logFileName} Error fetching ${this.tableName} by ID`, {
+        logger.error(`${this.logFileName} Error fetching ${this.collectionName} by ID`, {
           error: error.message,
           user,
           id,
@@ -80,12 +86,12 @@ export class UserController {
     const { uuid } = req.params;
     const { user } = req;
     try {
-      logger.info(`${this.logFileName} Fetching ${this.tableName} by uuid`, { user, uuid });
+      logger.info(`${this.logFileName} Fetching ${this.collectionName} by uuid`, { user, uuid });
       const data = await this.userService.getByUuid(uuid);
       return res.json(data);
     } catch (error) {
       if (error instanceof Error) {
-        logger.error(`${this.logFileName} Error fetching ${this.tableName} by uuid`, {
+        logger.error(`${this.logFileName} Error fetching ${this.collectionName} by uuid`, {
           error: error.message,
           user,
           uuid,
@@ -107,12 +113,12 @@ export class UserController {
     const { email } = req.params;
     const { user } = req;
     try {
-      logger.info(`${this.logFileName} Fetching ${this.tableName} by email`, { user, email });
+      logger.info(`${this.logFileName} Fetching ${this.collectionName} by email`, { user, email });
       const data = await this.userService.getByEmail(email);
       return res.json(data);
     } catch (error) {
       if (error instanceof Error) {
-        logger.error(`${this.logFileName} Error fetching ${this.tableName} by email`, {
+        logger.error(`${this.logFileName} Error fetching ${this.collectionName} by email`, {
           error: error.message,
           user,
           email,
@@ -133,13 +139,13 @@ export class UserController {
     try {
       const { paginate, orderBy, filter } = req.body;
       const queryOptions = { paginate, orderBy, filter };
-      logger.info(`${this.logFileName} Finding ${this.tableName} by query`, { queryOptions });
+      logger.info(`${this.logFileName} Finding ${this.collectionName} by query`, { queryOptions });
 
       const result = await this.userService.findByQuery(queryOptions);
       res.json(result);
     } catch (error) {
       if (error instanceof Error) {
-        logger.error(`${this.logFileName} Error finding ${this.tableName} by query`, {
+        logger.error(`${this.logFileName} Error finding ${this.collectionName} by query`, {
           error: error.message,
         });
       }
@@ -159,12 +165,12 @@ export class UserController {
     const createDto: CreateUserDto = req.body;
     const { user } = req;
     try {
-      logger.info(`${this.logFileName} Creating new ${this.tableName}`, { user, createDto });
+      logger.info(`${this.logFileName} Creating new ${this.collectionName}`, { user, createDto });
       const created = await this.userService.create(createDto);
       return res.json(created);
     } catch (error) {
       if (error instanceof Error) {
-        logger.error(`${this.logFileName} Error creating ${this.tableName}`, {
+        logger.error(`${this.logFileName} Error creating ${this.collectionName}`, {
           error: error.message,
           user,
           createDto,
@@ -187,12 +193,12 @@ export class UserController {
     const updateDto = req.body;
     const { user } = req;
     try {
-      logger.info(`${this.logFileName} Updating ${this.tableName}`, { user, id, updateDto });
+      logger.info(`${this.logFileName} Updating ${this.collectionName}`, { user, id, updateDto });
       const updatedData = await this.userService.update(id, updateDto);
       return res.json(updatedData);
     } catch (error) {
       if (error instanceof Error) {
-        logger.error(`${this.logFileName} Error updating ${this.tableName}`, {
+        logger.error(`${this.logFileName} Error updating ${this.collectionName}`, {
           error: error.message,
           user,
           id,
@@ -215,12 +221,12 @@ export class UserController {
     const { id } = req.params;
     const { user } = req;
     try {
-      logger.info(`${this.logFileName} Deleting ${this.tableName} by ID`, { user, id });
+      logger.info(`${this.logFileName} Deleting ${this.collectionName} by ID`, { user, id });
       await this.userService.delete(id);
-      return res.json({ message: `${this.tableName} Deleted Successfully` });
+      return res.json({ message: `${this.collectionName} Deleted Successfully` });
     } catch (error) {
       if (error instanceof Error) {
-        logger.error(`${this.logFileName} Error deleting ${this.tableName}`, {
+        logger.error(`${this.logFileName} Error deleting ${this.collectionName}`, {
           error: error.message,
           user,
           id,
@@ -244,19 +250,19 @@ export class UserController {
     try {
       if (!Array.isArray(ids) || ids.length === 0) {
         throw createHttpError(StatusCodes.BAD_REQUEST, "Invalid or empty array of IDs", {
-          resource: this.tableName,
+          resource: this.collectionName,
         });
       }
 
-      logger.info(`${this.logFileName} Deleting multiple ${this.tableName}`, { user, ids });
+      logger.info(`${this.logFileName} Deleting multiple ${this.collectionName}`, { user, ids });
       const result = await this.userService.deleteAll(ids);
 
       return res.json({
-        message: `${result.deletedCount} ${this.tableName} deleted successfully`,
+        message: `${result.deletedCount} ${this.collectionName} deleted successfully`,
       });
     } catch (error) {
       if (error instanceof Error) {
-        logger.error(`${this.logFileName} Error deleting ${this.tableName}`, {
+        logger.error(`${this.logFileName} Error deleting ${this.collectionName}`, {
           error: error.message,
           user,
           ids,
@@ -281,7 +287,7 @@ export class UserController {
       return next(createHttpError(StatusCodes.BAD_REQUEST, "No file uploaded."));
     }
     try {
-      logger.info(`${this.logFileName} Importing new ${this.tableName}`, { user });
+      logger.info(`${this.logFileName} Importing new ${this.collectionName}`, { user });
 
       const importEntries = await csvToJson(file.path);
 
@@ -289,7 +295,7 @@ export class UserController {
       return res.json(imported);
     } catch (error) {
       if (error instanceof Error) {
-        logger.error(`${this.logFileName} Error creating ${this.tableName}`, {
+        logger.error(`${this.logFileName} Error creating ${this.collectionName}`, {
           error: error.message,
           user,
         });
@@ -308,14 +314,14 @@ export class UserController {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   export = async (_req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
     try {
-      logger.info(`${this.logFileName} Exporting ${this.tableName}`);
+      logger.info(`${this.logFileName} Exporting ${this.collectionName}`);
       const csv = await this.userService.export();
       res.header("Content-Type", "text/csv");
       res.header("Content-Disposition", "attachment; filename=accounts.csv");
       res.send(csv);
     } catch (error) {
       if (error instanceof Error) {
-        logger.error(`${this.logFileName} Error exporting ${this.tableName}`, {
+        logger.error(`${this.logFileName} Error exporting ${this.collectionName}`, {
           error: error.message,
         });
       }

@@ -1,4 +1,4 @@
-import { FileDto, FileModel, UpdateFileDto } from "./file.dto";
+import { FileDto, FileModel, UpdateFileDto } from "@/entities/file/file.dto";
 import { logger } from "@/common/winston/winston";
 
 export class FileRepository {

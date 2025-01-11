@@ -15,6 +15,7 @@ const envSchema = z.object({
 
   // Redis Configuration
   REDIS_URL: z.string(),
+  REDIS_CACHE_TIME: z.string().default("3600"),
 
   // Basic Auth Secrets
   JWT_SECRET: z.string(),

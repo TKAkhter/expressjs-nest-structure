@@ -1,6 +1,6 @@
 import { NextFunction, Response } from "express";
-import { FileService } from "./file.service";
-import { UpdateFileDto, UploadFileDto } from "./file.dto";
+import { FileService } from "@/entities/file/file.service";
+import { UpdateFileDto, UploadFileDto } from "@/entities/file/file.dto";
 import { logger } from "@/common/winston/winston";
 import { CustomRequest } from "@/types/request";
 import { saveFileToDisk } from "@/common/multer/save-file-to-disk";

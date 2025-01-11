@@ -1,25 +1,33 @@
-import { UserModel, UserDto, CreateUserDto, UpdateUserDto } from "./user.dto";
+import { UserModel, UserDto, CreateUserDto, UpdateUserDto } from "@/entities/user/user.dto";
 import { FindByQueryDto } from "@/schemas/find-by-query";
 import { logger } from "@/common/winston/winston";
 import { mongoDbApplyFilter } from "@/utils/mongodb-apply-filter";
 import { SortOrder } from "mongoose";
 
-const TAG = "User";
-const LOG_FILE_NAME = `[${TAG} Repository]`;
-const DB_MODEL = UserModel;
-
 export class UserRepository {
+  private collectionName: string;
+  private logFileName: string;
+  private dbModel: typeof UserModel;
+
+  constructor(collectionName: string, logFileName: string) {
+    this.collectionName = collectionName;
+    this.logFileName = logFileName;
+    this.dbModel = UserModel;
+  }
+
   /**
    * Fetches all entites from the database.
    * @returns Array of entites
    */
   async getAll(): Promise<UserDto[]> {
     try {
-      logger.info(`${LOG_FILE_NAME} Fetching all ${TAG} from the database.`);
-      return await DB_MODEL.find({}, { _id: 0, password: 0 });
+      logger.info(`${this.logFileName} Fetching all ${this.collectionName} from the database.`);
+      return await this.dbModel.find({}, { _id: 0, password: 0 });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      logger.error(`${LOG_FILE_NAME} Error fetching all ${TAG}`, { error: error.message });
+      logger.error(`${this.logFileName} Error fetching all ${this.collectionName}`, {
+        error: error.message,
+      });
       throw new Error(error);
     }
   }
@@ -31,11 +39,11 @@ export class UserRepository {
    */
   async getById(id: string): Promise<UserDto | null> {
     try {
-      logger.info(`${LOG_FILE_NAME} Fetching ${TAG} with uuid: ${id}`);
-      return await DB_MODEL.findOne({ id }, { _id: 0, password: 0 });
+      logger.info(`${this.logFileName} Fetching ${this.collectionName} with uuid: ${id}`);
+      return await this.dbModel.findOne({ id }, { _id: 0, password: 0 });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      logger.error(`${LOG_FILE_NAME} Error fetching ${TAG} by uuid`, {
+      logger.error(`${this.logFileName} Error fetching ${this.collectionName} by uuid`, {
         id,
         error: error.message,
       });
@@ -50,11 +58,11 @@ export class UserRepository {
    */
   async getByUuid(uuid: string): Promise<UserDto | null> {
     try {
-      logger.info(`${LOG_FILE_NAME} Fetching ${TAG} with uuid: ${uuid}`);
-      return await DB_MODEL.findOne({ uuid }, { _id: 0, password: 0 });
+      logger.info(`${this.logFileName} Fetching ${this.collectionName} with uuid: ${uuid}`);
+      return await this.dbModel.findOne({ uuid }, { _id: 0, password: 0 });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      logger.error(`${LOG_FILE_NAME} Error fetching ${TAG} by uuid`, {
+      logger.error(`${this.logFileName} Error fetching ${this.collectionName} by uuid`, {
         uuid,
         error: error.message,
       });
@@ -69,11 +77,11 @@ export class UserRepository {
    */
   async getByEmail(email: string): Promise<UserDto | null> {
     try {
-      logger.info(`${LOG_FILE_NAME} Fetching ${TAG} with email: ${email}`);
-      return await DB_MODEL.findOne({ email });
+      logger.info(`${this.logFileName} Fetching ${this.collectionName} with email: ${email}`);
+      return await this.dbModel.findOne({ email });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      logger.error(`${LOG_FILE_NAME} Error fetching ${TAG} by email`, {
+      logger.error(`${this.logFileName} Error fetching ${this.collectionName} by email`, {
         email,
         error: error.message,
       });
@@ -88,11 +96,11 @@ export class UserRepository {
    */
   async getByUsername(username: string): Promise<UserDto | null> {
     try {
-      logger.info(`${LOG_FILE_NAME} Fetching user with username: ${username}`);
-      return await DB_MODEL.findOne({ username });
+      logger.info(`${this.logFileName} Fetching user with username: ${username}`);
+      return await this.dbModel.findOne({ username });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      logger.error(`${LOG_FILE_NAME} Error fetching ${TAG} by username`, {
+      logger.error(`${this.logFileName} Error fetching ${this.collectionName} by username`, {
         username,
         error: error.message,
       });
@@ -125,12 +133,13 @@ export class UserRepository {
 
       // Query the collection
       const [data, total] = await Promise.all([
-        DB_MODEL.find(mongoFilter)
+        this.dbModel
+          .find(mongoFilter)
           .sort(sortOptions)
           .skip((page - 1) * perPage)
           .limit(perPage)
           .exec(),
-        DB_MODEL.countDocuments(mongoFilter),
+        this.dbModel.countDocuments(mongoFilter),
       ]);
 
       return {
@@ -141,7 +150,7 @@ export class UserRepository {
         totalPages: Math.ceil(total / perPage),
       };
     } catch (error) {
-      logger.error(`${LOG_FILE_NAME} Error querying ${TAG}`, {
+      logger.error(`${this.logFileName} Error querying ${this.collectionName}`, {
         options,
         error: error instanceof Error ? error.message : "Unknown error",
       });
@@ -157,8 +166,10 @@ export class UserRepository {
    */
   async create(createDto: CreateUserDto): Promise<UserDto> {
     try {
-      logger.info(`${LOG_FILE_NAME} Creating ${TAG} with email: ${createDto.email}`);
-      const newUser = new DB_MODEL(createDto);
+      logger.info(
+        `${this.logFileName} Creating ${this.collectionName} with email: ${createDto.email}`,
+      );
+      const newUser = new this.dbModel(createDto);
       const user = await newUser.save();
       const sanitizedUser = {
         uuid: user.uuid,
@@ -172,7 +183,10 @@ export class UserRepository {
       return sanitizedUser as any;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      logger.error(`${LOG_FILE_NAME} Error creating ${TAG}`, { createDto, error: error.message });
+      logger.error(`${this.logFileName} Error creating ${this.collectionName}`, {
+        createDto,
+        error: error.message,
+      });
       throw new Error(error);
     }
   }
@@ -185,11 +199,11 @@ export class UserRepository {
    */
   async update(uuid: string, updateData: UpdateUserDto): Promise<UserDto | null> {
     try {
-      logger.info(`${LOG_FILE_NAME} Updating ${TAG} with uuid: ${uuid}`);
-      return await DB_MODEL.findOneAndUpdate({ uuid }, updateData, { new: true });
+      logger.info(`${this.logFileName} Updating ${this.collectionName} with uuid: ${uuid}`);
+      return await this.dbModel.findOneAndUpdate({ uuid }, updateData, { new: true });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      logger.error(`${LOG_FILE_NAME} Error updating ${TAG}`, {
+      logger.error(`${this.logFileName} Error updating ${this.collectionName}`, {
         uuid,
         updateData,
         error: error.message,
@@ -205,11 +219,14 @@ export class UserRepository {
    */
   async delete(uuid: string): Promise<UserDto | null> {
     try {
-      logger.info(`${LOG_FILE_NAME} Deleting ${TAG} with uuid: ${uuid}`);
-      return await DB_MODEL.findOneAndDelete({ uuid });
+      logger.info(`${this.logFileName} Deleting ${this.collectionName} with uuid: ${uuid}`);
+      return await this.dbModel.findOneAndDelete({ uuid });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      logger.error(`${LOG_FILE_NAME} Error deleting ${TAG}`, { uuid, error: error.message });
+      logger.error(`${this.logFileName} Error deleting ${this.collectionName}`, {
+        uuid,
+        error: error.message,
+      });
       throw new Error(error);
     }
   }
@@ -221,10 +238,10 @@ export class UserRepository {
    */
   async deleteAll(ids: string[]): Promise<{ deletedCount: number }> {
     try {
-      return await DB_MODEL.deleteMany({ uuid: { $in: ids } });
+      return await this.dbModel.deleteMany({ uuid: { $in: ids } });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      logger.error(`${LOG_FILE_NAME} Error deleting multiple ${TAG}`, {
+      logger.error(`${this.logFileName} Error deleting multiple ${this.collectionName}`, {
         ids,
         error: error.message,
       });

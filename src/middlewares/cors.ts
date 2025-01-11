@@ -18,11 +18,7 @@ const allowedOrigins = (env.ALLOW_ORIGIN || "").split(",");
 export const config = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   origin: (origin: string | undefined, callback: any) => {
-    logger.info("CORS request origin", { origin, allowedOrigins });
-
     if (!origin || allowedOrigins.includes(origin)) {
-      logger.info("Origin allowed by CORS", { origin });
-
       callback(null, true);
     } else {
       logger.error("Origin not allowed by CORS", { origin });

@@ -1,8 +1,8 @@
-import { FileRepository } from "./file.repository";
+import { FileRepository } from "@/entities/file/file.repository";
 import createHttpError from "http-errors";
 import { StatusCodes } from "http-status-codes";
 import { logger } from "@/common/winston/winston";
-import { UpdateFileDto, UploadFileDto } from "./file.dto";
+import { UpdateFileDto, UploadFileDto } from "@/entities/file/file.dto";
 import { v4 as uuidv4 } from "uuid";
 export class FileService {
   private fileRepository = new FileRepository();

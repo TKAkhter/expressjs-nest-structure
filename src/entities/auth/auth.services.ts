@@ -6,14 +6,14 @@ import createHttpError from "http-errors";
 import { StatusCodes } from "http-status-codes";
 import { UserService } from "@/entities/user/user.service";
 export class AuthService {
-  private tableName: string;
+  private collectionName: string;
   private logFileName: string;
   private userService: UserService;
 
   constructor(logFileName: string) {
-    this.tableName = "user";
+    this.collectionName = "user";
     this.logFileName = logFileName;
-    this.userService = new UserService(this.tableName, `[${this.tableName} Service]`);
+    this.userService = new UserService(this.collectionName, `[${this.collectionName} Service]`);
   }
 
   /**

@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import { ZodTypeAny } from "zod";
-import { logger } from "../common/winston/winston";
+import { logger } from "@/common/winston/winston";
 
 export const zodValidation =
   (zSchema: ZodTypeAny) =>

@@ -1,7 +1,7 @@
 import corsLibrary from "cors";
 import { StatusCodes } from "http-status-codes";
-import { env } from "../config/env";
-import { logger } from "../common/winston/winston";
+import { env } from "@/config/env";
+import { logger } from "@/common/winston/winston";
 
 const allowedOrigins = (env.ALLOW_ORIGIN || "").split(",");
 

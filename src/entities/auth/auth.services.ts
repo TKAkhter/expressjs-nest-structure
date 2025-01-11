@@ -1,36 +1,44 @@
 import { compare } from "bcrypt";
-import { logger } from "../../common/winston/winston";
-import { UserService } from "../user/user.service";
-import { AuthDto, RegisterDto } from "./auth.dto";
-import { generateToken, verifyToken } from "../../common/jwt/jwt";
+import { logger } from "@/common/winston/winston";
+import { AuthDto, RegisterDto } from "@/entities/auth/auth.dto";
+import { generateToken, verifyToken } from "@/common/jwt/jwt";
 import createHttpError from "http-errors";
 import { StatusCodes } from "http-status-codes";
-
-const userService = new UserService();
-const LOG_FILE_NAME = "[Auth service]";
-
+import { UserService } from "@/entities/user/user.service";
 export class AuthService {
+  private tableName: string;
+  private logFileName: string;
+  private userService: UserService;
+
+  constructor(logFileName: string) {
+    this.tableName = "user";
+    this.logFileName = logFileName;
+    this.userService = new UserService(this.tableName, `[${this.tableName} Service]`);
+  }
+
   /**
    * Handles user login by verifying the credentials and generating a token.
    * @param authData - Object containing user login credentials.
    * @returns Object containing the generated token.
    * @throws HTTP error if user not found or password is invalid.
    */
-  async login(authData: AuthDto) {
-    logger.info(`${LOG_FILE_NAME} Login service invoked`, { email: authData.email });
+  login = async (authData: AuthDto) => {
+    logger.info(`${this.logFileName} login service invoked`, { email: authData.email });
 
     try {
-      const user = await userService.getByEmail(authData.email);
+      const user = await this.userService.getByEmail(authData.email);
 
       if (!user) {
-        logger.error(`${LOG_FILE_NAME} User not found during login`, { email: authData.email });
+        logger.error(`${this.logFileName} User not found during login`, { email: authData.email });
         throw createHttpError(StatusCodes.BAD_REQUEST, "User does not exist!", {
           resource: "Auth",
         });
       }
 
-      if (!(await compare(authData.password, user.password))) {
-        logger.error(`${LOG_FILE_NAME} Invalid password during login`, { email: authData.email });
+      if (!(await compare(authData.password, user.password as string))) {
+        logger.error(`${this.logFileName} Invalid password during login`, {
+          email: authData.email,
+        });
         throw createHttpError(StatusCodes.BAD_REQUEST, "Invalid email or password", {
           resource: "Auth",
         });
@@ -43,24 +51,24 @@ export class AuthService {
         email: user.email,
       });
 
-      logger.info(`${LOG_FILE_NAME} Token generated successfully`, { email: authData.email });
-      return { token };
+      logger.info(`${this.logFileName} Token received successfully`, { email: authData.email });
+      return { user, token };
     } catch (error) {
       if (createHttpError.isHttpError(error)) {
         throw error;
       }
 
       if (error instanceof Error) {
-        logger.error(`${LOG_FILE_NAME} Error during login`, {
+        logger.error(`${this.logFileName} Error during login`, {
           error: error.message,
           email: authData.email,
         });
         throw new Error(`Error while login: ${error.message}`);
       }
-      logger.error(`${LOG_FILE_NAME} Unknown error during login`, { email: authData.email });
+      logger.error(`${this.logFileName} Unknown error during login`, { email: authData.email });
       throw new Error("Unknown error occurred while login");
     }
-  }
+  };
 
   /**
    * Registers a new user and generates a token for the user.
@@ -68,14 +76,14 @@ export class AuthService {
    * @returns Object containing the registered user and generated token.
    * @throws HTTP error if user already exists.
    */
-  async register(registerDto: RegisterDto) {
-    logger.info(`${LOG_FILE_NAME} Register service invoked`, { email: registerDto.email });
+  register = async (registerDto: RegisterDto) => {
+    logger.info(`${this.logFileName} Register service invoked`, { email: registerDto.email });
 
     try {
-      const user = await userService.getByEmail(registerDto.email);
+      const user = await this.userService.getByEmail(registerDto.email);
 
       if (user) {
-        logger.error(`${LOG_FILE_NAME} User already exists during registration`, {
+        logger.error(`${this.logFileName} User already exists during registration`, {
           email: registerDto.email,
         });
         throw createHttpError(StatusCodes.BAD_REQUEST, "User already exist!", {
@@ -83,30 +91,30 @@ export class AuthService {
         });
       }
 
-      const registerUser = await userService.create(registerDto);
+      await this.userService.create(registerDto);
 
-      const { token } = await this.login(registerDto);
+      const login = await this.login(registerDto);
 
-      logger.info(`${LOG_FILE_NAME} User registered successfully`, { email: registerDto.email });
-      return { ...registerUser, token };
+      logger.info(`${this.logFileName} User registered successfully`, { email: registerDto.email });
+      return login;
     } catch (error) {
       if (createHttpError.isHttpError(error)) {
         throw error;
       }
 
       if (error instanceof Error) {
-        logger.error(`${LOG_FILE_NAME} Error during registration`, {
+        logger.error(`${this.logFileName} Error during registration`, {
           error: error.message,
           email: registerDto.email,
         });
-        throw new Error(`${LOG_FILE_NAME} Error while login: ${error.message}`);
+        throw new Error(`${this.logFileName} Error while login: ${error.message}`);
       }
-      logger.error(`${LOG_FILE_NAME} Unknown error during registration`, {
+      logger.error(`${this.logFileName} Unknown error during registration`, {
         email: registerDto.email,
       });
-      throw new Error(`${LOG_FILE_NAME} Unknown error occurred while login`);
+      throw new Error(`${this.logFileName} Unknown error occurred while login`);
     }
-  }
+  };
 
   /**
    * Extends the user's token and returns a new token.
@@ -114,8 +122,8 @@ export class AuthService {
    * @returns The newly extended token.
    * @throws Error if token extension fails.
    */
-  async extendToken(token: string) {
-    logger.info(`${LOG_FILE_NAME} Extend token service invoked`, { token });
+  extendToken = async (token: string) => {
+    logger.info(`${this.logFileName} Extend token service invoked`, { token });
 
     try {
       const payload = verifyToken(token);
@@ -125,17 +133,17 @@ export class AuthService {
         name: payload.name,
         email: payload.email,
       });
-      logger.info(`${LOG_FILE_NAME} Token extended successfully`, { newToken });
+      logger.info(`${this.logFileName} Token extended successfully`, { newToken });
       return newToken;
     } catch (error) {
       if (error instanceof Error) {
-        logger.error(`${LOG_FILE_NAME} Error extending token`, { error: error.message, token });
-        throw new Error(`${LOG_FILE_NAME} Error extend token: ${error.message}`);
+        logger.error(`${this.logFileName} Error extending token`, { error: error.message, token });
+        throw new Error(`${this.logFileName} Error extend token: ${error.message}`);
       }
-      logger.error(`${LOG_FILE_NAME} Unknown error while extending token`, { token });
-      throw new Error(`${LOG_FILE_NAME} Unknown error occurred while extend token`);
+      logger.error(`${this.logFileName} Unknown error while extending token`, { token });
+      throw new Error(`${this.logFileName} Unknown error occurred while extend token`);
     }
-  }
+  };
 
   /**
    * Logs out the user by invalidating the token.
@@ -143,18 +151,103 @@ export class AuthService {
    * @returns Object with the invalidated token and success status.
    * @throws Error if logout fails.
    */
-  async logout(token: string) {
-    logger.info(`${LOG_FILE_NAME} Logout service invoked`, { token });
+  logout = async (token: string) => {
+    logger.info(`${this.logFileName} Logout service invoked`, { token });
 
     try {
       return { token, success: true };
     } catch (error) {
       if (error instanceof Error) {
-        logger.error(`${LOG_FILE_NAME} Error during logout`, { error: error.message, token });
+        logger.error(`${this.logFileName} Error during logout`, { error: error.message, token });
         throw new Error(`Error logout: ${error.message}`);
       }
-      logger.error(`${LOG_FILE_NAME} Unknown error during logout`, { token });
+      logger.error(`${this.logFileName} Unknown error during logout`, { token });
       throw new Error("Unknown error occurred while logout");
     }
-  }
+  };
+
+  /**
+   * Initiates the forgot password process for a user.
+   * @param email User's email address
+   * @returns message that email sent.
+   * @throws HTTP error if any error occur.
+   */
+  forgotPassword = async (email: string) => {
+    logger.info(`${this.logFileName} Forgot password service invoked`, { email });
+
+    try {
+      const user = await this.userService.getByEmail(email);
+
+      if (!user) {
+        logger.error(`${this.logFileName} User does not exists!`, {
+          email,
+        });
+        throw createHttpError(StatusCodes.BAD_REQUEST, "User does not exist!", {
+          resource: "Auth",
+        });
+      }
+
+      logger.info(`${this.logFileName} Email reset link successfully sent`, { email });
+      return { message: "Reset link sent. Check you email" };
+    } catch (error) {
+      if (createHttpError.isHttpError(error)) {
+        throw error;
+      }
+
+      if (error instanceof Error) {
+        logger.error(`${this.logFileName} Error during registration`, {
+          error: error.message,
+          email,
+        });
+        throw new Error(`${this.logFileName} Error while login: ${error.message}`);
+      }
+      logger.error(`${this.logFileName} Unknown error during registration`, {
+        email,
+      });
+      throw new Error(`${this.logFileName} Unknown error occurred while login`);
+    }
+  };
+
+  resetPassword = async (
+    authorization: string | undefined,
+    email: string,
+    currentPassword: string,
+    newPassword: string,
+  ) => {
+    console.log("🚀 ~ AuthService ~ newPassword:", newPassword);
+    console.log("🚀 ~ AuthService ~ currentPassword:", currentPassword);
+    console.log("🚀 ~ AuthService ~ authorization:", authorization);
+    logger.info(`${this.logFileName} reset password service invoked`, { email });
+
+    try {
+      const user = await this.userService.getByEmail(email);
+      if (!user) {
+        logger.error(`${this.logFileName} User does not exists!`, {
+          email,
+        });
+        throw createHttpError(StatusCodes.BAD_REQUEST, "User does not exist!", {
+          resource: "Auth",
+        });
+      }
+
+      logger.info(`${this.logFileName} Password reset successful`, { email });
+      return { message: "Password reset successful" };
+    } catch (error) {
+      if (createHttpError.isHttpError(error)) {
+        throw error;
+      }
+
+      if (error instanceof Error) {
+        logger.error(`${this.logFileName} Error during registration`, {
+          error: error.message,
+          email,
+        });
+        throw new Error(`${this.logFileName} Error while login: ${error.message}`);
+      }
+      logger.error(`${this.logFileName} Unknown error during registration`, {
+        email,
+      });
+      throw new Error(`${this.logFileName} Unknown error occurred while login`);
+    }
+  };
 }

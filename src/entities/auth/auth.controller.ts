@@ -1,40 +1,45 @@
 import { NextFunction, Response } from "express";
-import { AuthDto, RegisterDto } from "./auth.dto";
-import { AuthService } from "./auth.services";
-import { logger } from "../../common/winston/winston";
-import { CustomRequest } from "../../types/request";
-
-const authService = new AuthService();
-const LOG_FILE_NAME = "[Auth controller]";
+import { AuthDto, RegisterDto } from "@/entities/auth/auth.dto";
+import { AuthService } from "@/entities/auth/auth.services";
+import { logger } from "@/common/winston/winston";
+import { CustomRequest } from "@/types/request";
 export class AuthController {
+  private logFileName: string;
+  private authService: AuthService;
+
+  constructor() {
+    this.logFileName = "[Auth Controller]";
+    this.authService = new AuthService("[Auth Service]");
+  }
+
   /**
    * Handles user login by verifying credentials and returning a token.
    * @param _req - CustomRequest object
    * @param res - Response object
    * @param next - Next middleware function
    */
-  async login(req: CustomRequest, res: Response, next: NextFunction): Promise<void> {
-    const userDto: AuthDto = req.body;
+  login = async (req: CustomRequest, res: Response, next: NextFunction): Promise<void> => {
+    const loginDto: AuthDto = req.body;
     const { user } = req;
-    logger.info(`${LOG_FILE_NAME} Login API invoked`, { email: userDto.email, user });
+    logger.info(`${this.logFileName} login API invoked`, { email: loginDto.email, user });
 
     try {
-      const result = await authService.login(userDto);
-      logger.info(`${LOG_FILE_NAME} User login successful`, { email: userDto.email, user });
+      const result = await this.authService.login(loginDto);
+      logger.info(`${this.logFileName} User login successful`, { email: loginDto.email, user });
       res.json(result);
     } catch (error) {
       if (error instanceof Error) {
-        logger.error(`${LOG_FILE_NAME} Login API error`, {
-          email: userDto.email,
+        logger.error(`${this.logFileName} login API error`, {
+          email: loginDto.email,
           error: error.message,
           user,
         });
       } else {
-        logger.error(`${LOG_FILE_NAME} Login API error: Unknown error occurred`, { user });
+        logger.error(`${this.logFileName} login API error: Unknown error occurred`, { user });
       }
       next(error);
     }
-  }
+  };
 
   /**
    * Handles user registration by creating a new user and returning the registered user details.
@@ -42,31 +47,31 @@ export class AuthController {
    * @param res - Response object
    * @param next - Next middleware function
    */
-  async register(req: CustomRequest, res: Response, next: NextFunction): Promise<void> {
+  register = async (req: CustomRequest, res: Response, next: NextFunction): Promise<void> => {
     const registerDto: RegisterDto = req.body;
     const { user } = req;
-    logger.info(`${LOG_FILE_NAME} Register API invoked`, { email: registerDto.email, user });
+    logger.info(`${this.logFileName} Register API invoked`, { email: registerDto.email, user });
 
     try {
-      const result = await authService.register(registerDto);
-      logger.info(`${LOG_FILE_NAME} User registration successful`, {
+      const result = await this.authService.register(registerDto);
+      logger.info(`${this.logFileName} User registration successful`, {
         email: registerDto.email,
         user,
       });
       res.json(result);
     } catch (error) {
       if (error instanceof Error) {
-        logger.error(`${LOG_FILE_NAME} Register API error`, {
+        logger.error(`${this.logFileName} Register API error`, {
           email: registerDto.email,
           error: error.message,
           user,
         });
       } else {
-        logger.error(`${LOG_FILE_NAME} Register API error: Unknown error occurred`, { user });
+        logger.error(`${this.logFileName} Register API error: Unknown error occurred`, { user });
       }
       next(error);
     }
-  }
+  };
 
   /**
    * Handles user logout by invalidating the user's token.
@@ -74,28 +79,28 @@ export class AuthController {
    * @param res - Response object
    * @param next - Next middleware function
    */
-  async logout(req: CustomRequest, res: Response, next: NextFunction): Promise<void> {
+  logout = async (req: CustomRequest, res: Response, next: NextFunction): Promise<void> => {
     const token = req.headers.authorization?.split(" ")[1];
     const { user } = req;
-    logger.info(`${LOG_FILE_NAME} Logout API invoked`, { token, user });
+    logger.info(`${this.logFileName} Logout API invoked`, { token, user });
 
     try {
-      const result = await authService.logout(token!);
-      logger.info(`${LOG_FILE_NAME} User logout successful`, { token, user });
+      const result = await this.authService.logout(token!);
+      logger.info(`${this.logFileName} User logout successful`, { token, user });
       res.json(result);
     } catch (error) {
       if (error instanceof Error) {
-        logger.error(`${LOG_FILE_NAME} Logout API error`, {
+        logger.error(`${this.logFileName} Logout API error`, {
           token,
           error: error.message,
           user,
         });
       } else {
-        logger.error(`${LOG_FILE_NAME} Logout API error: Unknown error occurred`, { user });
+        logger.error(`${this.logFileName} Logout API error: Unknown error occurred`, { user });
       }
       next(error);
     }
-  }
+  };
 
   /**
    * Extends the user's token and returns a new token.
@@ -103,26 +108,100 @@ export class AuthController {
    * @param res - Response object
    * @param next - Next middleware function
    */
-  async extendToken(req: CustomRequest, res: Response, next: NextFunction): Promise<void> {
+  extendToken = async (req: CustomRequest, res: Response, next: NextFunction): Promise<void> => {
     const token = req.headers.authorization?.split(" ")[1];
     const { user } = req;
-    logger.info(`${LOG_FILE_NAME} ExtendToken API invoked`, { token, user });
+    logger.info(`${this.logFileName} ExtendToken API invoked`, { token, user });
 
     try {
-      const newToken = await authService.extendToken(token!);
-      logger.info(`${LOG_FILE_NAME} Token extended successfully`, { newToken, user });
+      const newToken = await this.authService.extendToken(token!);
+      logger.info(`${this.logFileName} Token extended successfully`, { newToken, user });
       res.json({ token: newToken });
     } catch (error) {
       if (error instanceof Error) {
-        logger.error(`${LOG_FILE_NAME} ExtendToken API error`, {
+        logger.error(`${this.logFileName} ExtendToken API error`, {
           token,
           error: error.message,
           user,
         });
       } else {
-        logger.error(`${LOG_FILE_NAME} ExtendToken API error: Unknown error occurred`, { user });
+        logger.error(`${this.logFileName} ExtendToken API error: Unknown error occurred`, { user });
       }
       next(error);
     }
-  }
+  };
+
+  /**
+   * Initiates the forgot password process for a user.
+   * @param _req - CustomRequest object
+   * @param res - Response object
+   * @param next - Next middleware function
+   */
+  forgotPassword = async (req: CustomRequest, res: Response, next: NextFunction): Promise<void> => {
+    const { email } = req.body;
+    const { user } = req;
+    logger.info(`${this.logFileName} Forgot password API invoked`, { email, user });
+
+    try {
+      const message = await this.authService.forgotPassword(email);
+      logger.info(`${this.logFileName} Forgot password successful`, {
+        email,
+        user,
+      });
+      res.json(message);
+    } catch (error) {
+      if (error instanceof Error) {
+        logger.error(`${this.logFileName} Forgot password API error`, {
+          email,
+          error: error.message,
+          user,
+        });
+      } else {
+        logger.error(`${this.logFileName} Forgot password API error: Unknown error occurred`, {
+          user,
+        });
+      }
+      next(error);
+    }
+  };
+
+  /**
+   * Initiates the reset password process for a user.
+   * @param _req - CustomRequest object
+   * @param res - Response object
+   * @param next - Next middleware function
+   */
+  resetPassword = async (req: CustomRequest, res: Response, next: NextFunction): Promise<void> => {
+    const { authorization } = req.headers;
+    const { email, currentPassword, password } = req.body;
+    const { user } = req;
+    logger.info(`${this.logFileName} Reset password API invoked`, { email, user });
+
+    try {
+      const message = await this.authService.resetPassword(
+        authorization,
+        email,
+        currentPassword,
+        password,
+      );
+      logger.info(`${this.logFileName} Reset password successful`, {
+        email,
+        user,
+      });
+      res.json(message);
+    } catch (error) {
+      if (error instanceof Error) {
+        logger.error(`${this.logFileName} Reset password API error`, {
+          email,
+          error: error.message,
+          user,
+        });
+      } else {
+        logger.error(`${this.logFileName} Reset password API error: Unknown error occurred`, {
+          user,
+        });
+      }
+      next(error);
+    }
+  };
 }

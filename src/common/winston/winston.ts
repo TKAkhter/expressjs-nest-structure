@@ -1,7 +1,7 @@
 import "winston-daily-rotate-file";
 import { createLogger, format, transports, Logger } from "winston";
 import { StatusCodes } from "http-status-codes";
-import { env } from "../../config/env";
+import { env } from "@/config/env";
 import fs from "fs";
 import colors from "colors/safe";
 

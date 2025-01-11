@@ -1,7 +1,7 @@
 import { UserModel, UserDto, CreateUserDto, UpdateUserDto } from "./user.dto";
-import { FindByQueryDto } from "../../schemas/find-by-query";
-import { logger } from "../../common/winston/winston";
-import { mongoDbApplyFilter } from "../../utils/mongodb-apply-filter";
+import { FindByQueryDto } from "@/schemas/find-by-query";
+import { logger } from "@/common/winston/winston";
+import { mongoDbApplyFilter } from "@/utils/mongodb-apply-filter";
 import { SortOrder } from "mongoose";
 
 const TAG = "User";
@@ -20,6 +20,25 @@ export class UserRepository {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       logger.error(`${LOG_FILE_NAME} Error fetching all ${TAG}`, { error: error.message });
+      throw new Error(error);
+    }
+  }
+
+  /**
+   * Fetches a entity by their id.
+   * @param id - entity's unique identifier
+   * @returns entity data or null if not found
+   */
+  async getById(id: string): Promise<UserDto | null> {
+    try {
+      logger.info(`${LOG_FILE_NAME} Fetching ${TAG} with uuid: ${id}`);
+      return await DB_MODEL.findOne({ id }, { _id: 0, password: 0 });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      logger.error(`${LOG_FILE_NAME} Error fetching ${TAG} by uuid`, {
+        id,
+        error: error.message,
+      });
       throw new Error(error);
     }
   }

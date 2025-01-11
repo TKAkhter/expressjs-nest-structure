@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { logger } from "../winston/winston";
+import { logger } from "@/common/winston/winston";
 
 export const deleteFileFromDisk = (fileName: string) => {
   try {

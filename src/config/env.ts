@@ -7,7 +7,6 @@ const envSchema = z.object({
   NODE_ENV: z.enum(["local", "development", "production"]).default("local"),
   TZ: z.string().default("UTC"),
   BASE_URL: z.string().url(),
-  NGROK_URL: z.string().url().optional(),
   BASE_URL_HTTPS: z.string().url().optional(),
   PORT: z.string().transform((val) => parseInt(val, 10)),
   SERVER_TIMEOUT: z.string().default("150s"),
@@ -23,8 +22,6 @@ const envSchema = z.object({
   HASH: z.string().transform((val) => parseInt(val, 10)),
 
   MONGODB_URI: z.string().url(),
-  ENABLE_MONGODB: z.enum(["0", "1"]).default("0"),
-  ENABLE_REDIS: z.enum(["0", "1"]).default("0"),
   ENABLE_WINSTON: z.enum(["0", "1"]).default("0"),
 });
 

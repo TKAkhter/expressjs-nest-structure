@@ -1,10 +1,10 @@
 import app from "./app";
 import { checkMongoDB, checkRedis } from "./entities/health-check/health-check-services-status";
-import { env } from "./config/env";
-import { logger } from "./common/winston/winston";
-import connectMongoDB from "./config/mongodb/mongodb";
+import { env } from "@/config/env";
+import { logger } from "@/common/winston/winston";
+import connectMongoDB from "@/config/mongodb/mongodb";
 
-const { PORT, NODE_ENV, BASE_URL, ALLOW_ORIGIN, ENABLE_REDIS, ENABLE_MONGODB } = env;
+const { PORT, NODE_ENV, BASE_URL, ALLOW_ORIGIN } = env;
 
 /**
  * Function to check the connection status for Redis, and MongoDB.
@@ -13,16 +13,11 @@ const { PORT, NODE_ENV, BASE_URL, ALLOW_ORIGIN, ENABLE_REDIS, ENABLE_MONGODB } =
 async function checkConnections() {
   try {
     logger.info("Checking database connections...");
-    if (Number(ENABLE_REDIS)) {
-      await checkRedis();
-      logger.info("Redis connections verified successfully.");
-    }
-
-    if (Number(ENABLE_MONGODB)) {
-      await connectMongoDB();
-      await checkMongoDB();
-      logger.info("MongoDB connections verified successfully.");
-    }
+    await checkRedis();
+    logger.info("Redis connections verified successfully.");
+    await connectMongoDB();
+    await checkMongoDB();
+    logger.info("MongoDB connections verified successfully.");
   } catch (error) {
     if (error instanceof Error) {
       logger.error("MongoDB, or Redis connection failed", { error: error.message });

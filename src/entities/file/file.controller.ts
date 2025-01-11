@@ -1,11 +1,11 @@
 import { NextFunction, Response } from "express";
 import { FileService } from "./file.service";
 import { UpdateFileDto, UploadFileDto } from "./file.dto";
-import { logger } from "../../common/winston/winston";
-import { CustomRequest } from "../../types/request";
-import { saveFileToDisk } from "../../common/multer/save-file-to-disk";
-import { updateImageToDisk } from "../../common/multer/update-file-to-disk";
-import { deleteFileFromDisk } from "../../common/multer/delete-file-from-disk";
+import { logger } from "@/common/winston/winston";
+import { CustomRequest } from "@/types/request";
+import { saveFileToDisk } from "@/common/multer/save-file-to-disk";
+import { updateImageToDisk } from "@/common/multer/update-file-to-disk";
+import { deleteFileFromDisk } from "@/common/multer/delete-file-from-disk";
 
 const fileService = new FileService();
 export class FileController {

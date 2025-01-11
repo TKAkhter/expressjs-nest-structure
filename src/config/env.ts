@@ -24,6 +24,7 @@ const envSchema = z.object({
 
   MONGODB_URI: z.string().url(),
   ENABLE_WINSTON: z.enum(["0", "1"]).default("0"),
+  ENABLE_CACHE: z.enum(["0", "1"]).default("0"),
 });
 
 export const env = envSchema.parse(process.env);

@@ -6,8 +6,7 @@ import { StatusCodes } from "http-status-codes";
 import { logger } from "@/common/winston/winston";
 import { CustomRequest } from "@/types/request";
 import { csvToJson } from "@/utils/utils";
-import redis from "@/config/redis/redis";
-import { env } from "@/config/env";
+import { generateCache } from "@/common/cache/generate-cache";
 
 export class UserController {
   public collectionName: string;
@@ -32,10 +31,9 @@ export class UserController {
     try {
       logger.info(`${this.logFileName} Fetching all ${this.collectionName}`);
       const data = await this.userService.getAll();
-      const { cacheKey } = res.locals;
-      if (cacheKey) {
-        await redis.set(cacheKey, JSON.stringify(data), "EX", Number(env.REDIS_CACHE_TIME));
-      }
+      // Generate cache if enabled
+      await generateCache(res.locals.cacheKey, data);
+
       return res.json(data);
     } catch (error) {
       if (error instanceof Error) {
@@ -61,6 +59,8 @@ export class UserController {
     try {
       logger.info(`${this.logFileName} Fetching ${this.collectionName} by ID`, { user, id });
       const data = await this.userService.getById(id);
+      // Generate cache if enabled
+      await generateCache(res.locals.cacheKey, data);
       return res.json(data);
     } catch (error) {
       if (error instanceof Error) {
@@ -88,6 +88,8 @@ export class UserController {
     try {
       logger.info(`${this.logFileName} Fetching ${this.collectionName} by uuid`, { user, uuid });
       const data = await this.userService.getByUuid(uuid);
+      // Generate cache if enabled
+      await generateCache(res.locals.cacheKey, data);
       return res.json(data);
     } catch (error) {
       if (error instanceof Error) {
@@ -115,6 +117,8 @@ export class UserController {
     try {
       logger.info(`${this.logFileName} Fetching ${this.collectionName} by email`, { user, email });
       const data = await this.userService.getByEmail(email);
+      // Generate cache if enabled
+      await generateCache(res.locals.cacheKey, data);
       return res.json(data);
     } catch (error) {
       if (error instanceof Error) {

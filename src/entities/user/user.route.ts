@@ -80,7 +80,7 @@ userRegistry.registerPath({
   tags: [TAG],
   summary: `Get ${TAG} by uuid`,
   request: {
-    params: z.object({ id: z.string() }),
+    params: z.object({ uuid: z.string() }),
   },
   responses: createApiResponse(UserSchema, "Success"),
 });

@@ -1,4 +1,4 @@
-import { UserDto, UpdateUserDto, CreateUserDto } from "@/entities/user/user.dto";
+import { UserModel, UserDto, UpdateUserDto, CreateUserDto } from "@/entities/user/user.dto";
 import { env } from "@/config/env";
 import { hash } from "bcrypt";
 import { v4 as uuidv4 } from "uuid";
@@ -6,16 +6,16 @@ import { FindByQueryDto } from "@/schemas/find-by-query";
 import createHttpError from "http-errors";
 import { StatusCodes } from "http-status-codes";
 import { logger } from "@/common/winston/winston";
-import { UserRepository } from "@/entities/user/user.repository";
 import { parseAsync } from "json2csv";
+import { GenericRepository } from "@/common/repository";
 
 export class UserService {
-  private userRepository: UserRepository;
+  private userRepository: GenericRepository<UserDto, UpdateUserDto, CreateUserDto>;
   private collectionName: string;
   private logFileName: string;
 
   constructor(collectionName: string, logFileName: string) {
-    this.userRepository = new UserRepository(collectionName, `[${collectionName} Repository]`);
+    this.userRepository = new GenericRepository(UserModel, `[${collectionName} Repository]`);
     this.collectionName = collectionName;
     this.logFileName = logFileName;
   }
@@ -255,7 +255,8 @@ export class UserService {
 
       // UpdateDto.updatedAt = new Date();
 
-      return await this.userRepository.update(id, updateDto);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return await this.userRepository.update(id, updateDto as any);
     } catch (error) {
       if (createHttpError.isHttpError(error)) {
         throw error;

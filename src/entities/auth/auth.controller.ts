@@ -3,6 +3,7 @@ import { AuthDto, RegisterDto } from "@/entities/auth/auth.dto";
 import { AuthService } from "@/entities/auth/auth.services";
 import { logger } from "@/common/winston/winston";
 import { CustomRequest } from "@/types/request";
+
 export class AuthController {
   private logFileName: string;
   private authService: AuthService;

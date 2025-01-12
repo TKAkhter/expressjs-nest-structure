@@ -2,7 +2,6 @@ import { errorHandler, cors } from "@/middlewares";
 import express, { NextFunction, Request, Response } from "express";
 import { apiRoutes } from "@/routes/routes";
 import { env } from "@/config/env";
-import { healthCheckRouter } from "@/entities/health-check/health-check";
 import { logger, morganStream } from "@/common/winston/winston";
 import { openAPIRouter } from "@/common/swagger/swagger.router";
 import { slowDown } from "express-slow-down";
@@ -97,7 +96,6 @@ app.use((_, res, next) => {
 
 // Routes
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
-app.use("/health", healthCheckRouter);
 app.use("/api", apiRoutes);
 logger.info("API routes set up");
 

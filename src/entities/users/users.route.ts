@@ -1,6 +1,6 @@
-import { UserSchema } from "@/entities/user/user.dto";
+import { UpdateUsersSchema, UsersSchema } from "@/entities/users/users.dto";
 import { OpenAPIRegistry } from "@asteasolutions/zod-to-openapi";
-import { UserController } from "@/entities/user/user.controller";
+import { UsersController } from "@/entities/users/users.controller";
 import { authMiddleware } from "@/middlewares";
 import { createApiResponse } from "@/common/swagger/swagger-response-builder";
 import { zodValidation } from "@/middlewares/zod-validation";
@@ -11,29 +11,29 @@ import { RegisterSchema } from "@/entities/auth/auth.dto";
 import { ImportFileSchema } from "@/schemas/import-file";
 import { uploadImportMiddleware } from "@/common/multer/multer";
 
-const userRouter = Router();
-userRouter.use(authMiddleware);
+const usersRouter = Router();
+usersRouter.use(authMiddleware);
 
-const TAG = "User";
-const ROUTE = `/${TAG.toLowerCase()}s`;
+const TAG = "Users";
+const ROUTE = `/${TAG.toLowerCase()}`;
 
-export const userRegistry = new OpenAPIRegistry();
-const userController = new UserController();
+export const usersRegistry = new OpenAPIRegistry();
+const usersController = new UsersController();
 
-userRegistry.register(TAG, UserSchema);
+usersRegistry.register(TAG, UsersSchema);
 
-userRegistry.registerPath({
+usersRegistry.registerPath({
   method: "get",
   path: ROUTE,
   summary: `Get all ${TAG}`,
   tags: [TAG],
-  responses: createApiResponse(z.array(UserSchema), "Success"),
+  responses: createApiResponse(z.array(UsersSchema), "Success"),
 });
-userRouter.get("/", userController.getAll);
+usersRouter.get("/", usersController.getAll);
 
 //====================================================================================================
 
-userRegistry.registerPath({
+usersRegistry.registerPath({
   method: "post",
   path: `${ROUTE}/import`,
   tags: [TAG],
@@ -45,22 +45,22 @@ userRegistry.registerPath({
   },
   responses: createApiResponse(z.null(), `${TAG}s Imported Successfully`),
 });
-userRouter.post("/import", uploadImportMiddleware, userController.import);
+usersRouter.post("/import", uploadImportMiddleware, usersController.import);
 
 //====================================================================================================
 
-userRegistry.registerPath({
+usersRegistry.registerPath({
   method: "get",
   path: `${ROUTE}/export`,
   summary: `Export ${TAG}`,
   tags: [TAG],
   responses: createApiResponse(z.null(), `${TAG}s Exported Successfully`),
 });
-userRouter.get("/export", userController.export);
+usersRouter.get("/export", usersController.export);
 
 //====================================================================================================
 
-userRegistry.registerPath({
+usersRegistry.registerPath({
   method: "get",
   path: `${ROUTE}/{id}`,
   tags: [TAG],
@@ -68,27 +68,27 @@ userRegistry.registerPath({
   request: {
     params: z.object({ id: z.string() }),
   },
-  responses: createApiResponse(UserSchema, "Success"),
+  responses: createApiResponse(UsersSchema, "Success"),
 });
-userRouter.get("/:id", userController.getById);
+usersRouter.get("/:id", usersController.getById);
 
 //====================================================================================================
 
-userRegistry.registerPath({
+usersRegistry.registerPath({
   method: "get",
   path: `${ROUTE}/uuid/{uuid}`,
   tags: [TAG],
   summary: `Get ${TAG} by uuid`,
   request: {
-    params: z.object({ id: z.string() }),
+    params: z.object({ uuid: z.string() }),
   },
-  responses: createApiResponse(UserSchema, "Success"),
+  responses: createApiResponse(UsersSchema, "Success"),
 });
-userRouter.get("/uuid/:uuid", userController.getByUuid);
+usersRouter.get("/uuid/:uuid", usersController.getByUuid);
 
 //====================================================================================================
 
-userRegistry.registerPath({
+usersRegistry.registerPath({
   method: "get",
   path: `${ROUTE}/email/{email}`,
   tags: [TAG],
@@ -96,13 +96,13 @@ userRegistry.registerPath({
   request: {
     params: z.object({ email: z.string() }),
   },
-  responses: createApiResponse(UserSchema, "Success"),
+  responses: createApiResponse(UsersSchema, "Success"),
 });
-userRouter.get("/email/:email", userController.getByEmail);
+usersRouter.get("/email/:email", usersController.getByEmail);
 
 //====================================================================================================
 
-userRegistry.registerPath({
+usersRegistry.registerPath({
   method: "post",
   path: `${ROUTE}/find`,
   tags: [TAG],
@@ -114,11 +114,11 @@ userRegistry.registerPath({
   },
   responses: createApiResponse(z.array(FindByQuerySchema), "Success"),
 });
-userRouter.post("/find", zodValidation(FindByQuerySchema), userController.findByQuery);
+usersRouter.post("/find", zodValidation(FindByQuerySchema), usersController.findByQuery);
 
 //====================================================================================================
 
-userRegistry.registerPath({
+usersRegistry.registerPath({
   method: "post",
   path: ROUTE,
   tags: [TAG],
@@ -130,57 +130,57 @@ userRegistry.registerPath({
   },
   responses: createApiResponse(RegisterSchema, `${TAG} Created Successfully`),
 });
-userRouter.post("/", zodValidation(RegisterSchema), userController.create);
+usersRouter.post("/", zodValidation(RegisterSchema), usersController.create);
 
 //====================================================================================================
 
-userRegistry.registerPath({
+usersRegistry.registerPath({
   method: "put",
   path: `${ROUTE}/{id}`,
   tags: [TAG],
   summary: `Update ${TAG}`,
   request: {
-    params: z.object({ id: z.string() }),
+    params: z.object({ uuid: z.string() }),
     body: {
-      content: { "application/json": { schema: UserSchema } },
+      content: { "application/json": { schema: UpdateUsersSchema } },
     },
   },
-  responses: createApiResponse(UserSchema, `${TAG} Updated Successfully`),
+  responses: createApiResponse(UpdateUsersSchema, `${TAG} Updated Successfully`),
 });
-userRouter.put("/:id", zodValidation(UserSchema), userController.update);
+usersRouter.put("/:uuid", zodValidation(UpdateUsersSchema), usersController.update);
 
 //====================================================================================================
 
-userRegistry.registerPath({
+usersRegistry.registerPath({
   method: "delete",
-  path: ROUTE,
+  path: `${ROUTE}/bulk`,
   tags: [TAG],
-  summary: `Delete ${TAG}s`,
+  summary: `Delete ${TAG} in bulk`,
   request: {
     body: {
-      content: { "application/json": { schema: z.object({ ids: z.array(z.string()) }) } },
+      content: { "application/json": { schema: z.object({ uuids: z.array(z.string()) }) } },
     },
   },
   responses: createApiResponse(z.null(), `${TAG}s Deleted Successfully`),
 });
-userRouter.delete(
-  "/",
+usersRouter.delete(
+  "/bulk",
   zodValidation(z.object({ ids: z.array(z.string()) })),
-  userController.deleteAll,
+  usersController.deleteAll,
 );
 
 //====================================================================================================
 
-userRegistry.registerPath({
+usersRegistry.registerPath({
   method: "delete",
-  path: `${ROUTE}/{id}`,
+  path: `${ROUTE}/{uuid}`,
   tags: [TAG],
   summary: `Delete ${TAG}`,
   request: {
-    params: z.object({ id: z.string() }),
+    params: z.object({ uuid: z.string() }),
   },
   responses: createApiResponse(z.null(), `${TAG} Deleted Successfully`),
 });
-userRouter.delete("/:id", userController.delete);
+usersRouter.delete("/:uuid", usersController.delete);
 
-export default userRouter;
+export default usersRouter;

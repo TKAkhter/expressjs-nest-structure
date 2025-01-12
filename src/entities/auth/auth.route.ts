@@ -26,6 +26,7 @@ authRegistry.registerPath({
   method: "post",
   path: `${ROUTE}/login`,
   tags: [TAG],
+  summary: "Login",
   request: {
     body: {
       content: { "application/json": { schema: AuthSchema } },
@@ -41,6 +42,7 @@ authRegistry.registerPath({
   method: "post",
   path: `${ROUTE}/register`,
   tags: [TAG],
+  summary: "Register",
   request: {
     body: {
       content: { "application/json": { schema: RegisterSchema } },
@@ -56,6 +58,7 @@ authRegistry.registerPath({
   method: "post",
   path: `${ROUTE}/extend-token`,
   tags: [TAG],
+  summary: "Extend Token",
   request: {
     body: {
       content: { "application/json": { schema: ExtendTokenSchema } },
@@ -73,17 +76,13 @@ authRouter.post(
 //====================================================================================================
 
 authRegistry.registerPath({
-  method: "post",
+  method: "get",
   path: `${ROUTE}/logout`,
   tags: [TAG],
-  request: {
-    body: {
-      content: { "application/json": { schema: {} } },
-    },
-  },
+  summary: "Logout",
   responses: createApiResponse(LogoutSchema, "Logout Successfully"),
 });
-authRouter.post("/logout", authMiddleware, authController.logout);
+authRouter.get("/logout", authMiddleware, authController.logout);
 
 //====================================================================================================
 
@@ -91,6 +90,7 @@ authRegistry.registerPath({
   method: "post",
   path: `${ROUTE}/forgot-password`,
   tags: [TAG],
+  summary: "Forgot Password",
   request: {
     body: {
       content: { "application/json": { schema: forgotModel } },
@@ -106,6 +106,7 @@ authRegistry.registerPath({
   method: "post",
   path: `${ROUTE}/reset-password`,
   tags: [TAG],
+  summary: "Reset Password",
   request: {
     body: {
       content: { "application/json": { schema: resetModel } },
@@ -113,6 +114,6 @@ authRegistry.registerPath({
   },
   responses: createApiResponse(resetModel, "Password reset successful"),
 });
-authRouter.post("/forgot-password", zodValidation(ExtendTokenSchema), authController.resetPassword);
+authRouter.post("/reset-password", zodValidation(ExtendTokenSchema), authController.resetPassword);
 
 export default authRouter;

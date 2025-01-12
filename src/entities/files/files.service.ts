@@ -1,13 +1,13 @@
-import { FileRepository } from "./file.repository";
+import { FilesRepository } from "@/entities/files/files.repository";
 import createHttpError from "http-errors";
 import { StatusCodes } from "http-status-codes";
 import { logger } from "@/common/winston/winston";
-import { UpdateFileDto, UploadFileDto } from "./file.dto";
+import { UpdateFilesDto, UploadFilesDto } from "@/entities/files/files.dto";
 import { v4 as uuidv4 } from "uuid";
-export class FileService {
-  private fileRepository = new FileRepository();
+export class FilesService {
+  private filesRepository = new FilesRepository();
 
-  async uploadFile(fileData: UploadFileDto) {
+  async uploadFiles(fileData: UploadFilesDto) {
     try {
       logger.info("Uploading file metadata to the database", { fileData });
       const fileUpload = {
@@ -18,7 +18,7 @@ export class FileService {
         views: "0",
         userId: "talhaakhter01@gmail.com",
       };
-      return await this.fileRepository.createFile(fileUpload);
+      return await this.filesRepository.createFile(fileUpload);
     } catch (error) {
       logger.error("Error uploading file metadata", { error });
       throw createHttpError(StatusCodes.INTERNAL_SERVER_ERROR, "Error uploading file metadata.");
@@ -26,7 +26,7 @@ export class FileService {
   }
 
   async getFileById(id: string) {
-    const file = await this.fileRepository.getFileById(id);
+    const file = await this.filesRepository.getFilesById(id);
 
     if (!file) {
       throw createHttpError(StatusCodes.NOT_FOUND, "File not found.");
@@ -37,11 +37,11 @@ export class FileService {
 
   async getAllFiles() {
     // eslint-disable-next-line no-return-await
-    return await this.fileRepository.getAllFiles();
+    return await this.filesRepository.getAllFiles();
   }
 
-  async updateFile(id: string, updateData: UpdateFileDto) {
-    const updatedFile = await this.fileRepository.updateFile(id, updateData);
+  async updateFile(id: string, updateData: UpdateFilesDto) {
+    const updatedFile = await this.filesRepository.updateFile(id, updateData);
 
     if (!updatedFile) {
       throw createHttpError(StatusCodes.NOT_FOUND, "File not found.");
@@ -51,7 +51,7 @@ export class FileService {
   }
 
   async deleteFile(id: string) {
-    const deletedFile = await this.fileRepository.deleteFile(id);
+    const deletedFile = await this.filesRepository.deleteFile(id);
 
     if (!deletedFile) {
       throw createHttpError(StatusCodes.NOT_FOUND, "File not found.");

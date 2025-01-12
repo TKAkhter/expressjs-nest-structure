@@ -1,8 +1,8 @@
-import app from "./app";
-import { checkMongoDB, checkRedis } from "./entities/health-check/health-check-services-status";
+import app from "@/app";
 import { env } from "@/config/env";
 import { logger } from "@/common/winston/winston";
 import connectMongoDB from "@/config/mongodb/mongodb";
+import { checkMongoDB, checkRedis } from "@/entities/health/health.helper";
 
 const { PORT, NODE_ENV, BASE_URL, ALLOW_ORIGIN } = env;
 

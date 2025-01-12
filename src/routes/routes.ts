@@ -1,10 +1,13 @@
 import { Router } from "express";
 import authRouter from "@/entities/auth/auth.route";
-import userRouter from "@/entities/user/user.route";
-import filesRouter from "@/entities/file/file.route";
+import usersRouter from "@/entities/users/users.route";
+import filesRouter from "@/entities/files/files.route";
+import { cacheMiddleware } from "@/middlewares/cache-middleware";
+import healthRouter from "@/entities/health/health.route";
 
 export const apiRoutes = Router();
 
+apiRoutes.use("/health", healthRouter);
 apiRoutes.use("/auth", authRouter);
-apiRoutes.use("/users", userRouter);
-apiRoutes.use("/files", filesRouter);
+apiRoutes.use("/users", cacheMiddleware, usersRouter);
+apiRoutes.use("/files", cacheMiddleware, filesRouter);

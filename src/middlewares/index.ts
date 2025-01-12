@@ -1,4 +1,4 @@
-export { cors } from "./cors";
-export { authMiddleware } from "./auth-middleware";
-export { errorHandler } from "./error-middleware";
-export { zodValidation } from "./zod-validation";
+export { cors } from "@/middlewares/cors";
+export { authMiddleware } from "@/middlewares/auth-middleware";
+export { errorHandler } from "@/middlewares/error-middleware";
+export { zodValidation } from "@/middlewares/zod-validation";

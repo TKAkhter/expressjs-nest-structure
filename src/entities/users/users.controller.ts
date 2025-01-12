@@ -1,21 +1,21 @@
 import { NextFunction, Response } from "express";
-import { UserService } from "@/entities/user/user.service";
-import { CreateUserDto } from "@/entities/user/user.dto";
+import { UsersService } from "@/entities/users/users.service";
 import createHttpError from "http-errors";
 import { StatusCodes } from "http-status-codes";
 import { logger } from "@/common/winston/winston";
 import { CustomRequest } from "@/types/request";
 import { csvToJson } from "@/utils/utils";
+import { generateCache } from "@/common/cache/generate-cache";
 
-export class UserController {
-  public tableName: string;
+export class UsersController {
+  public collectionName: string;
   public logFileName: string;
-  public userService: UserService;
+  public usersService: UsersService;
 
   constructor() {
-    this.tableName = "users";
-    this.logFileName = `[${this.tableName} Controller]`;
-    this.userService = new UserService(this.tableName, `[${this.tableName} Service]`);
+    this.collectionName = "users";
+    this.logFileName = `[${this.collectionName} Controller]`;
+    this.usersService = new UsersService(this.collectionName, `[${this.collectionName} Service]`);
   }
 
   /**
@@ -28,12 +28,15 @@ export class UserController {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getAll = async (_req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
     try {
-      logger.info(`${this.logFileName} Fetching all ${this.tableName}`);
-      const data = await this.userService.getAll();
+      logger.info(`${this.logFileName} Fetching all ${this.collectionName}`);
+      const data = await this.usersService.getAll();
+      // Generate cache if enabled
+      await generateCache(res.locals.cacheKey, data);
+
       return res.json(data);
     } catch (error) {
       if (error instanceof Error) {
-        logger.error(`${this.logFileName} Error fetching all ${this.tableName}`, {
+        logger.error(`${this.logFileName} Error fetching all ${this.collectionName}`, {
           error: error.message,
         });
       }
@@ -53,12 +56,14 @@ export class UserController {
     const { id } = req.params;
     const { user } = req;
     try {
-      logger.info(`${this.logFileName} Fetching ${this.tableName} by ID`, { user, id });
-      const data = await this.userService.getById(id);
+      logger.info(`${this.logFileName} Fetching ${this.collectionName} by ID`, { user, id });
+      const data = await this.usersService.getById(id);
+      // Generate cache if enabled
+      await generateCache(res.locals.cacheKey, data);
       return res.json(data);
     } catch (error) {
       if (error instanceof Error) {
-        logger.error(`${this.logFileName} Error fetching ${this.tableName} by ID`, {
+        logger.error(`${this.logFileName} Error fetching ${this.collectionName} by ID`, {
           error: error.message,
           user,
           id,
@@ -80,12 +85,14 @@ export class UserController {
     const { uuid } = req.params;
     const { user } = req;
     try {
-      logger.info(`${this.logFileName} Fetching ${this.tableName} by uuid`, { user, uuid });
-      const data = await this.userService.getByUuid(uuid);
+      logger.info(`${this.logFileName} Fetching ${this.collectionName} by uuid`, { user, uuid });
+      const data = await this.usersService.getByUuid(uuid);
+      // Generate cache if enabled
+      await generateCache(res.locals.cacheKey, data);
       return res.json(data);
     } catch (error) {
       if (error instanceof Error) {
-        logger.error(`${this.logFileName} Error fetching ${this.tableName} by uuid`, {
+        logger.error(`${this.logFileName} Error fetching ${this.collectionName} by uuid`, {
           error: error.message,
           user,
           uuid,
@@ -107,12 +114,14 @@ export class UserController {
     const { email } = req.params;
     const { user } = req;
     try {
-      logger.info(`${this.logFileName} Fetching ${this.tableName} by email`, { user, email });
-      const data = await this.userService.getByEmail(email);
+      logger.info(`${this.logFileName} Fetching ${this.collectionName} by email`, { user, email });
+      const data = await this.usersService.getByEmail(email);
+      // Generate cache if enabled
+      await generateCache(res.locals.cacheKey, data);
       return res.json(data);
     } catch (error) {
       if (error instanceof Error) {
-        logger.error(`${this.logFileName} Error fetching ${this.tableName} by email`, {
+        logger.error(`${this.logFileName} Error fetching ${this.collectionName} by email`, {
           error: error.message,
           user,
           email,
@@ -133,13 +142,13 @@ export class UserController {
     try {
       const { paginate, orderBy, filter } = req.body;
       const queryOptions = { paginate, orderBy, filter };
-      logger.info(`${this.logFileName} Finding ${this.tableName} by query`, { queryOptions });
+      logger.info(`${this.logFileName} Finding ${this.collectionName} by query`, { queryOptions });
 
-      const result = await this.userService.findByQuery(queryOptions);
+      const result = await this.usersService.findByQuery(queryOptions);
       res.json(result);
     } catch (error) {
       if (error instanceof Error) {
-        logger.error(`${this.logFileName} Error finding ${this.tableName} by query`, {
+        logger.error(`${this.logFileName} Error finding ${this.collectionName} by query`, {
           error: error.message,
         });
       }
@@ -156,15 +165,15 @@ export class UserController {
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   create = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
-    const createDto: CreateUserDto = req.body;
+    const createDto = req.body;
     const { user } = req;
     try {
-      logger.info(`${this.logFileName} Creating new ${this.tableName}`, { user, createDto });
-      const created = await this.userService.create(createDto);
+      logger.info(`${this.logFileName} Creating new ${this.collectionName}`, { user, createDto });
+      const created = await this.usersService.create(createDto);
       return res.json(created);
     } catch (error) {
       if (error instanceof Error) {
-        logger.error(`${this.logFileName} Error creating ${this.tableName}`, {
+        logger.error(`${this.logFileName} Error creating ${this.collectionName}`, {
           error: error.message,
           user,
           createDto,
@@ -183,19 +192,19 @@ export class UserController {
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   update = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
-    const { id } = req.params;
+    const { uuid } = req.params;
     const updateDto = req.body;
     const { user } = req;
     try {
-      logger.info(`${this.logFileName} Updating ${this.tableName}`, { user, id, updateDto });
-      const updatedData = await this.userService.update(id, updateDto);
+      logger.info(`${this.logFileName} Updating ${this.collectionName}`, { user, uuid, updateDto });
+      const updatedData = await this.usersService.update(uuid, updateDto);
       return res.json(updatedData);
     } catch (error) {
       if (error instanceof Error) {
-        logger.error(`${this.logFileName} Error updating ${this.tableName}`, {
+        logger.error(`${this.logFileName} Error updating ${this.collectionName}`, {
           error: error.message,
           user,
-          id,
+          uuid,
           updateDto,
         });
       }
@@ -212,18 +221,18 @@ export class UserController {
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   delete = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
-    const { id } = req.params;
+    const { uuid } = req.params;
     const { user } = req;
     try {
-      logger.info(`${this.logFileName} Deleting ${this.tableName} by ID`, { user, id });
-      await this.userService.delete(id);
-      return res.json({ message: `${this.tableName} Deleted Successfully` });
+      logger.info(`${this.logFileName} Deleting ${this.collectionName} by uuid`, { user, uuid });
+      await this.usersService.delete(uuid);
+      return res.json({ message: `${this.collectionName} Deleted Successfully` });
     } catch (error) {
       if (error instanceof Error) {
-        logger.error(`${this.logFileName} Error deleting ${this.tableName}`, {
+        logger.error(`${this.logFileName} Error deleting ${this.collectionName}`, {
           error: error.message,
           user,
-          id,
+          uuid,
         });
       }
       next(error);
@@ -239,27 +248,27 @@ export class UserController {
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   deleteAll = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
-    const { ids } = req.body;
+    const { uuids } = req.body;
     const { user } = req;
     try {
-      if (!Array.isArray(ids) || ids.length === 0) {
-        throw createHttpError(StatusCodes.BAD_REQUEST, "Invalid or empty array of IDs", {
-          resource: this.tableName,
+      if (!Array.isArray(uuids) || uuids.length === 0) {
+        throw createHttpError(StatusCodes.BAD_REQUEST, "Invalid or empty array of uuids", {
+          resource: this.collectionName,
         });
       }
 
-      logger.info(`${this.logFileName} Deleting multiple ${this.tableName}`, { user, ids });
-      const result = await this.userService.deleteAll(ids);
+      logger.info(`${this.logFileName} Deleting multiple ${this.collectionName}`, { user, uuids });
+      const result = await this.usersService.deleteAll(uuids);
 
       return res.json({
-        message: `${result.deletedCount} ${this.tableName} deleted successfully`,
+        message: `${result.deletedCount} ${this.collectionName} deleted successfully`,
       });
     } catch (error) {
       if (error instanceof Error) {
-        logger.error(`${this.logFileName} Error deleting ${this.tableName}`, {
+        logger.error(`${this.logFileName} Error deleting ${this.collectionName}`, {
           error: error.message,
           user,
-          ids,
+          uuids,
         });
       }
       next(error);
@@ -276,20 +285,19 @@ export class UserController {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   import = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
     const { user, file } = req;
-    const { userId } = req.body;
     if (!file) {
       return next(createHttpError(StatusCodes.BAD_REQUEST, "No file uploaded."));
     }
     try {
-      logger.info(`${this.logFileName} Importing new ${this.tableName}`, { user });
+      logger.info(`${this.logFileName} Importing new ${this.collectionName}`, { user });
 
       const importEntries = await csvToJson(file.path);
 
-      const imported = await this.userService.import(importEntries, userId);
+      const imported = await this.usersService.import(importEntries);
       return res.json(imported);
     } catch (error) {
       if (error instanceof Error) {
-        logger.error(`${this.logFileName} Error creating ${this.tableName}`, {
+        logger.error(`${this.logFileName} Error creating ${this.collectionName}`, {
           error: error.message,
           user,
         });
@@ -308,14 +316,14 @@ export class UserController {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   export = async (_req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
     try {
-      logger.info(`${this.logFileName} Exporting ${this.tableName}`);
-      const csv = await this.userService.export();
+      logger.info(`${this.logFileName} Exporting ${this.collectionName}`);
+      const csv = await this.usersService.export();
       res.header("Content-Type", "text/csv");
       res.header("Content-Disposition", "attachment; filename=accounts.csv");
       res.send(csv);
     } catch (error) {
       if (error instanceof Error) {
-        logger.error(`${this.logFileName} Error exporting ${this.tableName}`, {
+        logger.error(`${this.logFileName} Error exporting ${this.collectionName}`, {
           error: error.message,
         });
       }

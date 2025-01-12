@@ -1,18 +1,18 @@
 import { NextFunction, Response } from "express";
-import { FileService } from "@/entities/file/file.service";
-import { UpdateFileDto, UploadFileDto } from "@/entities/file/file.dto";
+import { FilesService } from "@/entities/files/files.service";
+import { UpdateFilesDto, UploadFilesDto } from "@/entities/files/files.dto";
 import { logger } from "@/common/winston/winston";
 import { CustomRequest } from "@/types/request";
 import { saveFileToDisk } from "@/common/multer/save-file-to-disk";
 import { updateImageToDisk } from "@/common/multer/update-file-to-disk";
 import { deleteFileFromDisk } from "@/common/multer/delete-file-from-disk";
 
-const fileService = new FileService();
-export class FileController {
+const filesService = new FilesService();
+export class FilesController {
   async getAllFiles(req: CustomRequest, res: Response, next: NextFunction): Promise<void> {
     const { user } = req;
     try {
-      const files = await fileService.getAllFiles();
+      const files = await filesService.getAllFiles();
       res.json(files);
     } catch (error) {
       if (error instanceof Error) {
@@ -26,7 +26,7 @@ export class FileController {
     const { id } = req.params;
     const { user } = req;
     try {
-      const file = await fileService.getFileById(id);
+      const file = await filesService.getFileById(id);
       res.json(file);
     } catch (error) {
       if (error instanceof Error) {
@@ -44,8 +44,8 @@ export class FileController {
     try {
       const { fileName, filePath } = await saveFileToDisk(req.file);
       const fileText = `data:${mimetype};base64,${buffer.toString("base64")}`;
-      const fileData: UploadFileDto = { fileName, filePath, fileText, userId: user!, tags };
-      const newFile = await fileService.uploadFile(fileData);
+      const fileData: UploadFilesDto = { fileName, filePath, fileText, userId: user!, tags };
+      const newFile = await filesService.uploadFiles(fileData);
       res.status(201).json(newFile);
     } catch (error) {
       if (error instanceof Error) {
@@ -61,20 +61,20 @@ export class FileController {
     const { buffer, mimetype } = req.file!;
     const updateData = req.body;
     try {
-      const existFile = await fileService.getFileById(id);
+      const existFile = await filesService.getFileById(id);
       if (!existFile) {
         throw new Error("File not found");
       }
       const { fileName, filePath } = await updateImageToDisk(existFile.fileName!, req.file);
       const fileText = `data:${mimetype};base64,${buffer.toString("base64")}`;
-      const fileData: UpdateFileDto = {
+      const fileData: UpdateFilesDto = {
         fileName,
         filePath,
         fileText,
         userId: user!,
         ...updateData,
       };
-      const updatedFile = await fileService.updateFile(id, fileData);
+      const updatedFile = await filesService.updateFile(id, fileData);
       res.json(updatedFile);
     } catch (error) {
       if (error instanceof Error) {
@@ -88,12 +88,12 @@ export class FileController {
     const { user } = req;
     const { id } = req.params;
     try {
-      const existFile = await fileService.getFileById(id);
+      const existFile = await filesService.getFileById(id);
       if (!existFile) {
         throw new Error("File not found");
       }
       await deleteFileFromDisk(existFile.fileName!);
-      await fileService.deleteFile(id);
+      await filesService.deleteFile(id);
       res.status(204).send();
     } catch (error) {
       if (error instanceof Error) {

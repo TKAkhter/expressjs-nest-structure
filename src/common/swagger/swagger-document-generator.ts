@@ -3,10 +3,15 @@ import { env } from "@/config/env";
 import { healthRegistry } from "@/entities/health/health.route";
 import { authRegistry } from "@/entities/auth/auth.route";
 import { usersRegistry } from "@/entities/users/users.route";
-import { fileRegistry } from "@/entities/file/file.route";
+import { filesRegistry } from "@/entities/files/files.route";
 
 export function generateOpenAPIDocument() {
-  const registry = new OpenAPIRegistry([healthRegistry, authRegistry, usersRegistry, fileRegistry]);
+  const registry = new OpenAPIRegistry([
+    healthRegistry,
+    authRegistry,
+    usersRegistry,
+    filesRegistry,
+  ]);
 
   registry.registerComponent("securitySchemes", "bearerAuth", {
     type: "http",

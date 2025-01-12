@@ -5,7 +5,7 @@ import { zodSchema } from "@zodyac/zod-mongoose";
 
 extendZodWithOpenApi(z);
 
-export const FileSchema = z.object({
+export const FilesSchema = z.object({
   uuid: z.string(),
   filePath: z.string().optional(),
   tags: z.string(),
@@ -23,7 +23,7 @@ export const FileSchema = z.object({
     .optional(),
 });
 
-export const UploadFileSchema = FileSchema.omit({
+export const UploadFilesSchema = FilesSchema.omit({
   uuid: true,
   createdAt: true,
   updatedAt: true,
@@ -38,7 +38,7 @@ export const UploadFileSchema = FileSchema.omit({
     .optional(),
 });
 
-export const UpdateFileSchema = FileSchema.omit({
+export const UpdateFilesSchema = FilesSchema.omit({
   uuid: true,
   createdAt: true,
   updatedAt: true,
@@ -53,9 +53,9 @@ export const UpdateFileSchema = FileSchema.omit({
     .optional(),
 });
 
-export type FileDto = z.infer<typeof FileSchema>;
-export type UploadFileDto = z.infer<typeof UploadFileSchema>;
-export type UpdateFileDto = z.infer<typeof UpdateFileSchema>;
+export type FilesDto = z.infer<typeof FilesSchema>;
+export type UploadFilesDto = z.infer<typeof UploadFilesSchema>;
+export type UpdateFilesDto = z.infer<typeof UpdateFilesSchema>;
 
-const schema = zodSchema(FileSchema);
-export const FileModel = model("File", schema);
+const schema = zodSchema(FilesSchema);
+export const FilesModel = model("Files", schema);

@@ -1,7 +1,7 @@
 import { Router } from "express";
 import authRouter from "@/entities/auth/auth.route";
 import usersRouter from "@/entities/users/users.route";
-import filesRouter from "@/entities/file/file.route";
+import filesRouter from "@/entities/files/files.route";
 import { cacheMiddleware } from "@/middlewares/cache-middleware";
 import healthRouter from "@/entities/health/health.route";
 

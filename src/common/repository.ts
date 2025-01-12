@@ -3,6 +3,7 @@ import { FindByQueryDto } from "@/schemas/find-by-query";
 import { logger } from "@/common/winston/winston";
 import { mongoDbApplyFilter } from "@/utils/mongodb-apply-filter";
 
+const IGNORE_FIELDS = { password: 0 };
 export class GenericRepository<T, TCreateDto, TUpdateDto> {
   private model: Model<T>;
   private logFileName: string;
@@ -19,7 +20,7 @@ export class GenericRepository<T, TCreateDto, TUpdateDto> {
   getAll = async (): Promise<T[]> => {
     try {
       logger.info(`${this.logFileName} Fetching all from ${this.model.modelName}`);
-      return await this.model.find({}, { password: 0 });
+      return await this.model.find({}, IGNORE_FIELDS);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       logger.error(`${this.logFileName} Error fetching all from ${this.model.modelName}`, {
@@ -37,7 +38,7 @@ export class GenericRepository<T, TCreateDto, TUpdateDto> {
   getById = async (id: string): Promise<T | null> => {
     try {
       logger.info(`${this.logFileName} Fetching ${this.model.modelName} with id: ${id}`);
-      return await this.model.findById(id, { _id: 0, password: 0 });
+      return await this.model.findById(id, IGNORE_FIELDS);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       logger.error(`${this.logFileName} Error fetching ${this.model.modelName} by id`, {
@@ -56,7 +57,7 @@ export class GenericRepository<T, TCreateDto, TUpdateDto> {
   getByUuid = async (uuid: string): Promise<T | null> => {
     try {
       logger.info(`${this.logFileName} Fetching ${this.model.modelName} with uuid: ${uuid}`);
-      return await this.model.findOne({ uuid }, { _id: 0, password: 0 });
+      return await this.model.findOne({ uuid }, IGNORE_FIELDS);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       logger.error(`${this.logFileName} Error fetching ${this.model.modelName} by uuid`, {
@@ -75,7 +76,7 @@ export class GenericRepository<T, TCreateDto, TUpdateDto> {
   getByEmail = async (email: string): Promise<T | null> => {
     try {
       logger.info(`${this.logFileName} Fetching ${this.model.modelName} with email: ${email}`);
-      return await this.model.findOne({ email });
+      return await this.model.findOne({ email }, IGNORE_FIELDS);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       logger.error(`${this.logFileName} Error fetching ${this.model.modelName} by email`, {
@@ -96,7 +97,7 @@ export class GenericRepository<T, TCreateDto, TUpdateDto> {
       logger.info(
         `${this.logFileName} Fetching ${this.model.modelName} with username: ${username}`,
       );
-      return await this.model.findOne({ username });
+      return await this.model.findOne({ username }, IGNORE_FIELDS);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       logger.error(`${this.logFileName} Error fetching ${this.model.modelName} by username`, {
@@ -133,7 +134,7 @@ export class GenericRepository<T, TCreateDto, TUpdateDto> {
       // Query the collection
       const [data, total] = await Promise.all([
         this.model
-          .find(mongoFilter)
+          .find(mongoFilter, IGNORE_FIELDS)
           .sort(sortOptions)
           .skip((page - 1) * perPage)
           .limit(perPage)
@@ -240,4 +241,49 @@ export class GenericRepository<T, TCreateDto, TUpdateDto> {
       throw new Error(error);
     }
   }
+
+  /**
+   * Imports multiple user objects into the database.
+   * @param users - Array of user objects to be saved
+   * @returns Array of successfully created users
+   */
+  import = async (
+    users: TCreateDto[],
+  ): Promise<{
+    createdUsers: T[];
+    createdCount: number;
+    skippedCount: number;
+  }> => {
+    try {
+      logger.info(
+        `${this.logFileName} Importing ${users.length} documents into ${this.model.modelName}`,
+      );
+
+      const createdUsers = (await this.model.insertMany(users, {
+        ordered: true,
+      })) as unknown as T[];
+      const createdCount = createdUsers.length;
+      const skippedCount = users.length - createdCount;
+
+      logger.info(`${this.logFileName} Import Summary:`, {
+        createdCount,
+        skippedCount,
+        createdUsers,
+      });
+
+      return {
+        createdUsers,
+        createdCount,
+        skippedCount,
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      logger.error(`${this.logFileName} Error importing users into ${this.model.modelName}`, {
+        usersCount: users.length,
+        error: error.message,
+      });
+      throw new Error(error);
+    }
+  };
 }

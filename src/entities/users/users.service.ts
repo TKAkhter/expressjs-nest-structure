@@ -1,4 +1,4 @@
-import { UserModel, UserDto, UpdateUserDto, CreateUserDto } from "@/entities/user/user.dto";
+import { UsersModel, UsersDto, UpdateUsersDto, CreateUsersDto } from "@/entities/users/users.dto";
 import { env } from "@/config/env";
 import { hash } from "bcrypt";
 import { v4 as uuidv4 } from "uuid";
@@ -9,13 +9,13 @@ import { logger } from "@/common/winston/winston";
 import { parseAsync } from "json2csv";
 import { GenericRepository } from "@/common/repository";
 
-export class UserService {
-  private userRepository: GenericRepository<UserDto, UpdateUserDto, CreateUserDto>;
+export class UsersService {
+  private usersRepository: GenericRepository<UsersDto, UpdateUsersDto, CreateUsersDto>;
   private collectionName: string;
   private logFileName: string;
 
   constructor(collectionName: string, logFileName: string) {
-    this.userRepository = new GenericRepository(UserModel, `[${collectionName} Repository]`);
+    this.usersRepository = new GenericRepository(UsersModel, `[${collectionName} Repository]`);
     this.collectionName = collectionName;
     this.logFileName = logFileName;
   }
@@ -24,10 +24,10 @@ export class UserService {
    * Fetches all entities from the database.
    * @returns Array of entities
    */
-  getAll = async (): Promise<UserDto[]> => {
+  getAll = async (): Promise<UsersDto[]> => {
     try {
       logger.info(`${this.logFileName} Fetching all ${this.collectionName}`);
-      const data = await this.userRepository.getAll();
+      const data = await this.usersRepository.getAll();
       return data;
     } catch (error) {
       if (error instanceof Error) {
@@ -48,10 +48,10 @@ export class UserService {
    * @param id - entity's unique identifier
    * @returns entity data
    */
-  getById = async (id: string): Promise<UserDto> => {
+  getById = async (id: string): Promise<UsersDto> => {
     try {
       logger.info(`${this.logFileName} Fetching ${this.collectionName} with id: ${id}`);
-      const data = await this.userRepository.getById(id);
+      const data = await this.usersRepository.getById(id);
 
       if (!data) {
         logger.error(`${this.logFileName} ${this.collectionName} with id ${id} not found`);
@@ -84,10 +84,10 @@ export class UserService {
    * @param uuid - entity's unique identifier
    * @returns entity data
    */
-  getByUuid = async (uuid: string): Promise<UserDto> => {
+  getByUuid = async (uuid: string): Promise<UsersDto> => {
     try {
       logger.info(`${this.logFileName} Fetching ${this.collectionName} with uuid: ${uuid}`);
-      const data = await this.userRepository.getByUuid(uuid);
+      const data = await this.usersRepository.getByUuid(uuid);
 
       if (!data) {
         logger.error(`${this.logFileName} ${this.collectionName} with uuid ${uuid} not found`);
@@ -120,10 +120,10 @@ export class UserService {
    * @param email - entity's email
    * @returns entity data or false if not found
    */
-  getByEmail = async (email: string): Promise<UserDto | false> => {
+  getByEmail = async (email: string): Promise<UsersDto | false> => {
     try {
       logger.info(`${this.logFileName} Fetching ${this.collectionName} with email: ${email}`);
-      const data = await this.userRepository.getByEmail(email);
+      const data = await this.usersRepository.getByEmail(email);
 
       if (!data) {
         logger.error(`${this.logFileName} ${this.collectionName} with email ${email} not found`);
@@ -160,7 +160,7 @@ export class UserService {
       logger.info(
         `${this.logFileName} Querying ${this.collectionName} with options: ${JSON.stringify(options)}`,
       );
-      return await this.userRepository.findByQuery(options);
+      return await this.usersRepository.findByQuery(options);
     } catch (error) {
       logger.error(`${this.logFileName} Error querying ${this.collectionName}`, {
         options,
@@ -175,13 +175,13 @@ export class UserService {
    * @param createDto - Data for creating a new entity
    * @returns Created entity data
    */
-  create = async (createDto: CreateUserDto): Promise<UserDto> => {
+  create = async (createDto: CreateUsersDto): Promise<UsersDto> => {
     try {
       logger.info(
         `${this.logFileName} Creating ${this.collectionName} with email: ${createDto.email}`,
       );
-      const data = await this.userRepository.getByEmail(createDto.email);
-      const username = await this.userRepository.getByUsername(createDto.username);
+      const data = await this.usersRepository.getByEmail(createDto.email);
+      const username = await this.usersRepository.getByUsername(createDto.username);
 
       if (data) {
         logger.error(
@@ -196,8 +196,8 @@ export class UserService {
         logger.error(
           `${this.logFileName} ${this.collectionName} with username ${createDto.username} already exists.`,
         );
-        throw createHttpError(StatusCodes.BAD_REQUEST, "Username is taken!", {
-          resource: "User",
+        throw createHttpError(StatusCodes.BAD_REQUEST, "username is taken!", {
+          resource: "Users",
         });
       }
 
@@ -211,7 +211,7 @@ export class UserService {
         updatedAt: currentTime,
       };
 
-      return await this.userRepository.create(newDto);
+      return await this.usersRepository.create(newDto);
     } catch (error) {
       if (createHttpError.isHttpError(error)) {
         throw error;
@@ -233,17 +233,19 @@ export class UserService {
 
   /**
    * Updates an existing entity.
-   * @param id - entity's unique identifier
+   * @param uuid - entity's unique identifier
    * @param updateDto - Data to update the entity with
    * @returns Updated entity data
    */
-  update = async (id: string, updateDto: UpdateUserDto): Promise<UserDto | null> => {
+  update = async (uuid: string, updateDto: UpdateUsersDto): Promise<UsersDto | null> => {
     try {
-      logger.info(`${this.logFileName} Updating ${this.collectionName} with id: ${id}`);
-      const data = await this.getById(id);
+      logger.info(`${this.logFileName} Updating ${this.collectionName} with uuid: ${uuid}`);
+      const data = await this.getByUuid(uuid);
 
       if (!data) {
-        logger.error(`${this.logFileName} ${this.collectionName} with id ${id} does not exist!`);
+        logger.error(
+          `${this.logFileName} ${this.collectionName} with uuid ${uuid} does not exist!`,
+        );
         throw createHttpError(StatusCodes.BAD_REQUEST, `${this.collectionName} does not exist!`, {
           resource: this.collectionName,
         });
@@ -256,7 +258,7 @@ export class UserService {
       // UpdateDto.updatedAt = new Date();
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return await this.userRepository.update(id, updateDto as any);
+      return await this.usersRepository.update(uuid, updateDto as any);
     } catch (error) {
       if (createHttpError.isHttpError(error)) {
         throw error;
@@ -264,7 +266,7 @@ export class UserService {
 
       if (error instanceof Error) {
         logger.error(`${this.logFileName} Error updating ${this.collectionName}`, {
-          id,
+          uuid,
           updateDto,
           error: error.message,
         });
@@ -279,22 +281,24 @@ export class UserService {
 
   /**
    * Deletes a entity.
-   * @param id - entity's unique identifier
+   * @param uuid - entity's unique identifier
    * @returns Deletion result
    */
-  delete = async (id: string): Promise<UserDto | null> => {
+  delete = async (uuid: string): Promise<UsersDto | null> => {
     try {
-      logger.info(`${this.logFileName} Deleting ${this.collectionName} with id: ${id}`);
-      const data = await this.getById(id);
+      logger.info(`${this.logFileName} Deleting ${this.collectionName} with uuid: ${uuid}`);
+      const data = await this.getByUuid(uuid);
 
       if (!data) {
-        logger.error(`${this.logFileName} ${this.collectionName} with id ${id} does not exist!`);
+        logger.error(
+          `${this.logFileName} ${this.collectionName} with uuid ${uuid} does not exist!`,
+        );
         throw createHttpError(StatusCodes.BAD_REQUEST, `${this.collectionName} does not exist!`, {
           resource: this.collectionName,
         });
       }
 
-      return await this.userRepository.delete(id);
+      return await this.usersRepository.delete(uuid);
     } catch (error) {
       if (createHttpError.isHttpError(error)) {
         throw error;
@@ -302,7 +306,7 @@ export class UserService {
 
       if (error instanceof Error) {
         logger.error(`${this.logFileName} Error deleting ${this.collectionName}`, {
-          id,
+          uuid,
           error: error.message,
         });
         throw new Error(`Error deleting ${this.collectionName}: ${error.message}`);
@@ -315,20 +319,20 @@ export class UserService {
   };
 
   /**
-   * Deletes multiple entities by their ids.
-   * @param ids - List of entity ids to delete
+   * Deletes multiple entities by their uuids.
+   * @param uuids - List of entity uuids to delete
    * @returns Deletion result
    */
-  deleteAll = async (ids: string[]): Promise<{ deletedCount: number }> => {
-    if (!Array.isArray(ids) || ids.length === 0) {
-      logger.error(`${this.logFileName} Invalid array of IDs for bulk delete`);
-      throw new Error("Invalid array of IDs");
+  deleteAll = async (uuids: string[]): Promise<{ deletedCount: number }> => {
+    if (!Array.isArray(uuids) || uuids.length === 0) {
+      logger.error(`${this.logFileName} Invalid array of uuids for bulk delete`);
+      throw new Error("Invalid array of uuids");
     }
 
-    const result = await this.userRepository.deleteAll(ids);
+    const result = await this.usersRepository.deleteAll(uuids);
 
     if (result.deletedCount === 0) {
-      logger.error(`${this.logFileName} No ${this.collectionName} found to delete`, { ids });
+      logger.error(`${this.logFileName} No ${this.collectionName} found to delete`, { uuids });
       throw new Error(`No ${this.collectionName} found to delete`);
     }
 
@@ -342,12 +346,11 @@ export class UserService {
    * @returns number of imported entities
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  import = async (importDto: CreateUserDto[], accountId: string): Promise<any> => {
+  import = async (importDto: CreateUsersDto[]): Promise<any> => {
     try {
       logger.info(`${this.logFileName} Starting import ${this.collectionName}`);
 
-      // Const imported = await this.userRepository.import(importDto, accountId);
-      const imported = { createdCount: 0, skippedCount: 0, accountId };
+      const imported = await this.usersRepository.import(importDto);
 
       logger.info(
         `${this.logFileName} ${imported.createdCount} completed, ${imported.skippedCount} skipped for ${this.collectionName}`,
@@ -383,7 +386,7 @@ export class UserService {
   export = async (): Promise<string> => {
     try {
       logger.info(`${this.logFileName} Fetching all ${this.collectionName}`);
-      const data = await this.userRepository.getAll();
+      const data = await this.usersRepository.getAll();
 
       if (data.length === 0) {
         throw createHttpError(StatusCodes.NOT_FOUND, `No ${this.collectionName} found to export`);

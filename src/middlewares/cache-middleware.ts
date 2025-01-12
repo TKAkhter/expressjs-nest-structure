@@ -10,7 +10,7 @@ export const cacheMiddleware = async (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Promise<any> => {
   try {
-    if (env.ENABLE_CACHE === "1") {
+    if (env.ENABLE_CACHE === "1" && req.method === "GET") {
       const cacheKey = `apiResponseCache:${req.originalUrl}`;
       const cachedData = await redis.get(cacheKey);
 

@@ -4,16 +4,17 @@ import { AuthDto, RegisterDto } from "@/entities/auth/auth.dto";
 import { generateToken, verifyToken } from "@/common/jwt/jwt";
 import createHttpError from "http-errors";
 import { StatusCodes } from "http-status-codes";
-import { UserService } from "@/entities/user/user.service";
+import { UsersService } from "@/entities/users/users.service";
+
 export class AuthService {
   private collectionName: string;
   private logFileName: string;
-  private userService: UserService;
+  private usersService: UsersService;
 
   constructor(logFileName: string) {
     this.collectionName = "user";
     this.logFileName = logFileName;
-    this.userService = new UserService(this.collectionName, `[${this.collectionName} Service]`);
+    this.usersService = new UsersService(this.collectionName, `[${this.collectionName} Service]`);
   }
 
   /**
@@ -26,11 +27,13 @@ export class AuthService {
     logger.info(`${this.logFileName} login service invoked`, { email: authData.email });
 
     try {
-      const user = await this.userService.getByEmail(authData.email);
+      const user = await this.usersService.getByEmail(authData.email);
 
       if (!user) {
-        logger.error(`${this.logFileName} User not found during login`, { email: authData.email });
-        throw createHttpError(StatusCodes.BAD_REQUEST, "User does not exist!", {
+        logger.error(`${this.logFileName} ${this.collectionName} not found during login`, {
+          email: authData.email,
+        });
+        throw createHttpError(StatusCodes.BAD_REQUEST, `${this.collectionName} does not exist!`, {
           resource: "Auth",
         });
       }
@@ -80,22 +83,27 @@ export class AuthService {
     logger.info(`${this.logFileName} Register service invoked`, { email: registerDto.email });
 
     try {
-      const user = await this.userService.getByEmail(registerDto.email);
+      const user = await this.usersService.getByEmail(registerDto.email);
 
       if (user) {
-        logger.error(`${this.logFileName} User already exists during registration`, {
-          email: registerDto.email,
-        });
-        throw createHttpError(StatusCodes.BAD_REQUEST, "User already exist!", {
+        logger.error(
+          `${this.logFileName} ${this.collectionName} already exists during registration`,
+          {
+            email: registerDto.email,
+          },
+        );
+        throw createHttpError(StatusCodes.BAD_REQUEST, `${this.collectionName} already exist!`, {
           resource: "Auth",
         });
       }
 
-      await this.userService.create(registerDto);
+      await this.usersService.create(registerDto);
 
       const login = await this.login(registerDto);
 
-      logger.info(`${this.logFileName} User registered successfully`, { email: registerDto.email });
+      logger.info(`${this.logFileName} ${this.collectionName} registered successfully`, {
+        email: registerDto.email,
+      });
       return login;
     } catch (error) {
       if (createHttpError.isHttpError(error)) {
@@ -176,13 +184,13 @@ export class AuthService {
     logger.info(`${this.logFileName} Forgot password service invoked`, { email });
 
     try {
-      const user = await this.userService.getByEmail(email);
+      const user = await this.usersService.getByEmail(email);
 
       if (!user) {
-        logger.error(`${this.logFileName} User does not exists!`, {
+        logger.error(`${this.logFileName} ${this.collectionName} does not exists!`, {
           email,
         });
-        throw createHttpError(StatusCodes.BAD_REQUEST, "User does not exist!", {
+        throw createHttpError(StatusCodes.BAD_REQUEST, `${this.collectionName} does not exist!`, {
           resource: "Auth",
         });
       }
@@ -220,12 +228,12 @@ export class AuthService {
     logger.info(`${this.logFileName} reset password service invoked`, { email });
 
     try {
-      const user = await this.userService.getByEmail(email);
+      const user = await this.usersService.getByEmail(email);
       if (!user) {
-        logger.error(`${this.logFileName} User does not exists!`, {
+        logger.error(`${this.logFileName} ${this.collectionName} does not exists!`, {
           email,
         });
-        throw createHttpError(StatusCodes.BAD_REQUEST, "User does not exist!", {
+        throw createHttpError(StatusCodes.BAD_REQUEST, `${this.collectionName} does not exist!`, {
           resource: "Auth",
         });
       }

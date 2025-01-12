@@ -8,5 +8,4 @@ export const ImportFileSchema = z.object({
       format: "binary",
     })
     .describe("The file to upload"),
-  accountId: z.string(),
 });

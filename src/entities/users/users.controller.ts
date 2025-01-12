@@ -1,6 +1,5 @@
 import { NextFunction, Response } from "express";
-import { UserService } from "@/entities/user/user.service";
-import { CreateUserDto } from "@/entities/user/user.dto";
+import { UsersService } from "@/entities/users/users.service";
 import createHttpError from "http-errors";
 import { StatusCodes } from "http-status-codes";
 import { logger } from "@/common/winston/winston";
@@ -8,15 +7,15 @@ import { CustomRequest } from "@/types/request";
 import { csvToJson } from "@/utils/utils";
 import { generateCache } from "@/common/cache/generate-cache";
 
-export class UserController {
+export class UsersController {
   public collectionName: string;
   public logFileName: string;
-  public userService: UserService;
+  public usersService: UsersService;
 
   constructor() {
     this.collectionName = "users";
     this.logFileName = `[${this.collectionName} Controller]`;
-    this.userService = new UserService(this.collectionName, `[${this.collectionName} Service]`);
+    this.usersService = new UsersService(this.collectionName, `[${this.collectionName} Service]`);
   }
 
   /**
@@ -30,7 +29,7 @@ export class UserController {
   getAll = async (_req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
     try {
       logger.info(`${this.logFileName} Fetching all ${this.collectionName}`);
-      const data = await this.userService.getAll();
+      const data = await this.usersService.getAll();
       // Generate cache if enabled
       await generateCache(res.locals.cacheKey, data);
 
@@ -58,7 +57,7 @@ export class UserController {
     const { user } = req;
     try {
       logger.info(`${this.logFileName} Fetching ${this.collectionName} by ID`, { user, id });
-      const data = await this.userService.getById(id);
+      const data = await this.usersService.getById(id);
       // Generate cache if enabled
       await generateCache(res.locals.cacheKey, data);
       return res.json(data);
@@ -87,7 +86,7 @@ export class UserController {
     const { user } = req;
     try {
       logger.info(`${this.logFileName} Fetching ${this.collectionName} by uuid`, { user, uuid });
-      const data = await this.userService.getByUuid(uuid);
+      const data = await this.usersService.getByUuid(uuid);
       // Generate cache if enabled
       await generateCache(res.locals.cacheKey, data);
       return res.json(data);
@@ -116,7 +115,7 @@ export class UserController {
     const { user } = req;
     try {
       logger.info(`${this.logFileName} Fetching ${this.collectionName} by email`, { user, email });
-      const data = await this.userService.getByEmail(email);
+      const data = await this.usersService.getByEmail(email);
       // Generate cache if enabled
       await generateCache(res.locals.cacheKey, data);
       return res.json(data);
@@ -145,7 +144,7 @@ export class UserController {
       const queryOptions = { paginate, orderBy, filter };
       logger.info(`${this.logFileName} Finding ${this.collectionName} by query`, { queryOptions });
 
-      const result = await this.userService.findByQuery(queryOptions);
+      const result = await this.usersService.findByQuery(queryOptions);
       res.json(result);
     } catch (error) {
       if (error instanceof Error) {
@@ -166,11 +165,11 @@ export class UserController {
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   create = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
-    const createDto: CreateUserDto = req.body;
+    const createDto = req.body;
     const { user } = req;
     try {
       logger.info(`${this.logFileName} Creating new ${this.collectionName}`, { user, createDto });
-      const created = await this.userService.create(createDto);
+      const created = await this.usersService.create(createDto);
       return res.json(created);
     } catch (error) {
       if (error instanceof Error) {
@@ -193,19 +192,19 @@ export class UserController {
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   update = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
-    const { id } = req.params;
+    const { uuid } = req.params;
     const updateDto = req.body;
     const { user } = req;
     try {
-      logger.info(`${this.logFileName} Updating ${this.collectionName}`, { user, id, updateDto });
-      const updatedData = await this.userService.update(id, updateDto);
+      logger.info(`${this.logFileName} Updating ${this.collectionName}`, { user, uuid, updateDto });
+      const updatedData = await this.usersService.update(uuid, updateDto);
       return res.json(updatedData);
     } catch (error) {
       if (error instanceof Error) {
         logger.error(`${this.logFileName} Error updating ${this.collectionName}`, {
           error: error.message,
           user,
-          id,
+          uuid,
           updateDto,
         });
       }
@@ -222,18 +221,18 @@ export class UserController {
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   delete = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
-    const { id } = req.params;
+    const { uuid } = req.params;
     const { user } = req;
     try {
-      logger.info(`${this.logFileName} Deleting ${this.collectionName} by ID`, { user, id });
-      await this.userService.delete(id);
+      logger.info(`${this.logFileName} Deleting ${this.collectionName} by uuid`, { user, uuid });
+      await this.usersService.delete(uuid);
       return res.json({ message: `${this.collectionName} Deleted Successfully` });
     } catch (error) {
       if (error instanceof Error) {
         logger.error(`${this.logFileName} Error deleting ${this.collectionName}`, {
           error: error.message,
           user,
-          id,
+          uuid,
         });
       }
       next(error);
@@ -249,17 +248,17 @@ export class UserController {
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   deleteAll = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
-    const { ids } = req.body;
+    const { uuids } = req.body;
     const { user } = req;
     try {
-      if (!Array.isArray(ids) || ids.length === 0) {
-        throw createHttpError(StatusCodes.BAD_REQUEST, "Invalid or empty array of IDs", {
+      if (!Array.isArray(uuids) || uuids.length === 0) {
+        throw createHttpError(StatusCodes.BAD_REQUEST, "Invalid or empty array of uuids", {
           resource: this.collectionName,
         });
       }
 
-      logger.info(`${this.logFileName} Deleting multiple ${this.collectionName}`, { user, ids });
-      const result = await this.userService.deleteAll(ids);
+      logger.info(`${this.logFileName} Deleting multiple ${this.collectionName}`, { user, uuids });
+      const result = await this.usersService.deleteAll(uuids);
 
       return res.json({
         message: `${result.deletedCount} ${this.collectionName} deleted successfully`,
@@ -269,7 +268,7 @@ export class UserController {
         logger.error(`${this.logFileName} Error deleting ${this.collectionName}`, {
           error: error.message,
           user,
-          ids,
+          uuids,
         });
       }
       next(error);
@@ -286,7 +285,6 @@ export class UserController {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   import = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
     const { user, file } = req;
-    const { userId } = req.body;
     if (!file) {
       return next(createHttpError(StatusCodes.BAD_REQUEST, "No file uploaded."));
     }
@@ -295,7 +293,7 @@ export class UserController {
 
       const importEntries = await csvToJson(file.path);
 
-      const imported = await this.userService.import(importEntries, userId);
+      const imported = await this.usersService.import(importEntries);
       return res.json(imported);
     } catch (error) {
       if (error instanceof Error) {
@@ -319,7 +317,7 @@ export class UserController {
   export = async (_req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
     try {
       logger.info(`${this.logFileName} Exporting ${this.collectionName}`);
-      const csv = await this.userService.export();
+      const csv = await this.usersService.export();
       res.header("Content-Type", "text/csv");
       res.header("Content-Disposition", "attachment; filename=accounts.csv");
       res.send(csv);

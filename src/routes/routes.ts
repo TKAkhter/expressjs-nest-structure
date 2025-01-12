@@ -8,6 +8,6 @@ import healthRouter from "@/entities/health/health.route";
 export const apiRoutes = Router();
 
 apiRoutes.use("/health", healthRouter);
-apiRoutes.use("/auth", cacheMiddleware, authRouter);
+apiRoutes.use("/auth", authRouter);
 apiRoutes.use("/users", cacheMiddleware, usersRouter);
 apiRoutes.use("/files", cacheMiddleware, filesRouter);

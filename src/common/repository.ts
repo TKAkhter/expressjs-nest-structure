@@ -243,44 +243,66 @@ export class GenericRepository<T, TCreateDto, TUpdateDto> {
   }
 
   /**
-   * Imports multiple user objects into the database.
-   * @param users - Array of user objects to be saved
-   * @returns Array of successfully created users
+   * Imports multiple entity objects into the database.
+   * Skips objects where email or username already exist in the database.
+   * @param entities - Array of entity objects to be saved
+   * @returns Object containing created entities, created count, and skipped count
    */
   import = async (
-    users: TCreateDto[],
+    entities: TCreateDto[],
   ): Promise<{
-    createdUsers: T[];
+    createdEntities: T[];
     createdCount: number;
     skippedCount: number;
   }> => {
     try {
       logger.info(
-        `${this.logFileName} Importing ${users.length} documents into ${this.model.modelName}`,
+        `${this.logFileName} Importing ${entities.length} documents into ${this.model.modelName}`,
       );
+      const uniqueEntities = [];
+      const skippedEntities = [];
 
-      const createdUsers = (await this.model.insertMany(users, {
+      for (const entity of entities) {
+        // eslint-disable-next-line no-await-in-loop
+        const exists = await this.model.exists({
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          $or: [{ email: (entity as any).email }, { username: (entity as any).username }],
+        });
+
+        if (exists) {
+          logger.info(
+            `${this.logFileName} Email or username already exist in ${this.model.modelName}`,
+          );
+          skippedEntities.push(entity);
+        } else {
+          uniqueEntities.push(entity);
+        }
+      }
+
+      // Insert unique entities into the database
+      const createdEntities = (await this.model.insertMany(uniqueEntities, {
         ordered: true,
       })) as unknown as T[];
-      const createdCount = createdUsers.length;
-      const skippedCount = users.length - createdCount;
+
+      const createdCount = createdEntities.length;
+      const skippedCount = skippedEntities.length;
 
       logger.info(`${this.logFileName} Import Summary:`, {
         createdCount,
         skippedCount,
-        createdUsers,
+        createdEntities,
       });
 
       return {
-        createdUsers,
+        createdEntities,
         createdCount,
         skippedCount,
       };
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      logger.error(`${this.logFileName} Error importing users into ${this.model.modelName}`, {
-        usersCount: users.length,
+      logger.error(`${this.logFileName} Error importing into ${this.model.modelName}`, {
+        totalEntities: entities.length,
         error: error.message,
       });
       throw new Error(error);

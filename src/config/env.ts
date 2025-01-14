@@ -12,6 +12,7 @@ const envSchema = z.object({
   SERVER_TIMEOUT: z.string().default("150s"),
   LOG_FILE_DURATION: z.string().default("3d"),
   ALLOW_ORIGIN: z.string(),
+  APP_URL: z.string().url(),
 
   // Redis Configuration
   REDIS_URL: z.string(),
@@ -25,6 +26,12 @@ const envSchema = z.object({
   MONGODB_URI: z.string().url(),
   ENABLE_WINSTON: z.enum(["0", "1"]).default("0"),
   ENABLE_CACHE: z.enum(["0", "1"]).default("0"),
+
+  // Mail sender
+  MAILGUN_API_KEY: z.string().optional(),
+  MAILGUN_DOMAIN: z.string().optional(),
+  MAILGUN_SENDER_EMAIL: z.string().optional(),
+  MAILGUN_NAME: z.string().optional(),
 });
 
 export const env = envSchema.parse(process.env);

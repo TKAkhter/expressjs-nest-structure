@@ -1,4 +1,4 @@
-import { Model, UpdateQuery, SortOrder } from "mongoose";
+import { Model, UpdateQuery, SortOrder, RootFilterQuery } from "mongoose";
 import { FindByQueryDto } from "@/schemas/find-by-query";
 import { logger } from "@/common/winston/winston";
 import { mongoDbApplyFilter } from "@/utils/mongodb-apply-filter";
@@ -102,6 +102,28 @@ export class GenericRepository<T, TCreateDto, TUpdateDto> {
     } catch (error: any) {
       logger.error(`${this.logFileName} Error fetching ${this.model.modelName} by username`, {
         username,
+        error: error.message,
+      });
+      throw new Error(error);
+    }
+  };
+
+  /**
+   * Fetches a document based on a specified field and its value.
+   * @param field - The field name to search by.
+   * @param value - The value to match for the specified field.
+   * @returns The matched document or null if not found.
+   */
+  getByField = async (field: string, value: string | number): Promise<T | null> => {
+    try {
+      logger.info(`${this.logFileName} Fetching ${this.model.modelName} where ${field}: ${value}`);
+      const query = { [field]: value };
+      return await this.model.findOne(query as RootFilterQuery<T>, IGNORE_FIELDS);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      logger.error(`${this.logFileName} Error fetching ${this.model.modelName} by ${field}`, {
+        field,
+        value,
         error: error.message,
       });
       throw new Error(error);

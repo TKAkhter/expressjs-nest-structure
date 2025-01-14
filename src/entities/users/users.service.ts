@@ -279,7 +279,7 @@ export class UsersService {
       //   UpdateDto.password = await hash(updateDto.password, env.HASH!);
       // }
 
-      // UpdateDto.updatedAt = new Date();
+      updateDto.updatedAt = new Date();
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return await this.usersRepository.update(uuid, updateDto as any);

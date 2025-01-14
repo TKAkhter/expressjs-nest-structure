@@ -6,19 +6,19 @@ import fs from "fs";
 import colors from "colors/safe";
 
 const isWinstonEnabled = env.ENABLE_WINSTON === "1";
-const logDir = "logs";
 
-if (!fs.existsSync(logDir) && isWinstonEnabled) {
-  fs.mkdirSync(logDir);
+if (!fs.existsSync(env.LOGS_DIRECTORY) && isWinstonEnabled) {
+  fs.mkdirSync(env.LOGS_DIRECTORY);
 }
 
 const createDailyRotateTransport = (level: string) =>
   new transports.DailyRotateFile({
     filename: `${level}-%DATE%.log`,
-    dirname: logDir,
-    datePattern: "YYYY-MM-DD",
+    dirname: env.LOGS_DIRECTORY,
+    datePattern: "YYYY-MM-DD-HH",
     level,
-    zippedArchive: false,
+    frequency: "6h",
+    zippedArchive: true,
     maxSize: "20m",
     maxFiles: env.LOG_FILE_DURATION || "30d",
   });

@@ -101,6 +101,11 @@ app.use((_, res, next) => {
 
 // Routes
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+logger.info("Uploads routes set up");
+
+app.use("/logs", express.static(path.join(__dirname, "../logs")));
+logger.info("Logs routes set up");
+
 app.use("/api", apiRoutes);
 logger.info("API routes set up");
 

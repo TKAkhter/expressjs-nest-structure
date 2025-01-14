@@ -38,7 +38,7 @@ export const errorHandler = (
   const { method } = req;
   const url = req.originalUrl;
 
-  const { stack } = err;
+  // Const { stack } = err;
 
   const errorPayload = {
     status: statusCode,
@@ -48,7 +48,7 @@ export const errorHandler = (
     user,
     name,
     details,
-    stack,
+    // Stack,
   };
 
   logger.error("Error Middleware", errorPayload);
@@ -56,7 +56,7 @@ export const errorHandler = (
   const responsePayload = {
     status: statusCode,
     message,
-    ...(env.NODE_ENV !== "production" && { method, url, user, name, details, stack }),
+    ...(env.NODE_ENV !== "production" && { method, url, user, name, details /* Stack */ }),
   };
 
   return res.status(statusCode).json(responsePayload);

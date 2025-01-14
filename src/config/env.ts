@@ -13,6 +13,7 @@ const envSchema = z.object({
   LOG_FILE_DURATION: z.string().default("3d"),
   ALLOW_ORIGIN: z.string(),
   APP_URL: z.string().url(),
+  LOGS_DIRECTORY: z.string(),
 
   // Redis Configuration
   REDIS_URL: z.string(),

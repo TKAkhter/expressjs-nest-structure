@@ -48,7 +48,12 @@ logger.info("Additional security headers set");
 // Rate limiting middleware
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 1000, // Limit each IP to 1000 requests per windowMs
+  max: 500, // Limit each IP to 500 requests per windowMs
+  message: {
+    success: false,
+    message: "Too many requests, please try again later.",
+  },
+  headers: true,
 });
 
 // Slow down requests from a single IP to prevent abuse

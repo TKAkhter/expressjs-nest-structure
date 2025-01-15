@@ -17,7 +17,6 @@ const envSchema = z.object({
 
   // Redis Configuration
   REDIS_URL: z.string(),
-  REDIS_CACHE_TIME: z.string().default("3600"),
 
   // Basic Auth Secrets
   JWT_SECRET: z.string(),
@@ -26,7 +25,6 @@ const envSchema = z.object({
 
   MONGODB_URI: z.string().url(),
   ENABLE_WINSTON: z.enum(["0", "1"]).default("0"),
-  ENABLE_CACHE: z.enum(["0", "1"]).default("0"),
 
   // Mail sender
   MAILGUN_API_KEY: z.string().optional(),

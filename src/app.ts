@@ -1,4 +1,4 @@
-import { errorHandler, cors } from "@/middlewares";
+import { errorMiddleware, cors } from "@/middlewares";
 import express, { NextFunction, Request, Response } from "express";
 import { apiRoutes } from "@/routes/routes";
 import { env } from "@/config/env";
@@ -115,7 +115,7 @@ logger.info("Swagger UI routes set up");
 
 // Custom Error Handler Middleware
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-  errorHandler(err, req, res, next);
+  errorMiddleware(err, req, res, next);
 });
 
 // Catch 404 and forward to error handler

@@ -106,8 +106,8 @@ export const errorMiddleware = (
       metadata: errorPayload,
     };
 
-    // eslint-disable-next-line no-empty-function
     checkMemoryAndLog(errorLogs)
+      // eslint-disable-next-line no-empty-function
       .then(() => {})
       .catch((error) => {
         logger.error("Error saving error logs", error);

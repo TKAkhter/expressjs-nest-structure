@@ -23,7 +23,7 @@ export class GenericRepository<T, TCreateDto, TUpdateDto> {
       return await this.model.find({}, IGNORE_FIELDS);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      logger.error(`${this.logFileName} Error fetching all from ${this.model.modelName}`, {
+      logger.warn(`${this.logFileName} Error fetching all from ${this.model.modelName}`, {
         error: error.message,
       });
       throw new Error(error);
@@ -41,7 +41,7 @@ export class GenericRepository<T, TCreateDto, TUpdateDto> {
       return await this.model.findById(id, IGNORE_FIELDS);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      logger.error(`${this.logFileName} Error fetching ${this.model.modelName} by id`, {
+      logger.warn(`${this.logFileName} Error fetching ${this.model.modelName} by id`, {
         id,
         error: error.message,
       });
@@ -60,7 +60,7 @@ export class GenericRepository<T, TCreateDto, TUpdateDto> {
       return await this.model.findOne({ uuid }, IGNORE_FIELDS);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      logger.error(`${this.logFileName} Error fetching ${this.model.modelName} by uuid`, {
+      logger.warn(`${this.logFileName} Error fetching ${this.model.modelName} by uuid`, {
         uuid,
         error: error.message,
       });
@@ -79,7 +79,7 @@ export class GenericRepository<T, TCreateDto, TUpdateDto> {
       return await this.model.findOne({ email }, IGNORE_FIELDS);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      logger.error(`${this.logFileName} Error fetching ${this.model.modelName} by email`, {
+      logger.warn(`${this.logFileName} Error fetching ${this.model.modelName} by email`, {
         email,
         error: error.message,
       });
@@ -88,9 +88,9 @@ export class GenericRepository<T, TCreateDto, TUpdateDto> {
   };
 
   /**
-   * Fetches a user by their username.
-   * @param username - User's username
-   * @returns User data or null if not found
+   * Fetches a entity by their username.
+   * @param username - entity's username
+   * @returns entity data or null if not found
    */
   getByUsername = async (username: string): Promise<T | null> => {
     try {
@@ -100,7 +100,7 @@ export class GenericRepository<T, TCreateDto, TUpdateDto> {
       return await this.model.findOne({ username }, IGNORE_FIELDS);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      logger.error(`${this.logFileName} Error fetching ${this.model.modelName} by username`, {
+      logger.warn(`${this.logFileName} Error fetching ${this.model.modelName} by username`, {
         username,
         error: error.message,
       });
@@ -121,7 +121,7 @@ export class GenericRepository<T, TCreateDto, TUpdateDto> {
       return await this.model.findOne(query as RootFilterQuery<T>, IGNORE_FIELDS);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      logger.error(`${this.logFileName} Error fetching ${this.model.modelName} by ${field}`, {
+      logger.warn(`${this.logFileName} Error fetching ${this.model.modelName} by ${field}`, {
         field,
         value,
         error: error.message,
@@ -173,7 +173,7 @@ export class GenericRepository<T, TCreateDto, TUpdateDto> {
       };
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      logger.error(`${this.logFileName} Error querying ${this.model.modelName}`, {
+      logger.warn(`${this.logFileName} Error querying ${this.model.modelName}`, {
         options,
         error: error.message,
       });
@@ -195,7 +195,7 @@ export class GenericRepository<T, TCreateDto, TUpdateDto> {
       return this.getById(created.id);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      logger.error(`${this.logFileName} Error creating entry in ${this.model.modelName}`, {
+      logger.warn(`${this.logFileName} Error creating entry in ${this.model.modelName}`, {
         createDto,
         error: error.message,
       });
@@ -218,7 +218,7 @@ export class GenericRepository<T, TCreateDto, TUpdateDto> {
       });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      logger.error(`${this.logFileName} Error updating ${this.model.modelName}`, {
+      logger.warn(`${this.logFileName} Error updating ${this.model.modelName}`, {
         uuid,
         updateDto,
         error: error.message,
@@ -238,7 +238,7 @@ export class GenericRepository<T, TCreateDto, TUpdateDto> {
       return await this.model.findOneAndDelete({ uuid });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      logger.error(`${this.logFileName} Error deleting ${this.model.modelName}`, {
+      logger.warn(`${this.logFileName} Error deleting ${this.model.modelName}`, {
         uuid,
         error: error.message,
       });
@@ -256,7 +256,7 @@ export class GenericRepository<T, TCreateDto, TUpdateDto> {
       return await this.model.deleteMany({ uuid: { $in: uuids } });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      logger.error(`${this.logFileName} Error deleting multiple ${this.model.modelName}`, {
+      logger.warn(`${this.logFileName} Error deleting multiple ${this.model.modelName}`, {
         uuids,
         error: error.message,
       });
@@ -323,7 +323,7 @@ export class GenericRepository<T, TCreateDto, TUpdateDto> {
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      logger.error(`${this.logFileName} Error importing into ${this.model.modelName}`, {
+      logger.warn(`${this.logFileName} Error importing into ${this.model.modelName}`, {
         totalEntities: entities.length,
         error: error.message,
       });

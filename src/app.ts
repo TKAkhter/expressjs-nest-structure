@@ -89,7 +89,7 @@ app.use(responseTime());
 logger.info("Response time middleware applied");
 
 // Timeout Middleware
-app.use(timeout((env.SERVER_TIMEOUT as string) || "150s")); // Set a 150-second timeout for all routes
+app.use(timeout(env.SERVER_TIMEOUT)); // Set a 150-second timeout for all routes
 logger.info("Timeout middleware applied"); // Log timeout middleware
 
 // Permissions Policy

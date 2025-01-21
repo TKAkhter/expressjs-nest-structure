@@ -49,11 +49,11 @@ export class HealthController {
         .json(createHealthCheckResponse(overallStatus, healthCheck));
     } catch (error) {
       if (error instanceof Error) {
-        logger.error(`${this.logFileName} health API error`, {
+        logger.warn(`${this.logFileName} health API error`, {
           error: error.message,
         });
       } else {
-        logger.error(`${this.logFileName} health API error: Unknown error occurred`);
+        logger.warn(`${this.logFileName} health API error: Unknown error occurred`);
       }
       next(error);
     }
@@ -87,11 +87,11 @@ export class HealthController {
       res.json({ message: "Cache cleared successfully" });
     } catch (error) {
       if (error instanceof Error) {
-        logger.error(`${this.logFileName} clearCache API error`, {
+        logger.warn(`${this.logFileName} clearCache API error`, {
           error: error.message,
         });
       } else {
-        logger.error(`${this.logFileName} clearCache API error: Unknown error occurred`);
+        logger.warn(`${this.logFileName} clearCache API error: Unknown error occurred`);
       }
       next(error);
     }
@@ -119,11 +119,11 @@ export class HealthController {
       res.json({ message: "All log files have been cleared." });
     } catch (error) {
       if (error instanceof Error) {
-        logger.error(`${this.logFileName} clearLogFiles API error`, {
+        logger.warn(`${this.logFileName} clearLogFiles API error`, {
           error: error.message,
         });
       } else {
-        logger.error(`${this.logFileName} clearLogFiles API error: Unknown error occurred`);
+        logger.warn(`${this.logFileName} clearLogFiles API error: Unknown error occurred`);
       }
       next(error);
     }

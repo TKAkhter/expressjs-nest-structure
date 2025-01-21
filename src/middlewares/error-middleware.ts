@@ -4,6 +4,45 @@ import { StatusCodes } from "http-status-codes";
 import { env } from "@/config/env";
 import { logger } from "@/common/winston/winston";
 import { CustomRequest } from "@/types/request";
+import { checkMemoryAndLog } from "@/config/mongodb/mongodb";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const transformMetaData = (metadata: any) => {
+  if (!metadata) {
+    return "";
+  }
+
+  // Extract common properties
+  const { code, meta, name, response } = metadata;
+
+  return {
+    code,
+    meta: { ...meta },
+    data: { ...response?.data },
+    status: response?.status,
+    statusText: response?.statusText,
+    name,
+  };
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const findDeep = (obj: any, keys: string[]): any => {
+  if (!obj || typeof obj !== "object") {
+    return null;
+  }
+  for (const key of keys) {
+    if (key in obj) {
+      return obj[key];
+    }
+  }
+  for (const value of Object.values(obj)) {
+    const found = findDeep(value, keys);
+    if (found) {
+      return found;
+    }
+  }
+  return null;
+};
 
 /**
  * Error middleware for catching and logging errors.
@@ -34,29 +73,58 @@ export const errorMiddleware = (
 
   const name = isHttpError ? err.name : "AppError";
 
-  const user = req.user || "Unknown User";
+  const loggedUser = req.loggedUser || "Unknown User";
   const { method } = req;
   const url = req.originalUrl;
 
-  // Const { stack } = err;
+  const { stack } = err;
+
+  // Extract email or id using the helper function
+  const email = findDeep(req.body, ["email"]);
+  const id = findDeep(req.body, ["id"]);
+
+  const transformDetails = { ...transformMetaData(details), email, id };
 
   const errorPayload = {
     status: statusCode,
-    message,
+    message: message.trim(),
     method,
     url,
-    user,
+    loggedUser,
     name,
-    details,
-    // Stack,
+    details: transformDetails,
+    stack,
   };
 
-  logger.error("Error Middleware", errorPayload);
+  logger.error(errorPayload.message, errorPayload);
+
+  if (env.ENABLE_WINSTON !== "1") {
+    const errorLogs = {
+      level: "error",
+      message,
+      timestamp: new Date().toISOString(),
+      metadata: errorPayload,
+    };
+
+    // eslint-disable-next-line no-empty-function
+    checkMemoryAndLog(errorLogs)
+      .then(() => {})
+      .catch((error) => {
+        logger.error("Error saving error logs", error);
+      });
+  }
 
   const responsePayload = {
     status: statusCode,
-    message,
-    ...(env.NODE_ENV !== "production" && { method, url, user, name, details /* Stack */ }),
+    message: message.trim(),
+    ...(env.NODE_ENV !== "production" && {
+      method,
+      url,
+      loggedUser,
+      name,
+      details: transformDetails,
+      stack,
+    }),
   };
 
   return res.status(statusCode).json(responsePayload);

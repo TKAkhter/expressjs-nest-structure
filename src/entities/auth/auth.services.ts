@@ -37,7 +37,7 @@ export class AuthService {
       const user = await this.usersService.getByEmail(authData.email);
 
       if (!user) {
-        logger.error(`${this.logFileName} ${this.collectionName} not found during login`, {
+        logger.warn(`${this.logFileName} ${this.collectionName} not found during login`, {
           email: authData.email,
         });
         throw createHttpError(StatusCodes.BAD_REQUEST, `${this.collectionName} does not exist!`, {
@@ -46,7 +46,7 @@ export class AuthService {
       }
 
       if (!(await compare(authData.password, user.password as string))) {
-        logger.error(`${this.logFileName} Invalid password during login`, {
+        logger.warn(`${this.logFileName} Invalid password during login`, {
           email: authData.email,
         });
         throw createHttpError(StatusCodes.BAD_REQUEST, "Invalid email or password", {
@@ -69,13 +69,13 @@ export class AuthService {
       }
 
       if (error instanceof Error) {
-        logger.error(`${this.logFileName} Error during login`, {
+        logger.warn(`${this.logFileName} Error during login`, {
           error: error.message,
           email: authData.email,
         });
         throw new Error(`Error while login: ${error.message}`);
       }
-      logger.error(`${this.logFileName} Unknown error during login`, { email: authData.email });
+      logger.warn(`${this.logFileName} Unknown error during login`, { email: authData.email });
       throw new Error("Unknown error occurred while login");
     }
   };
@@ -93,7 +93,7 @@ export class AuthService {
       const user = await this.usersService.getByEmail(registerDto.email);
 
       if (user) {
-        logger.error(
+        logger.warn(
           `${this.logFileName} ${this.collectionName} already exists during registration`,
           {
             email: registerDto.email,
@@ -118,13 +118,13 @@ export class AuthService {
       }
 
       if (error instanceof Error) {
-        logger.error(`${this.logFileName} Error during registration`, {
+        logger.warn(`${this.logFileName} Error during registration`, {
           error: error.message,
           email: registerDto.email,
         });
         throw new Error(`${this.logFileName} Error while login: ${error.message}`);
       }
-      logger.error(`${this.logFileName} Unknown error during registration`, {
+      logger.warn(`${this.logFileName} Unknown error during registration`, {
         email: registerDto.email,
       });
       throw new Error(`${this.logFileName} Unknown error occurred while login`);
@@ -152,10 +152,10 @@ export class AuthService {
       return newToken;
     } catch (error) {
       if (error instanceof Error) {
-        logger.error(`${this.logFileName} Error extending token`, { error: error.message, token });
+        logger.warn(`${this.logFileName} Error extending token`, { error: error.message, token });
         throw new Error(`${this.logFileName} Error extend token: ${error.message}`);
       }
-      logger.error(`${this.logFileName} Unknown error while extending token`, { token });
+      logger.warn(`${this.logFileName} Unknown error while extending token`, { token });
       throw new Error(`${this.logFileName} Unknown error occurred while extend token`);
     }
   };
@@ -173,10 +173,10 @@ export class AuthService {
       return { token, success: true };
     } catch (error) {
       if (error instanceof Error) {
-        logger.error(`${this.logFileName} Error during logout`, { error: error.message, token });
+        logger.warn(`${this.logFileName} Error during logout`, { error: error.message, token });
         throw new Error(`Error logout: ${error.message}`);
       }
-      logger.error(`${this.logFileName} Unknown error during logout`, { token });
+      logger.warn(`${this.logFileName} Unknown error during logout`, { token });
       throw new Error("Unknown error occurred while logout");
     }
   };
@@ -194,7 +194,7 @@ export class AuthService {
       const user = await this.usersService.getByEmail(email);
 
       if (!user) {
-        logger.error(`${this.logFileName} ${this.collectionName} does not exists!`, {
+        logger.warn(`${this.logFileName} ${this.collectionName} does not exists!`, {
           email,
         });
         throw createHttpError(StatusCodes.BAD_REQUEST, `${this.collectionName} does not exist!`, {
@@ -239,13 +239,13 @@ export class AuthService {
       }
 
       if (error instanceof Error) {
-        logger.error(`${this.logFileName} Error during registration`, {
+        logger.warn(`${this.logFileName} Error during registration`, {
           error: error.message,
           email,
         });
         throw new Error(`${this.logFileName} Error while forgot password: ${error.message}`);
       }
-      logger.error(`${this.logFileName} Unknown error during registration`, {
+      logger.warn(`${this.logFileName} Unknown error during registration`, {
         email,
       });
       throw new Error(`${this.logFileName} Unknown error occurred while forgot password`);
@@ -261,7 +261,7 @@ export class AuthService {
       const user = await this.usersRepository.getByField("resetToken", resetPasswordDto.resetToken);
 
       if (!user) {
-        logger.error(`${this.logFileName} ${this.collectionName} does not exists!`, {
+        logger.warn(`${this.logFileName} ${this.collectionName} does not exists!`, {
           resetToken: resetPasswordDto.resetToken,
         });
         throw createHttpError(StatusCodes.BAD_REQUEST, `${this.collectionName} does not exist!`, {
@@ -275,10 +275,10 @@ export class AuthService {
 
       const hashedPassword = await hash(resetPasswordDto.password, env.HASH!);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await this.usersRepository.update(user.uuid, {
         password: hashedPassword,
         resetToken: undefined,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       logger.info(`${this.logFileName} Password reset successful`, {
@@ -291,13 +291,13 @@ export class AuthService {
       }
 
       if (error instanceof Error) {
-        logger.error(`${this.logFileName} Error during registration`, {
+        logger.warn(`${this.logFileName} Error during registration`, {
           error: error.message,
           resetToken: resetPasswordDto.resetToken,
         });
         throw new Error(`${this.logFileName} Error while reset password: ${error.message}`);
       }
-      logger.error(`${this.logFileName} Unknown error during registration`, {
+      logger.warn(`${this.logFileName} Unknown error during registration`, {
         resetToken: resetPasswordDto.resetToken,
       });
       throw new Error(`${this.logFileName} Unknown error occurred while reset password`);

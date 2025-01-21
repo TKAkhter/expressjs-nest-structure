@@ -25,6 +25,10 @@ const envSchema = z.object({
 
   MONGODB_URI: z.string().url(),
   ENABLE_WINSTON: z.enum(["0", "1"]).default("0"),
+  ENABLE_LOGS: z.enum(["0", "1"]).default("0"),
+  LOGS_TYPE: z.enum(["mongodb", "directory"]).default("mongodb"),
+  MONGODB_ERROR_COLLECTION_NAME: z.string(),
+  MONGODB_MEMORY_LIMIT: z.string().default("512"),
 
   // Mail sender
   MAILGUN_API_KEY: z.string().optional(),

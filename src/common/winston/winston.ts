@@ -169,7 +169,7 @@ export const morganStream = {
   write: (message: string) => {
     const statusCode = parseInt(message.split(" ")[2], 10);
     if (statusCode >= StatusCodes.BAD_REQUEST) {
-      logger.error(message.trim());
+      logger.warn(message.trim());
     } else {
       logger.http(message.trim());
     }

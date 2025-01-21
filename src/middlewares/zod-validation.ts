@@ -16,7 +16,7 @@ export const zodValidation =
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      logger.error("Zod Validation Error", error);
+      logger.warn("Zod Validation Error", error);
       return res
         .status(StatusCodes.BAD_REQUEST)
         .json(createResponse(req, error, "Zod Validation Error", StatusCodes.BAD_REQUEST));

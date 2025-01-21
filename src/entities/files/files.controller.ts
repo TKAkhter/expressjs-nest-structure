@@ -16,7 +16,7 @@ export class FilesController {
       res.json(files);
     } catch (error) {
       if (error instanceof Error) {
-        logger.error("Error getting files", { error: error.message, loggedUser });
+        logger.warn("Error getting files", { error: error.message, loggedUser });
       }
       next(error);
     }
@@ -30,7 +30,7 @@ export class FilesController {
       res.json(file);
     } catch (error) {
       if (error instanceof Error) {
-        logger.error("Error getting file", { error: error.message, loggedUser, id });
+        logger.warn("Error getting file", { error: error.message, loggedUser, id });
       }
       next(error);
     }
@@ -49,7 +49,7 @@ export class FilesController {
       res.status(201).json(newFile);
     } catch (error) {
       if (error instanceof Error) {
-        logger.error("Error uploading file", { error: error.message, loggedUser });
+        logger.warn("Error uploading file", { error: error.message, loggedUser });
       }
       next(error);
     }
@@ -78,7 +78,7 @@ export class FilesController {
       res.json(updatedFile);
     } catch (error) {
       if (error instanceof Error) {
-        logger.error("Error updating file", { error: error.message, loggedUser, id });
+        logger.warn("Error updating file", { error: error.message, loggedUser, id });
       }
       next(error);
     }
@@ -97,7 +97,7 @@ export class FilesController {
       res.status(204).send();
     } catch (error) {
       if (error instanceof Error) {
-        logger.error("Error deleting file", { error: error.message, loggedUser, id });
+        logger.warn("Error deleting file", { error: error.message, loggedUser, id });
       }
       next(error);
     }

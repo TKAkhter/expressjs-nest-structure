@@ -3,9 +3,8 @@ import { env } from "@/config/env";
 import { logger } from "@/common/winston/winston";
 import ErrorLogs from "@/models/error-logs";
 
-// eslint-disable-next-line no-return-await
 export const connectMongoDB = async () =>
-  await mongoose.connect(env.MONGODB_URI, {
+  mongoose.connect(env.MONGODB_URI, {
     dbName: env.NODE_ENV,
   });
 
@@ -32,7 +31,7 @@ export const checkMemoryAndLog = async (logData: any) => {
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
-    logger.error("MongoDB Error:", error);
+    logger.warn("MongoDB Error:", error);
   } finally {
     if (mongoose.connection.readyState) {
       await mongoose.disconnect();

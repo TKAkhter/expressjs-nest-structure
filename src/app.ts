@@ -120,7 +120,7 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 
 // Catch 404 and forward to error handler
 app.use((_: Request, res: Response) => {
-  logger.error("Route not found");
+  logger.warn("Route not found");
   res.status(404).send("Route not found");
 });
 

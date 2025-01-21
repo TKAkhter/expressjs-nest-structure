@@ -20,9 +20,9 @@ async function checkConnections() {
     logger.info("MongoDB connections verified successfully.");
   } catch (error) {
     if (error instanceof Error) {
-      logger.error("MongoDB, or Redis connection failed", { error: error.message });
+      logger.warn("MongoDB, or Redis connection failed", { error: error.message });
     } else {
-      logger.error("Unknown error occurred during connection checks");
+      logger.warn("Unknown error occurred during connection checks");
     }
 
     // eslint-disable-next-line no-process-exit

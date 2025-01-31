@@ -1,3 +1,5 @@
+import { env } from "@/config/env";
+
 export const generatePassword = (): string => {
   const getRandomChar = (characters: string): string =>
     characters[Math.floor(Math.random() * characters.length)];
@@ -11,10 +13,19 @@ export const generatePassword = (): string => {
 
   const password = categories.map(getRandomChar).join("");
 
-  const remainingLength = Number(process.env.BP_GENERATED_PASSWORD_LENGTH || 10) - password.length;
+  const remainingLength = Number(env.BP_GENERATED_PASSWORD_LENGTH || 10) - password.length;
   const allCharacters = categories.join("");
   const randomChars = Array.from({ length: remainingLength }, () => getRandomChar(allCharacters));
 
   console.log(`Generated Password ==> ${password + randomChars.join("")}`);
   return password + randomChars.join("");
+};
+
+export const extractDomainFromEmailAddress = (email: string): string | null => {
+  const match = email.match(/@([\w.-]+)/);
+  if (!match) {
+    return null;
+  }
+
+  return match[1].toLowerCase();
 };

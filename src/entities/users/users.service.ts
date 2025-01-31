@@ -7,7 +7,7 @@ import createHttpError from "http-errors";
 import { StatusCodes } from "http-status-codes";
 import { logger } from "@/common/winston/winston";
 import { parseAsync } from "json2csv";
-import { GenericRepository } from "@/common/repository";
+import { GenericRepository } from "@/common/repository/repository";
 
 export class UsersService {
   private usersRepository: GenericRepository<UsersDto, UpdateUsersDto, CreateUsersDto>;

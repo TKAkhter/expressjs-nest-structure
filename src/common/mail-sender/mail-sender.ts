@@ -1,3 +1,4 @@
+import { env } from "@/config/env";
 import formData from "form-data";
 import Mailgun from "mailgun.js";
 
@@ -5,8 +6,8 @@ const mailgun = new Mailgun(formData);
 
 const options = {
   auth: {
-    api_key: process.env.MAILGUN_API_KEY as string,
-    domain: process.env.MAILGUN_DOMAIN as string,
+    api_key: env.MAILGUN_API_KEY as string,
+    domain: env.MAILGUN_DOMAIN as string,
   },
 };
 

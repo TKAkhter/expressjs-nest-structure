@@ -16,7 +16,7 @@ const PaginateSchema = z.object({
 });
 
 export const FindByQuerySchema = z.object({
-  filter: z.any(),
+  filter: z.object({}),
   paginate: PaginateSchema.optional(),
   orderBy: z.array(OrderBySchema).optional(),
 });

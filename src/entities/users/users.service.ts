@@ -24,14 +24,14 @@ export class UsersService extends BaseService<UsersDto, CreateUsersDto, UpdateUs
   create = async (createDto: CreateUsersDto): Promise<UsersDto> => {
     try {
       logger.info(
-        `[${this.collectionNameService} Controller] Creating ${this.collectionNameService} with email: ${createDto.email}`,
+        `[${this.collectionNameService} Service] Creating ${this.collectionNameService} with email: ${createDto.email}`,
       );
       const data = await this.baseRepository.getByEmail(createDto.email);
       const username = await this.baseRepository.getByUsername(createDto.username);
 
       if (data) {
         logger.warn(
-          `[${this.collectionNameService} Controller] ${this.collectionNameService} with email ${createDto.email} already exists`,
+          `[${this.collectionNameService} Service] ${this.collectionNameService} with email ${createDto.email} already exists`,
         );
         throw createHttpError(
           StatusCodes.BAD_REQUEST,
@@ -44,7 +44,7 @@ export class UsersService extends BaseService<UsersDto, CreateUsersDto, UpdateUs
 
       if (username) {
         logger.warn(
-          `[${this.collectionNameService} Controller] ${this.collectionNameService} with username ${createDto.username} already exists.`,
+          `[${this.collectionNameService} Service] ${this.collectionNameService} with username ${createDto.username} already exists.`,
         );
         throw createHttpError(StatusCodes.BAD_REQUEST, "username is taken!", {
           resource: "Users",
@@ -69,7 +69,7 @@ export class UsersService extends BaseService<UsersDto, CreateUsersDto, UpdateUs
 
       if (error instanceof Error) {
         logger.warn(
-          `[${this.collectionNameService} Controller] Error creating ${this.collectionNameService}`,
+          `[${this.collectionNameService} Service] Error creating ${this.collectionNameService}`,
           {
             createDto,
             error: error.message,
@@ -78,7 +78,7 @@ export class UsersService extends BaseService<UsersDto, CreateUsersDto, UpdateUs
         throw new Error(`Error creating ${this.collectionNameService}: ${error.message}`);
       }
       logger.warn(
-        `[${this.collectionNameService} Controller] Unknown error occurred while creating ${this.collectionNameService}`,
+        `[${this.collectionNameService} Service] Unknown error occurred while creating ${this.collectionNameService}`,
       );
       throw new Error(`Unknown error occurred while creating ${this.collectionNameService}`);
     }
@@ -93,13 +93,13 @@ export class UsersService extends BaseService<UsersDto, CreateUsersDto, UpdateUs
   update = async (uuid: string, updateDto: UpdateUsersDto): Promise<UsersDto | null> => {
     try {
       logger.info(
-        `[${this.collectionNameService} Controller] Updating ${this.collectionNameService} with uuid: ${uuid}`,
+        `[${this.collectionNameService} Service] Updating ${this.collectionNameService} with uuid: ${uuid}`,
       );
       const data = await this.getByUuid(uuid);
 
       if (!data) {
         logger.warn(
-          `[${this.collectionNameService} Controller] ${this.collectionNameService} with uuid ${uuid} does not exist!`,
+          `[${this.collectionNameService} Service] ${this.collectionNameService} with uuid ${uuid} does not exist!`,
         );
         throw createHttpError(
           StatusCodes.BAD_REQUEST,
@@ -114,7 +114,7 @@ export class UsersService extends BaseService<UsersDto, CreateUsersDto, UpdateUs
         const email = await this.baseRepository.getByEmail(updateDto.email);
         if (email) {
           logger.warn(
-            `[${this.collectionNameService} Controller] ${this.collectionNameService} with email ${updateDto.email} already exists`,
+            `[${this.collectionNameService} Service] ${this.collectionNameService} with email ${updateDto.email} already exists`,
           );
           throw createHttpError(StatusCodes.BAD_REQUEST, "Email already exists!", {
             resource: this.collectionNameService,
@@ -126,7 +126,7 @@ export class UsersService extends BaseService<UsersDto, CreateUsersDto, UpdateUs
         const username = await this.baseRepository.getByUsername(updateDto.username);
         if (username) {
           logger.warn(
-            `[${this.collectionNameService} Controller] ${this.collectionNameService} with username ${updateDto.email} already exists`,
+            `[${this.collectionNameService} Service] ${this.collectionNameService} with username ${updateDto.email} already exists`,
           );
           throw createHttpError(StatusCodes.BAD_REQUEST, "Username already exists!", {
             resource: this.collectionNameService,
@@ -149,7 +149,7 @@ export class UsersService extends BaseService<UsersDto, CreateUsersDto, UpdateUs
 
       if (error instanceof Error) {
         logger.warn(
-          `[${this.collectionNameService} Controller] Error updating ${this.collectionNameService}`,
+          `[${this.collectionNameService} Service] Error updating ${this.collectionNameService}`,
           {
             uuid,
             updateDto,
@@ -159,7 +159,7 @@ export class UsersService extends BaseService<UsersDto, CreateUsersDto, UpdateUs
         throw new Error(`Error updating ${this.collectionNameService}: ${error.message}`);
       }
       logger.warn(
-        `[${this.collectionNameService} Controller] Unknown error occurred while updating ${this.collectionNameService}`,
+        `[${this.collectionNameService} Service] Unknown error occurred while updating ${this.collectionNameService}`,
       );
       throw new Error(`Unknown error occurred while updating ${this.collectionNameService}`);
     }

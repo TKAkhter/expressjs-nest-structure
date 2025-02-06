@@ -1,105 +1,189 @@
 import { NextFunction, Response } from "express";
-import { FilesService } from "@/entities/files/files.service";
-import { UpdateFilesDto, UploadFilesDto } from "@/entities/files/files.dto";
+import { FilesDto, FilesModel, UpdateFilesDto, UploadFilesDto } from "@/entities/files/files.dto";
 import { logger } from "@/common/winston/winston";
 import { CustomRequest } from "@/types/request";
 import { saveFileToDisk } from "@/common/multer/save-file-to-disk";
 import { updateImageToDisk } from "@/common/multer/update-file-to-disk";
 import { deleteFileFromDisk } from "@/common/multer/delete-file-from-disk";
+import { BaseController } from "@/common/base/base.controller";
+import { v4 as uuidv4 } from "uuid";
+import { createResponse } from "@/utils/create-response";
+import { StatusCodes } from "http-status-codes";
+import { FilesService } from "./files.service";
 
-const filesService = new FilesService();
-export class FilesController {
-  async getAllFiles(req: CustomRequest, res: Response, next: NextFunction): Promise<void> {
+export class FilesController extends BaseController<FilesDto, UploadFilesDto, UpdateFilesDto> {
+  public collectionName: string;
+  public filesService: FilesService;
+
+  constructor() {
+    super(FilesModel, "Files");
+    this.collectionName = "Files";
+    this.filesService = new FilesService(FilesModel, this.collectionName);
+  }
+
+  /**
+   * Get entity by ID
+   * @param req - CustomRequest object
+   * @param res - Response object
+   * @param next - Next middleware function
+   * @returns JSON entity object
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getByUser = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
+    const { userId } = req.params;
     const { loggedUser } = req;
     try {
-      const files = await filesService.getAllFiles();
-      res.json(files);
+      logger.info(`[${this.collectionName} Controller] Fetching ${this.collectionName} by userId`, {
+        loggedUser,
+        userId,
+      });
+      const data = await this.filesService.getByUser(userId);
+
+      return res.json(
+        createResponse(req, data, `${this.collectionName} fetched successfully`, StatusCodes.OK),
+      );
     } catch (error) {
       if (error instanceof Error) {
-        logger.warn("Error getting files", { error: error.message, loggedUser });
+        logger.warn(
+          `[${this.collectionName} Controller] Error fetching ${this.collectionName} by userId`,
+          {
+            error: error.message,
+            loggedUser,
+            userId,
+          },
+        );
       }
       next(error);
     }
-  }
+  };
 
-  async getFileById(req: CustomRequest, res: Response, next: NextFunction): Promise<void> {
-    const { id } = req.params;
-    const { loggedUser } = req;
-    try {
-      const file = await filesService.getFileById(id);
-      res.json(file);
-    } catch (error) {
-      if (error instanceof Error) {
-        logger.warn("Error getting file", { error: error.message, loggedUser, id });
-      }
-      next(error);
-    }
-  }
-
-  async createFile(req: CustomRequest, res: Response, next: NextFunction): Promise<void> {
+  /**
+   * Upload an entity
+   * @param req - CustomRequest object
+   * @param res - Response object
+   * @param next - Next middleware function
+   * @returns JSON updated entity
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  upload = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
     const { loggedUser } = req;
     const { buffer, mimetype } = req.file!;
-    const { tags } = req.body;
+    const { tags, views, userRef } = req.body;
 
     try {
       const { fileName, filePath } = await saveFileToDisk(req.file);
+      logger.info(`[${this.collectionName} Controller] Creating new ${this.collectionName}`, {
+        loggedUser,
+        tags,
+        fileName,
+        filePath,
+      });
       const fileText = `data:${mimetype};base64,${buffer.toString("base64")}`;
-      const fileData: UploadFilesDto = { fileName, filePath, fileText, userId: loggedUser!, tags };
-      const newFile = await filesService.uploadFiles(fileData);
-      res.status(201).json(newFile);
+
+      const fileUpload: FilesDto = {
+        fileName,
+        fileText,
+        filePath,
+        userRef,
+        userId: loggedUser,
+        tags,
+        uuid: uuidv4(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        views: views ?? "0",
+      };
+      const created = await this.baseService.create(fileUpload);
+
+      return res.json(
+        createResponse(
+          req,
+          created,
+          `${this.collectionName} created successfully`,
+          StatusCodes.CREATED,
+        ),
+      );
     } catch (error) {
       if (error instanceof Error) {
         logger.warn("Error uploading file", { error: error.message, loggedUser });
       }
       next(error);
     }
-  }
+  };
 
-  async updateFile(req: CustomRequest, res: Response, next: NextFunction): Promise<void> {
+  /**
+   * Update an existing entity
+   * @param req - CustomRequest object
+   * @param res - Response object
+   * @param next - Next middleware function
+   * @returns JSON updated entity
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  update = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
     const { loggedUser } = req;
-    const { id } = req.params;
+    const { uuid } = req.params;
     const { buffer, mimetype } = req.file!;
     const updateData = req.body;
     try {
-      const existFile = await filesService.getFileById(id);
+      const existFile = await this.baseService.getByUuid(uuid);
       if (!existFile) {
         throw new Error("File not found");
       }
-      const { fileName, filePath } = await updateImageToDisk(existFile.fileName!, req.file);
+      await updateImageToDisk(existFile.fileName!, req.file);
       const fileText = `data:${mimetype};base64,${buffer.toString("base64")}`;
       const fileData: UpdateFilesDto = {
-        fileName,
-        filePath,
         fileText,
-        userId: loggedUser!,
         ...updateData,
       };
-      const updatedFile = await filesService.updateFile(id, fileData);
-      res.json(updatedFile);
+      const updated = await this.baseService.update(uuid, fileData);
+
+      return res.json(
+        createResponse(
+          req,
+          updated,
+          `${this.collectionName} updated successfully`,
+          StatusCodes.CREATED,
+        ),
+      );
     } catch (error) {
       if (error instanceof Error) {
-        logger.warn("Error updating file", { error: error.message, loggedUser, id });
+        logger.warn("Error updating file", { error: error.message, loggedUser, uuid });
       }
       next(error);
     }
-  }
+  };
 
-  async deleteFile(req: CustomRequest, res: Response, next: NextFunction): Promise<void> {
+  /**
+   * Delete an existing entity
+   * @param req - CustomRequest object
+   * @param res - Response object
+   * @param next - Next middleware function
+   * @returns JSON updated entity
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  delete = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
     const { loggedUser } = req;
-    const { id } = req.params;
+    const { uuid } = req.params;
     try {
-      const existFile = await filesService.getFileById(id);
+      const existFile = await this.baseService.getByUuid(uuid);
       if (!existFile) {
         throw new Error("File not found");
       }
       await deleteFileFromDisk(existFile.fileName!);
-      await filesService.deleteFile(id);
-      res.status(204).send();
+      const deleted = await this.baseService.delete(uuid);
+
+      return res.json(
+        createResponse(
+          req,
+          deleted,
+          `${this.collectionName} deleted successfully`,
+          StatusCodes.CREATED,
+        ),
+      );
     } catch (error) {
       if (error instanceof Error) {
-        logger.warn("Error deleting file", { error: error.message, loggedUser, id });
+        logger.warn("Error deleting file", { error: error.message, loggedUser, uuid });
       }
       next(error);
     }
-  }
+  };
 }

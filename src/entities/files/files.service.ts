@@ -1,62 +1,57 @@
-import { FilesRepository } from "@/entities/files/files.repository";
 import createHttpError from "http-errors";
-import { StatusCodes } from "http-status-codes";
 import { logger } from "@/common/winston/winston";
-import { UpdateFilesDto, UploadFilesDto } from "@/entities/files/files.dto";
-import { v4 as uuidv4 } from "uuid";
-export class FilesService {
-  private filesRepository = new FilesRepository();
+import { BaseService } from "@/common/base/base.services";
+import { Model } from "mongoose";
+import { FilesDto, UpdateFilesDto, UploadFilesDto } from "./files.dto";
 
-  async uploadFiles(fileData: UploadFilesDto) {
+export class FilesService extends BaseService<FilesDto, UploadFilesDto, UpdateFilesDto> {
+  private collectionNameService: string;
+
+  constructor(model: Model<FilesDto>, collectionName: string) {
+    super(model, collectionName);
+    this.collectionNameService = collectionName;
+  }
+
+  /**
+   * Fetches a entity by their userId.
+   * @param userId - entity's userId
+   * @returns entity data or false if not found
+   */
+  getByUser = async (userId: string): Promise<FilesDto | FilesDto[] | false> => {
     try {
-      logger.info("Uploading file metadata to the database", { fileData });
-      const fileUpload = {
-        ...fileData,
-        uuid: uuidv4(),
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        views: "0",
-        userId: "talhaakhter01@gmail.com",
-      };
-      return await this.filesRepository.createFile(fileUpload);
+      logger.info(
+        `[${this.collectionNameService} Service] Fetching ${this.collectionNameService} with userId: ${userId}`,
+      );
+      const data = await this.baseRepository.getByUser(userId);
+
+      if (!data) {
+        logger.warn(
+          `[${this.collectionNameService} Service] ${this.collectionNameService} with userId ${userId} not found`,
+        );
+        return false;
+      }
+
+      return data;
     } catch (error) {
-      logger.warn("Error uploading file metadata", { error });
-      throw createHttpError(StatusCodes.INTERNAL_SERVER_ERROR, "Error uploading file metadata.");
+      if (createHttpError.isHttpError(error)) {
+        throw error;
+      }
+      if (error instanceof Error) {
+        logger.warn(
+          `[${this.collectionNameService} Service] Error fetching ${this.collectionNameService} by userId`,
+          {
+            userId,
+            error: error.message,
+          },
+        );
+        throw new Error(`Error fetching ${this.collectionNameService} by email: ${error.message}`);
+      }
+      logger.warn(
+        `[${this.collectionNameService} Service] Unknown error occurred while fetching ${this.collectionNameService} by email`,
+      );
+      throw new Error(
+        `Unknown error occurred while fetching ${this.collectionNameService} by email`,
+      );
     }
-  }
-
-  async getFileById(id: string) {
-    const file = await this.filesRepository.getFilesById(id);
-
-    if (!file) {
-      throw createHttpError(StatusCodes.NOT_FOUND, "File not found.");
-    }
-
-    return file;
-  }
-
-  async getAllFiles() {
-    // eslint-disable-next-line no-return-await
-    return await this.filesRepository.getAllFiles();
-  }
-
-  async updateFile(id: string, updateData: UpdateFilesDto) {
-    const updatedFile = await this.filesRepository.updateFile(id, updateData);
-
-    if (!updatedFile) {
-      throw createHttpError(StatusCodes.NOT_FOUND, "File not found.");
-    }
-
-    return updatedFile;
-  }
-
-  async deleteFile(id: string) {
-    const deletedFile = await this.filesRepository.deleteFile(id);
-
-    if (!deletedFile) {
-      throw createHttpError(StatusCodes.NOT_FOUND, "File not found.");
-    }
-
-    return deletedFile;
-  }
+  };
 }

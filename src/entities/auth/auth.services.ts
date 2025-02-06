@@ -99,20 +99,6 @@ export class AuthService {
     });
 
     try {
-      const user = await this.usersService.getByEmail(registerDto.email);
-
-      if (user) {
-        logger.warn(
-          `[${this.collectionName} Service] ${this.collectionName} already exists during registration`,
-          {
-            email: registerDto.email,
-          },
-        );
-        throw createHttpError(StatusCodes.BAD_REQUEST, `${this.collectionName} already exist!`, {
-          resource: "Auth",
-        });
-      }
-
       await this.usersService.create(registerDto);
 
       const login = await this.login(registerDto);

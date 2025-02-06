@@ -83,6 +83,30 @@ export class BaseRepository<T, TCreateDto, TUpdateDto> {
   };
 
   /**
+   * Fetches a entity or entities by their userId.
+   * @param uuid - entity's unique identifier
+   * @returns entity data or null if not found
+   */
+  getByUser = async (userId: string): Promise<T | T[] | null> => {
+    try {
+      logger.info(
+        `[${this.collectionName} Repository] Fetching ${this.model.modelName} with userId: ${userId}`,
+      );
+      return await this.model.find({ userRef: userId }, IGNORE_FIELDS);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      logger.warn(
+        `[${this.collectionName} Repository] Error fetching ${this.model.modelName} by userId`,
+        {
+          userId,
+          error: error.message,
+        },
+      );
+      throw new Error(error);
+    }
+  };
+
+  /**
    * Fetches a entity by their email.
    * @param email - entity's email
    * @returns entity data or null if not found
@@ -92,7 +116,7 @@ export class BaseRepository<T, TCreateDto, TUpdateDto> {
       logger.info(
         `[${this.collectionName} Repository] Fetching ${this.model.modelName} with email: ${email}`,
       );
-      return await this.model.findOne({ email }, IGNORE_FIELDS);
+      return await this.model.findOne({ email });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       logger.warn(

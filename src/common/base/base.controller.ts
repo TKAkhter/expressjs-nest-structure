@@ -30,7 +30,9 @@ export class BaseController<T, TCreateDto, TUpdateDto> {
       logger.info(`[${this.collectionName} Controller] Fetching all ${this.collectionName}`);
       const data = await this.baseService.getAll();
 
-      return res.json(createResponse(req, data));
+      return res.json(
+        createResponse(req, data, `${this.collectionName} fetched successfully`, StatusCodes.OK),
+      );
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(
@@ -61,7 +63,10 @@ export class BaseController<T, TCreateDto, TUpdateDto> {
         id,
       });
       const data = await this.baseService.getById(id);
-      return res.json(createResponse(req, data));
+
+      return res.json(
+        createResponse(req, data, `${this.collectionName} fetched successfully`, StatusCodes.OK),
+      );
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(
@@ -94,7 +99,10 @@ export class BaseController<T, TCreateDto, TUpdateDto> {
         uuid,
       });
       const data = await this.baseService.getByUuid(uuid);
-      return res.json(createResponse(req, data));
+
+      return res.json(
+        createResponse(req, data, `${this.collectionName} fetched successfully`, StatusCodes.OK),
+      );
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(
@@ -127,7 +135,10 @@ export class BaseController<T, TCreateDto, TUpdateDto> {
         email,
       });
       const data = await this.baseService.getByEmail(email);
-      return res.json(createResponse(req, data));
+
+      return res.json(
+        createResponse(req, data, `${this.collectionName} fetched successfully`, StatusCodes.OK),
+      );
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(
@@ -159,8 +170,11 @@ export class BaseController<T, TCreateDto, TUpdateDto> {
         queryOptions,
       });
 
-      const result = await this.baseService.findByQuery(queryOptions);
-      return res.json(createResponse(req, result));
+      const data = await this.baseService.findByQuery(queryOptions);
+
+      return res.json(
+        createResponse(req, data, `${this.collectionName} fetched successfully`, StatusCodes.OK),
+      );
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(
@@ -192,7 +206,12 @@ export class BaseController<T, TCreateDto, TUpdateDto> {
       });
       const created = await this.baseService.create(createDto);
       return res.json(
-        createResponse(req, created, "User created successfully", StatusCodes.CREATED),
+        createResponse(
+          req,
+          created,
+          `${this.collectionName} created successfully`,
+          StatusCodes.CREATED,
+        ),
       );
     } catch (error) {
       if (error instanceof Error) {
@@ -225,7 +244,14 @@ export class BaseController<T, TCreateDto, TUpdateDto> {
         updateDto,
       });
       const updatedData = await this.baseService.update(uuid, updateDto);
-      return res.json(createResponse(req, updatedData, "User updated successfully"));
+      return res.json(
+        createResponse(
+          req,
+          updatedData,
+          `${this.collectionName} updated successfully`,
+          StatusCodes.OK,
+        ),
+      );
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(`[${this.collectionName} Controller] Error updating ${this.collectionName}`, {
@@ -255,8 +281,11 @@ export class BaseController<T, TCreateDto, TUpdateDto> {
         loggedUser,
         uuid,
       });
-      await this.baseService.delete(uuid);
-      return res.json(createResponse(req, {}, "User deleted Successfully"));
+      const data = await this.baseService.delete(uuid);
+
+      return res.json(
+        createResponse(req, data, `${this.collectionName} deleted successfully`, StatusCodes.OK),
+      );
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(`[${this.collectionName} Controller] Error deleting ${this.collectionName}`, {
@@ -291,13 +320,14 @@ export class BaseController<T, TCreateDto, TUpdateDto> {
         loggedUser,
         uuids,
       });
-      const result = await this.baseService.deleteAll(uuids);
+      const data = await this.baseService.deleteAll(uuids);
 
       return res.json(
         createResponse(
           req,
-          {},
-          `${result.deletedCount} ${this.collectionName} deleted successfully`,
+          data,
+          `${data.deletedCount} ${this.collectionName} deleted successfully`,
+          StatusCodes.OK,
         ),
       );
     } catch (error) {
@@ -344,6 +374,7 @@ export class BaseController<T, TCreateDto, TUpdateDto> {
           req,
           imported.createdEntities,
           `${imported.createdCount} completed, ${imported.skippedCount} skipped`,
+          StatusCodes.OK,
         ),
       );
     } catch (error) {
@@ -371,7 +402,7 @@ export class BaseController<T, TCreateDto, TUpdateDto> {
       const csv = await this.baseService.export();
       res.setHeader("Content-Type", "text/csv");
       res.attachment(`${this.collectionName}.csv`);
-      res.send(csv);
+      res.status(StatusCodes.OK).send(csv);
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(`[${this.collectionName} Controller] Error exporting ${this.collectionName}`, {

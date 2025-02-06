@@ -35,7 +35,12 @@ export class UsersController extends BaseController<UsersDto, CreateUsersDto, Up
       });
       const created = await this.usersService.create(createDto);
       return res.json(
-        createResponse(req, created, "User created successfully", StatusCodes.CREATED),
+        createResponse(
+          req,
+          created,
+          `${this.collectionName} created successfully`,
+          StatusCodes.CREATED,
+        ),
       );
     } catch (error) {
       if (error instanceof Error) {
@@ -68,7 +73,9 @@ export class UsersController extends BaseController<UsersDto, CreateUsersDto, Up
         updateDto,
       });
       const updatedData = await this.usersService.update(uuid, updateDto);
-      return res.json(createResponse(req, updatedData, "User updated successfully"));
+      return res.json(
+        createResponse(req, updatedData, `${this.collectionName} updated successfully`),
+      );
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(`[${this.collectionName} Controller] Error updating ${this.collectionName}`, {

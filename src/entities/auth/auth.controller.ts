@@ -3,14 +3,16 @@ import { AuthDto, RegisterDto, ResetPasswordDto } from "@/entities/auth/auth.dto
 import { AuthService } from "@/entities/auth/auth.services";
 import { logger } from "@/common/winston/winston";
 import { CustomRequest } from "@/types/request";
+import { StatusCodes } from "http-status-codes";
+import { createResponse } from "@/utils/create-response";
 
 export class AuthController {
   private collectionName: string;
   private authService: AuthService;
 
   constructor() {
-    this.collectionName = "Auth";
-    this.authService = new AuthService("Auth");
+    this.collectionName = "User";
+    this.authService = new AuthService("User");
   }
 
   /**
@@ -19,7 +21,8 @@ export class AuthController {
    * @param res - Response object
    * @param next - Next middleware function
    */
-  login = async (req: CustomRequest, res: Response, next: NextFunction): Promise<void> => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  login = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
     const loginDto: AuthDto = req.body;
     const { loggedUser } = req;
     logger.info(`[${this.collectionName} Controller] login API invoked`, {
@@ -28,12 +31,15 @@ export class AuthController {
     });
 
     try {
-      const result = await this.authService.login(loginDto);
+      const data = await this.authService.login(loginDto);
       logger.info(`[${this.collectionName} Controller] User login successful`, {
         email: loginDto.email,
         loggedUser,
       });
-      res.json(result);
+
+      return res.json(
+        createResponse(req, data, `${this.collectionName} login successfully`, StatusCodes.CREATED),
+      );
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(`[${this.collectionName} Controller] login API error`, {
@@ -56,7 +62,8 @@ export class AuthController {
    * @param res - Response object
    * @param next - Next middleware function
    */
-  register = async (req: CustomRequest, res: Response, next: NextFunction): Promise<void> => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  register = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
     const registerDto: RegisterDto = req.body;
     const { loggedUser } = req;
     logger.info(`[${this.collectionName} Controller] Register API invoked`, {
@@ -65,12 +72,20 @@ export class AuthController {
     });
 
     try {
-      const result = await this.authService.register(registerDto);
+      const data = await this.authService.register(registerDto);
       logger.info(`[${this.collectionName} Controller] User registration successful`, {
         email: registerDto.email,
         loggedUser,
       });
-      res.json(result);
+
+      return res.json(
+        createResponse(
+          req,
+          data,
+          `${this.collectionName} registered successfully`,
+          StatusCodes.CREATED,
+        ),
+      );
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(`[${this.collectionName} Controller] Register API error`, {
@@ -96,18 +111,27 @@ export class AuthController {
    * @param res - Response object
    * @param next - Next middleware function
    */
-  logout = async (req: CustomRequest, res: Response, next: NextFunction): Promise<void> => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  logout = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
     const token = req.headers.authorization?.split(" ")[1];
     const { loggedUser } = req;
     logger.info(`[${this.collectionName} Controller] Logout API invoked`, { token, loggedUser });
 
     try {
-      const result = await this.authService.logout(token!);
+      const data = await this.authService.logout(token!);
       logger.info(`[${this.collectionName} Controller] User logout successful`, {
         token,
         loggedUser,
       });
-      res.json(result);
+
+      return res.json(
+        createResponse(
+          req,
+          data,
+          `${this.collectionName} logout successfully`,
+          StatusCodes.CREATED,
+        ),
+      );
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(`[${this.collectionName} Controller] Logout API error`, {
@@ -131,7 +155,8 @@ export class AuthController {
    * @param res - Response object
    * @param next - Next middleware function
    */
-  extendToken = async (req: CustomRequest, res: Response, next: NextFunction): Promise<void> => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  extendToken = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
     const token = req.headers.authorization?.split(" ")[1];
     const { loggedUser } = req;
     logger.info(`[${this.collectionName} Controller] ExtendToken API invoked`, {
@@ -140,12 +165,19 @@ export class AuthController {
     });
 
     try {
-      const newToken = await this.authService.extendToken(token!);
+      const data = await this.authService.extendToken(token!);
       logger.info(`[${this.collectionName} Controller] Token extended successfully`, {
-        newToken,
+        data,
         loggedUser,
       });
-      res.json({ token: newToken });
+      return res.json(
+        createResponse(
+          req,
+          data,
+          `${this.collectionName} extend token successfully`,
+          StatusCodes.CREATED,
+        ),
+      );
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(`[${this.collectionName} Controller] ExtendToken API error`, {
@@ -171,7 +203,8 @@ export class AuthController {
    * @param res - Response object
    * @param next - Next middleware function
    */
-  forgotPassword = async (req: CustomRequest, res: Response, next: NextFunction): Promise<void> => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  forgotPassword = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
     const { email } = req.body;
     const { loggedUser } = req;
     logger.info(`[${this.collectionName} Controller] Forgot password API invoked`, {
@@ -180,12 +213,19 @@ export class AuthController {
     });
 
     try {
-      const message = await this.authService.forgotPassword(email);
+      const data = await this.authService.forgotPassword(email);
       logger.info(`[${this.collectionName} Controller] Forgot password successful`, {
         email,
         loggedUser,
       });
-      res.json(message);
+      return res.json(
+        createResponse(
+          req,
+          data,
+          `${this.collectionName} forgot password successfully`,
+          StatusCodes.CREATED,
+        ),
+      );
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(`[${this.collectionName} Controller] Forgot password API error`, {
@@ -211,7 +251,8 @@ export class AuthController {
    * @param res - Response object
    * @param next - Next middleware function
    */
-  resetPassword = async (req: CustomRequest, res: Response, next: NextFunction): Promise<void> => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  resetPassword = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
     const { resetToken, password, confirmPassword } = req.body;
     const { loggedUser } = req;
     logger.info(`[${this.collectionName} Controller] Reset password API invoked`, {
@@ -225,12 +266,19 @@ export class AuthController {
       resetToken: resetToken as string,
     };
     try {
-      const message = await this.authService.resetPassword(resetPasswordDto);
+      const data = await this.authService.resetPassword(resetPasswordDto);
       logger.info(`[${this.collectionName} Controller] Reset password successful`, {
         resetToken,
         loggedUser,
       });
-      res.json(message);
+      return res.json(
+        createResponse(
+          req,
+          data,
+          `${this.collectionName} reset password successfully`,
+          StatusCodes.CREATED,
+        ),
+      );
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(`[${this.collectionName} Controller] Reset password API error`, {

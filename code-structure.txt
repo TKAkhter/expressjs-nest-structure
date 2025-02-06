@@ -1,24 +1,123 @@
-src
-├── common
-│   ├── redis
-│   │   ├── redis.ts
-│   ├── winston
-│   │   ├── winston.ts
-├── databases
-│   ├── mongodb
-│   │   ├── mongodb.ts
-├── entities
-│   ├── user
-│   │   ├── user.controller.ts
-│   │   ├── user.dto.ts
-│   │   ├── user.service.ts
-│   │   ├── user.route.ts
-├── middleware
-│   ├── auth-middleware.ts
-│   ├── cors.ts
-│   ├── error-handler.ts
-│   ├── zod-validation.ts
-├── routes
-│   ├── routes.ts
-├── app.ts
-└── server.ts 
+├── .husky/
+│   └── pre-commit
+├── src/
+│   ├── common/
+│   │   ├── constants/
+│   │   │   └── constants.ts
+│   │   ├── jwt/
+│   │   │   └── jwt.ts
+│   │   ├── multer/
+│   │   │   └── multer.ts
+│   │   ├── repository/
+│   │   │   └── repository.ts
+│   │   ├── swagger/
+│   │   │   ├── swagger-document-generator.ts
+│   │   │   ├── swagger-response-builder.ts
+│   │   │   ├── swagger-response.ts
+│   │   │   └── swagger.router.ts
+│   │   └── winston/
+│   │       └── winston.ts
+│   ├── config/
+│   │   ├── knex/
+│   │   │   ├── index.ts
+│   │   │   ├── knex-file.ts
+│   │   │   └── knex-types.ts
+│   │   ├── mongodb/
+│   │   │   └── mongodb.ts
+│   │   ├── redis/
+│   │   │   └── redis.ts
+│   │   └── env.ts
+│   ├── entities/
+│   │   ├── accounts/
+│   │   │   ├── accounts.controller.ts
+│   │   │   ├── accounts.dto.ts
+│   │   │   ├── accounts.route.ts
+│   │   │   └── accounts.service.ts
+│   │   ├── analytics/
+│   │   │   ├── analytics.controller.ts
+│   │   │   ├── analytics.dto.ts
+│   │   │   ├── analytics.route.ts
+│   │   │   └── analytics.service.ts
+│   │   ├── auth/
+│   │   │   ├── auth.controller.ts
+│   │   │   ├── auth.dto.ts
+│   │   │   ├── auth.route.ts
+│   │   │   └── auth.services.ts
+│   │   ├── billings/
+│   │   │   ├── billings.controller.ts
+│   │   │   ├── billings.dto.ts
+│   │   │   ├── billings.route.ts
+│   │   │   └── billings.service.ts
+│   │   ├── company-settings/
+│   │   │   ├── company-settings.controller.ts
+│   │   │   ├── company-settings.dto.ts
+│   │   │   ├── company-settings.route.ts
+│   │   │   └── company-settings.service.ts
+│   │   ├── contacts/
+│   │   │   ├── contacts.controller.ts
+│   │   │   ├── contacts.dto.ts
+│   │   │   ├── contacts.route.ts
+│   │   │   └── contacts.service.ts
+│   │   ├── domains/
+│   │   │   ├── domains.controller.ts
+│   │   │   ├── domains.dto.ts
+│   │   │   ├── domains.route.ts
+│   │   │   └── domains.service.ts
+│   │   ├── health/
+│   │   │   ├── health.controller.ts
+│   │   │   ├── health.helper.ts
+│   │   │   └── health.route.ts
+│   │   ├── platforms/
+│   │   │   ├── platforms.controller.ts
+│   │   │   ├── platforms.dto.ts
+│   │   │   ├── platforms.route.ts
+│   │   │   └── platforms.service.ts
+│   │   ├── promo-codes/
+│   │   │   ├── promo-codes.controller.ts
+│   │   │   ├── promo-codes.dto.ts
+│   │   │   ├── promo-codes.route.ts
+│   │   │   └── promo-codes.service.ts
+│   │   └── referral/
+│   │       ├── referral.dto.ts
+│   │       └── refferal.service.ts
+│   ├── middlewares/
+│   │   ├── auth-middleware.ts
+│   │   ├── cors.ts
+│   │   ├── error-middleware.ts
+│   │   ├── index.ts
+│   │   └── zod-validation.ts
+│   ├── models/
+│   │   └── error-logs.ts
+│   ├── routes/
+│   │   └── routes.ts
+│   ├── schemas/
+│   │   ├── find-by-query.ts
+│   │   ├── import-file.ts
+│   │   └── query-examples.txt
+│   ├── services/
+│   │   ├── auth0.service.ts
+│   │   └── stripe.service.ts
+│   ├── types/
+│   │   ├── db.ts
+│   │   ├── pagination.ts
+│   │   └── request.ts
+│   ├── utils/
+│   │   ├── create-response.ts
+│   │   ├── csv-to-json.ts
+│   │   ├── knex-apply-filter.ts
+│   │   └── utils.ts
+│   ├── app.ts
+│   └── server.ts
+├── tests/
+│   └── auth.validation.test.ts
+├── .env
+├── .env.example
+├── .gitignore
+├── .prettierignore
+├── .prettierrc
+├── eslint.config.mjs
+├── jest.config.ts
+├── nodemon.json
+├── package.json
+├── README.md
+└── tsconfig.json

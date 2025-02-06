@@ -14,18 +14,20 @@ const envSchema = z.object({
   ALLOW_ORIGIN: z.string(),
   APP_URL: z.string().url(),
   LOGS_DIRECTORY: z.string(),
+  BP_GENERATED_PASSWORD_LENGTH: z.string().default("10"),
 
   // Redis Configuration
   REDIS_URL: z.string(),
 
   // Basic Auth Secrets
   JWT_SECRET: z.string(),
-  JWT_SECRET_EXPIRATION: z.string(),
+  JWT_SECRET_EXPIRATION: z.string().default("1d"),
   HASH: z.string().transform((val) => parseInt(val, 10)),
 
   MONGODB_URI: z.string().url(),
   ENABLE_WINSTON: z.enum(["0", "1"]).default("0"),
   ENABLE_LOGS: z.enum(["0", "1"]).default("0"),
+  ENABLE_ERROR_LOGS: z.enum(["0", "1"]).default("0"),
   LOGS_TYPE: z.enum(["mongodb", "directory"]).default("mongodb"),
   MONGODB_ERROR_COLLECTION_NAME: z.string(),
   MONGODB_MEMORY_LIMIT: z.string().default("512"),

@@ -39,10 +39,14 @@ export function generateOpenAPIDocument() {
         url: `${env.BASE_URL}/api`,
         description: "http protocol",
       },
-      {
-        url: `${env.BASE_URL_HTTPS}/api`,
-        description: "https protocol",
-      },
+      ...(env.BASE_URL_HTTPS
+        ? [
+            {
+              url: `${env.BASE_URL_HTTPS}/api`,
+              description: "https protocol",
+            },
+          ]
+        : []),
     ],
     security: [
       {

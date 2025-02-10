@@ -7,26 +7,20 @@ extendZodWithOpenApi(z);
 
 export const FilesSchema = z.object({
   uuid: z.string(),
-  filePath: z.string().optional(),
+  userRef: z.string(),
+  filePath: z.string(),
   tags: z.string(),
   fileName: z.string().optional(),
   fileText: z.string().optional(),
   views: z.string().optional(),
   userId: z.string().optional(),
-  createdAt: z
-    .date()
-    .default(() => new Date())
-    .optional(),
-  updatedAt: z
-    .date()
-    .default(() => new Date())
-    .optional(),
 });
 
 export const UploadFilesSchema = FilesSchema.omit({
   uuid: true,
-  createdAt: true,
-  updatedAt: true,
+  filePath: true,
+  fileText: true,
+  userId: true,
 }).extend({
   file: z
     .any()
@@ -40,8 +34,10 @@ export const UploadFilesSchema = FilesSchema.omit({
 
 export const UpdateFilesSchema = FilesSchema.omit({
   uuid: true,
-  createdAt: true,
-  updatedAt: true,
+  userRef: true,
+  filePath: true,
+  fileText: true,
+  userId: true,
 }).extend({
   file: z
     .any()

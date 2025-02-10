@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import { logger } from "@/common/winston/winston";
 
-export const deleteFileFromDisk = (fileName: string) => {
+export const deleteFileFromDisk = async (fileName: string) => {
   try {
     const uploadDir = "./uploads";
     const filePath = path.join(uploadDir, fileName);

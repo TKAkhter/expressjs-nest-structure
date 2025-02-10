@@ -2,14 +2,19 @@
 │   └── pre-commit
 ├── src/
 │   ├── common/
-│   │   ├── constants/
-│   │   │   └── constants.ts
+│   │   ├── base/
+│   │   │   ├── base.controller.ts
+│   │   │   ├── base.repository.ts
+│   │   │   └── base.services.ts
 │   │   ├── jwt/
 │   │   │   └── jwt.ts
+│   │   ├── mail-sender/
+│   │   │   └── mail-sender.ts
 │   │   ├── multer/
-│   │   │   └── multer.ts
-│   │   ├── repository/
-│   │   │   └── repository.ts
+│   │   │   ├── delete-file-from-disk.ts
+│   │   │   ├── multer.ts
+│   │   │   ├── save-file-to-disk.ts
+│   │   │   └── update-file-to-disk.ts
 │   │   ├── swagger/
 │   │   │   ├── swagger-document-generator.ts
 │   │   │   ├── swagger-response-builder.ts
@@ -18,68 +23,32 @@
 │   │   └── winston/
 │   │       └── winston.ts
 │   ├── config/
-│   │   ├── knex/
-│   │   │   ├── index.ts
-│   │   │   ├── knex-file.ts
-│   │   │   └── knex-types.ts
 │   │   ├── mongodb/
 │   │   │   └── mongodb.ts
 │   │   ├── redis/
 │   │   │   └── redis.ts
 │   │   └── env.ts
 │   ├── entities/
-│   │   ├── accounts/
-│   │   │   ├── accounts.controller.ts
-│   │   │   ├── accounts.dto.ts
-│   │   │   ├── accounts.route.ts
-│   │   │   └── accounts.service.ts
-│   │   ├── analytics/
-│   │   │   ├── analytics.controller.ts
-│   │   │   ├── analytics.dto.ts
-│   │   │   ├── analytics.route.ts
-│   │   │   └── analytics.service.ts
 │   │   ├── auth/
 │   │   │   ├── auth.controller.ts
 │   │   │   ├── auth.dto.ts
 │   │   │   ├── auth.route.ts
 │   │   │   └── auth.services.ts
-│   │   ├── billings/
-│   │   │   ├── billings.controller.ts
-│   │   │   ├── billings.dto.ts
-│   │   │   ├── billings.route.ts
-│   │   │   └── billings.service.ts
-│   │   ├── company-settings/
-│   │   │   ├── company-settings.controller.ts
-│   │   │   ├── company-settings.dto.ts
-│   │   │   ├── company-settings.route.ts
-│   │   │   └── company-settings.service.ts
-│   │   ├── contacts/
-│   │   │   ├── contacts.controller.ts
-│   │   │   ├── contacts.dto.ts
-│   │   │   ├── contacts.route.ts
-│   │   │   └── contacts.service.ts
-│   │   ├── domains/
-│   │   │   ├── domains.controller.ts
-│   │   │   ├── domains.dto.ts
-│   │   │   ├── domains.route.ts
-│   │   │   └── domains.service.ts
+│   │   ├── files/
+│   │   │   ├── files.controller.ts
+│   │   │   ├── files.dto.ts
+│   │   │   ├── files.repository.ts
+│   │   │   ├── files.route.ts
+│   │   │   └── files.service.ts
 │   │   ├── health/
 │   │   │   ├── health.controller.ts
 │   │   │   ├── health.helper.ts
 │   │   │   └── health.route.ts
-│   │   ├── platforms/
-│   │   │   ├── platforms.controller.ts
-│   │   │   ├── platforms.dto.ts
-│   │   │   ├── platforms.route.ts
-│   │   │   └── platforms.service.ts
-│   │   ├── promo-codes/
-│   │   │   ├── promo-codes.controller.ts
-│   │   │   ├── promo-codes.dto.ts
-│   │   │   ├── promo-codes.route.ts
-│   │   │   └── promo-codes.service.ts
-│   │   └── referral/
-│   │       ├── referral.dto.ts
-│   │       └── refferal.service.ts
+│   │   └── users/
+│   │       ├── users.controller.ts
+│   │       ├── users.dto.ts
+│   │       ├── users.route.ts
+│   │       └── users.service.ts
 │   ├── middlewares/
 │   │   ├── auth-middleware.ts
 │   │   ├── cors.ts
@@ -94,27 +63,33 @@
 │   │   ├── find-by-query.ts
 │   │   ├── import-file.ts
 │   │   └── query-examples.txt
-│   ├── services/
-│   │   ├── auth0.service.ts
-│   │   └── stripe.service.ts
+│   ├── template/
+│   │   ├── create-template.ts
+│   │   └── forgot-password.hbs
 │   ├── types/
-│   │   ├── db.ts
 │   │   ├── pagination.ts
 │   │   └── request.ts
 │   ├── utils/
 │   │   ├── create-response.ts
 │   │   ├── csv-to-json.ts
-│   │   ├── knex-apply-filter.ts
+│   │   ├── mongodb-apply-filter.ts
 │   │   └── utils.ts
+│   ├── .DS_Store
 │   ├── app.ts
 │   └── server.ts
 ├── tests/
 │   └── auth.validation.test.ts
+├── uploads/
+│   ├── file-1732863659479-858448142.png
+│   ├── file-1732864787666-267731371.png
+│   └── file-1733207824665-322188582.png
+├── .DS_Store
 ├── .env
 ├── .env.example
 ├── .gitignore
 ├── .prettierignore
 ├── .prettierrc
+├── code-structure.txt
 ├── eslint.config.mjs
 ├── jest.config.ts
 ├── nodemon.json

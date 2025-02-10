@@ -1,32 +1,14 @@
 Directory Structure:
 -------------------
-/ 
+/
 ├── .husky/
-│   ├── _/
-│   │   ├── .gitignore
-│   │   ├── applypatch-msg
-│   │   ├── commit-msg
-│   │   ├── h
-│   │   ├── husky.sh
-│   │   ├── post-applypatch
-│   │   ├── post-checkout
-│   │   ├── post-commit
-│   │   ├── post-merge
-│   │   ├── post-rewrite
-│   │   ├── pre-applypatch
-│   │   ├── pre-auto-gc
-│   │   ├── pre-commit
-│   │   ├── pre-merge-commit
-│   │   ├── pre-push
-│   │   ├── pre-rebase
-│   │   └── prepare-commit-msg
 │   └── pre-commit
-├── .vscode/
-│   └── launch.json
 ├── src/
 │   ├── common/
-│   │   ├── constants/
-│   │   │   └── constants.ts
+│   │   ├── base/
+│   │   │   ├── base.controller.ts
+│   │   │   ├── base.repository.ts
+│   │   │   └── base.services.ts
 │   │   ├── jwt/
 │   │   │   └── jwt.ts
 │   │   ├── mail-sender/
@@ -36,8 +18,6 @@ Directory Structure:
 │   │   │   ├── multer.ts
 │   │   │   ├── save-file-to-disk.ts
 │   │   │   └── update-file-to-disk.ts
-│   │   ├── repository/
-│   │   │   └── repository.ts
 │   │   ├── swagger/
 │   │   │   ├── swagger-document-generator.ts
 │   │   │   ├── swagger-response-builder.ts
@@ -131,12 +111,6 @@ Content of ./nodemon.json:
   "ext": "ts",
   "exec": "ts-node -r tsconfig-paths/register src/server.ts"
 }
-
-
-File: ./.DS_Store
---------------------------------------------------
-Error reading file: 'utf-8' codec can't decode byte 0x80 in position 3131: invalid start byte. Content skipped.
-
 
 File: ./.prettierignore
 --------------------------------------------------
@@ -324,6 +298,7 @@ Content of ./package.json:
   }
 }
 
+
 File: ./.prettierrc
 --------------------------------------------------
 Content of ./.prettierrc:
@@ -386,12 +361,20 @@ File: ./.env.example
 --------------------------------------------------
 Content of ./.env.example:
 NODE_ENV=NODE_ENV
+TZ=TZ
 BASE_URL=BASE_URL
 BASE_URL_HTTPS=BASE_URL_HTTPS
 PORT=PORT
 SERVER_TIMEOUT=SERVER_TIMEOUT
 LOG_FILE_DURATION=LOG_FILE_DURATION
 ALLOW_ORIGIN=ALLOW_ORIGIN
+APP_URL=APP_URL
+LOGS_DIRECTORY=LOGS_DIRECTORY
+
+## -- Basic Auth secrets --
+JWT_SECRET=JWT_SECRET
+JWT_SECRET_EXPIRATION=JWT_SECRET_EXPIRATION
+HASH=HASH
 
 ## -- Redis --
 REDIS_URL=REDIS_URL
@@ -399,12 +382,18 @@ REDIS_URL=REDIS_URL
 # MongoDB
 MONGODB_URI=MONGODB_URI
 
-## -- Basic Auth secrets --
-JWT_SECRET=JWT_SECRET
-JWT_SECRET_EXPIRATION=JWT_SECRET_EXPIRATION
-HASH=HASH
-
 ENABLE_WINSTON=ENABLE_WINSTON
+ENABLE_LOGS=ENABLE_LOGS
+ENABLE_ERROR_LOGS=ENABLE_ERROR_LOGS
+LOGS_TYPE=LOGS_TYPE
+MONGODB_ERROR_COLLECTION_NAME=MONGODB_ERROR_COLLECTION_NAME
+MONGODB_MEMORY_LIMIT=MONGODB_MEMORY_LIMIT
+
+# Mail Sender
+MAILGUN_API_KEY=MAILGUN_API_KEY
+MAILGUN_DOMAIN=MAILGUN_DOMAIN
+MAILGUN_NAME=MAILGUN_NAME
+MAILGUN_SENDER_EMAIL=MAILGUN_SENDER_EMAIL
 
 
 File: ./eslint.config.mjs
@@ -1118,36 +1107,6 @@ describe("Auth Validation", () => {
   });
 });
 
-
-File: .vscode/launch.json
---------------------------------------------------
-Content of .vscode/launch.json:
-{
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Launch Program",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
-            "program": "${workspaceFolder}/src/app.ts",
-            "outFiles": [
-                "${workspaceFolder}/**/*.js"
-            ]
-        }
-    ]
-}
-
-File: src/.DS_Store
---------------------------------------------------
-Error reading file: 'utf-8' codec can't decode byte 0xff in position 1072: invalid start byte. Content skipped.
-
-
 File: src/app.ts
 --------------------------------------------------
 Content of src/app.ts:
@@ -1415,13 +1374,14 @@ const envSchema = z.object({
   ALLOW_ORIGIN: z.string(),
   APP_URL: z.string().url(),
   LOGS_DIRECTORY: z.string(),
+  BP_GENERATED_PASSWORD_LENGTH: z.string().default("10"),
 
   // Redis Configuration
   REDIS_URL: z.string(),
 
   // Basic Auth Secrets
   JWT_SECRET: z.string(),
-  JWT_SECRET_EXPIRATION: z.string(),
+  JWT_SECRET_EXPIRATION: z.string().default("1d"),
   HASH: z.string().transform((val) => parseInt(val, 10)),
 
   MONGODB_URI: z.string().url(),
@@ -1848,6 +1808,8 @@ export const createResponse = (
 File: src/utils/utils.ts
 --------------------------------------------------
 Content of src/utils/utils.ts:
+import { env } from "@/config/env";
+
 export const generatePassword = (): string => {
   const getRandomChar = (characters: string): string =>
     characters[Math.floor(Math.random() * characters.length)];
@@ -1861,7 +1823,7 @@ export const generatePassword = (): string => {
 
   const password = categories.map(getRandomChar).join("");
 
-  const remainingLength = Number(process.env.BP_GENERATED_PASSWORD_LENGTH || 10) - password.length;
+  const remainingLength = Number(env.BP_GENERATED_PASSWORD_LENGTH || 10) - password.length;
   const allCharacters = categories.join("");
   const randomChars = Array.from({ length: remainingLength }, () => getRandomChar(allCharacters));
 
@@ -1877,6 +1839,7 @@ export const extractDomainFromEmailAddress = (email: string): string | null => {
 
   return match[1].toLowerCase();
 };
+
 
 File: src/utils/csv-to-json.ts
 --------------------------------------------------
@@ -2387,6 +2350,7 @@ import { StatusCodes } from "http-status-codes";
 import createHttpError from "http-errors";
 
 export const generateToken = (payload: object) => {
+  // @ts-expect-error - The payload is an object
   return sign(payload, env.JWT_SECRET, { expiresIn: env.JWT_SECRET_EXPIRATION });
 };
 
@@ -2403,355 +2367,18 @@ export const verifyToken = (token: string): any => {
 };
 
 
-File: src/common/repository/repository.ts
---------------------------------------------------
-Content of src/common/repository/repository.ts:
-import { Model, UpdateQuery, SortOrder, RootFilterQuery } from "mongoose";
-import { FindByQueryDto } from "@/schemas/find-by-query";
-import { logger } from "@/common/winston/winston";
-import { mongoDbApplyFilter } from "@/utils/mongodb-apply-filter";
-
-const IGNORE_FIELDS = { password: 0 };
-export class GenericRepository<T, TCreateDto, TUpdateDto> {
-  private model: Model<T>;
-  private logFileName: string;
-
-  constructor(model: Model<T>, logFileName: string) {
-    this.logFileName = logFileName;
-    this.model = model;
-  }
-
-  /**
-   * Fetches all entities from the collection.
-   * @returns Array of entities
-   */
-  getAll = async (): Promise<T[]> => {
-    try {
-      logger.info(`${this.logFileName} Fetching all from ${this.model.modelName}`);
-      return await this.model.find({}, IGNORE_FIELDS);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      logger.warn(`${this.logFileName} Error fetching all from ${this.model.modelName}`, {
-        error: error.message,
-      });
-      throw new Error(error);
-    }
-  };
-
-  /**
-   * Fetches an entity by ID.
-   * @param id - Entity's unique identifier
-   * @returns Entity data or null if not found
-   */
-  getById = async (id: string): Promise<T | null> => {
-    try {
-      logger.info(`${this.logFileName} Fetching ${this.model.modelName} with id: ${id}`);
-      return await this.model.findById(id, IGNORE_FIELDS);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      logger.warn(`${this.logFileName} Error fetching ${this.model.modelName} by id`, {
-        id,
-        error: error.message,
-      });
-      throw new Error(error);
-    }
-  };
-
-  /**
-   * Fetches a entity by their id.
-   * @param uuid - entity's unique identifier
-   * @returns entity data or null if not found
-   */
-  getByUuid = async (uuid: string): Promise<T | null> => {
-    try {
-      logger.info(`${this.logFileName} Fetching ${this.model.modelName} with uuid: ${uuid}`);
-      return await this.model.findOne({ uuid }, IGNORE_FIELDS);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      logger.warn(`${this.logFileName} Error fetching ${this.model.modelName} by uuid`, {
-        uuid,
-        error: error.message,
-      });
-      throw new Error(error);
-    }
-  };
-
-  /**
-   * Fetches a entity by their email.
-   * @param email - entity's email
-   * @returns entity data or null if not found
-   */
-  getByEmail = async (email: string): Promise<T | null> => {
-    try {
-      logger.info(`${this.logFileName} Fetching ${this.model.modelName} with email: ${email}`);
-      return await this.model.findOne({ email }, IGNORE_FIELDS);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      logger.warn(`${this.logFileName} Error fetching ${this.model.modelName} by email`, {
-        email,
-        error: error.message,
-      });
-      throw new Error(error);
-    }
-  };
-
-  /**
-   * Fetches a entity by their username.
-   * @param username - entity's username
-   * @returns entity data or null if not found
-   */
-  getByUsername = async (username: string): Promise<T | null> => {
-    try {
-      logger.info(
-        `${this.logFileName} Fetching ${this.model.modelName} with username: ${username}`,
-      );
-      return await this.model.findOne({ username }, IGNORE_FIELDS);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      logger.warn(`${this.logFileName} Error fetching ${this.model.modelName} by username`, {
-        username,
-        error: error.message,
-      });
-      throw new Error(error);
-    }
-  };
-
-  /**
-   * Fetches a document based on a specified field and its value.
-   * @param field - The field name to search by.
-   * @param value - The value to match for the specified field.
-   * @returns The matched document or null if not found.
-   */
-  getByField = async (field: string, value: string | number): Promise<T | null> => {
-    try {
-      logger.info(`${this.logFileName} Fetching ${this.model.modelName} where ${field}: ${value}`);
-      const query = { [field]: value };
-      return await this.model.findOne(query as RootFilterQuery<T>, IGNORE_FIELDS);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      logger.warn(`${this.logFileName} Error fetching ${this.model.modelName} by ${field}`, {
-        field,
-        value,
-        error: error.message,
-      });
-      throw new Error(error);
-    }
-  };
-
-  /**
-   * Finds entities with pagination.
-   * @param options - Query options
-   * @returns Paginated data
-   */
-  findByQuery = async (options: FindByQueryDto) => {
-    const { filter = {}, paginate = { page: 1, perPage: 10 }, orderBy = [] } = options;
-
-    const { page, perPage } = paginate;
-
-    try {
-      // Build the sort object for MongoDB
-      const sortOptions = orderBy.reduce(
-        (acc, { sort, order }) => {
-          acc[sort] = order;
-          return acc;
-        },
-        {} as Record<string, SortOrder>,
-      );
-
-      // Convert the filter for MongoDB
-      const mongoFilter = mongoDbApplyFilter(filter);
-
-      // Query the collection
-      const [data, total] = await Promise.all([
-        this.model
-          .find(mongoFilter, IGNORE_FIELDS)
-          .sort(sortOptions)
-          .skip((page - 1) * perPage)
-          .limit(perPage)
-          .exec(),
-        this.model.countDocuments(mongoFilter),
-      ]);
-
-      return {
-        data,
-        total,
-        page,
-        perPage,
-        totalPages: Math.ceil(total / perPage),
-      };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      logger.warn(`${this.logFileName} Error querying ${this.model.modelName}`, {
-        options,
-        error: error.message,
-      });
-      throw new Error(error);
-    }
-  };
-
-  /**
-   * Creates a new entity.
-   * @param createDto - Data for creating a new entity
-   * @returns Created entity data
-   */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  create = async (createDto: TCreateDto): Promise<any> => {
-    try {
-      logger.info(`${this.logFileName} Creating document in ${this.model.modelName}`);
-      const created = new this.model(createDto);
-      await created.save();
-      return this.getById(created.id);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      logger.warn(`${this.logFileName} Error creating entry in ${this.model.modelName}`, {
-        createDto,
-        error: error.message,
-      });
-      throw new Error(error);
-    }
-  };
-
-  /**
-   * Updates an existing entity.
-   * @param uuid - Entity's unique identifier
-   * @param updateDto - Data to update the entity
-   * @returns Updated entity data
-   */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  update = async (uuid: string, updateDto: TUpdateDto): Promise<any> => {
-    try {
-      logger.info(`${this.logFileName} Updating ${this.model.modelName} with uuid: ${uuid}`);
-      return await this.model.findOneAndUpdate({ uuid }, updateDto as UpdateQuery<T>, {
-        new: true,
-      });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      logger.warn(`${this.logFileName} Error updating ${this.model.modelName}`, {
-        uuid,
-        updateDto,
-        error: error.message,
-      });
-      throw new Error(error);
-    }
-  };
-
-  /**
-   * Deletes an entity by uuid.
-   * @param uuid - Entity's unique identifier
-   * @returns Deleted entity data
-   */
-  delete = async (uuid: string): Promise<T | null> => {
-    try {
-      logger.info(`${this.logFileName} Deleting ${this.model.modelName} with uuid: ${uuid}`);
-      return await this.model.findOneAndDelete({ uuid });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      logger.warn(`${this.logFileName} Error deleting ${this.model.modelName}`, {
-        uuid,
-        error: error.message,
-      });
-      throw new Error(error);
-    }
-  };
-
-  /**
-   * Deletes multiple entities by their uuids.
-   * @param uuids - List of entity uuids to delete
-   * @returns Deletion result
-   */
-  async deleteAll(uuids: string[]): Promise<{ deletedCount: number }> {
-    try {
-      return await this.model.deleteMany({ uuid: { $in: uuids } });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      logger.warn(`${this.logFileName} Error deleting multiple ${this.model.modelName}`, {
-        uuids,
-        error: error.message,
-      });
-      throw new Error(error);
-    }
-  }
-
-  /**
-   * Imports multiple entity objects into the database.
-   * Skips objects where email or username already exist in the database.
-   * @param entities - Array of entity objects to be saved
-   * @returns Object containing created entities, created count, and skipped count
-   */
-  import = async (
-    entities: TCreateDto[],
-  ): Promise<{
-    createdEntities: T[];
-    createdCount: number;
-    skippedCount: number;
-  }> => {
-    try {
-      logger.info(
-        `${this.logFileName} Importing ${entities.length} documents into ${this.model.modelName}`,
-      );
-      const uniqueEntities = [];
-      const skippedEntities = [];
-
-      for (const entity of entities) {
-        // eslint-disable-next-line no-await-in-loop
-        const exists = await this.model.exists({
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          $or: [{ email: (entity as any).email }, { username: (entity as any).username }],
-        });
-
-        if (exists) {
-          logger.info(
-            `${this.logFileName} Email or username already exist in ${this.model.modelName}`,
-          );
-          skippedEntities.push(entity);
-        } else {
-          uniqueEntities.push(entity);
-        }
-      }
-
-      // Insert unique entities into the database
-      const createdEntities = (await this.model.insertMany(uniqueEntities, {
-        ordered: true,
-      })) as unknown as T[];
-
-      const createdCount = createdEntities.length;
-      const skippedCount = skippedEntities.length;
-
-      logger.info(`${this.logFileName} Import Summary:`, {
-        createdCount,
-        skippedCount,
-        createdEntities,
-      });
-
-      return {
-        createdEntities,
-        createdCount,
-        skippedCount,
-      };
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      logger.warn(`${this.logFileName} Error importing into ${this.model.modelName}`, {
-        totalEntities: entities.length,
-        error: error.message,
-      });
-      throw new Error(error);
-    }
-  };
-}
-
-
 File: src/common/swagger/swagger.router.ts
 --------------------------------------------------
 Content of src/common/swagger/swagger.router.ts:
 import express, { type Request, type Response, type Router } from "express";
 import { generateOpenAPIDocument } from "@/common/swagger/swagger-document-generator";
 import swaggerUi from "swagger-ui-express";
+import { env } from "@/config/env";
 
 export const openAPIRouter: Router = express.Router();
 const openAPIDocument = generateOpenAPIDocument();
 
-if (!["testing", "production"].includes(process.env.NODE_ENV!)) {
+if (!["testing", "production"].includes(env.NODE_ENV!)) {
   openAPIRouter.get("/docs/swagger.json", (_req: Request, res: Response) => {
     res.setHeader("Content-Type", "application/json");
     res.send(openAPIDocument);
@@ -2899,11 +2526,11 @@ export function generateOpenAPIDocument() {
       },
       ...(env.BASE_URL_HTTPS
         ? [
-          {
-            url: `${env.BASE_URL_HTTPS}/api`,
-            description: "https protocol",
-          },
-        ]
+            {
+              url: `${env.BASE_URL_HTTPS}/api`,
+              description: "https protocol",
+            },
+          ]
         : []),
     ],
     security: [
@@ -2913,26 +2540,6 @@ export function generateOpenAPIDocument() {
     ],
   });
 }
-
-
-File: src/common/constants/constants.ts
---------------------------------------------------
-Content of src/common/constants/constants.ts:
-export const BLACKLIST = {
-  // "gmail.com": 1,
-  // "outlook.com": 1,
-  "comcast.net": 1,
-  "aol.com": 1,
-  // "yahoo.com": 1,
-  // "ymail.com": 1,
-  icloud: 1,
-  "me.com": 1,
-  "mac.com": 1,
-  "hotmail.com": 1,
-  // "bulletproofinbox.com": 1,
-  "mg.bulletproofinbox.com": 1,
-  "alerts.comcast.net": 1,
-};
 
 
 File: src/common/multer/multer.ts
@@ -3133,6 +2740,7 @@ export const deleteFileFromDisk = (fileName: string) => {
 File: src/common/mail-sender/mail-sender.ts
 --------------------------------------------------
 Content of src/common/mail-sender/mail-sender.ts:
+import { env } from "@/config/env";
 import formData from "form-data";
 import Mailgun from "mailgun.js";
 
@@ -3140,8 +2748,8 @@ const mailgun = new Mailgun(formData);
 
 const options = {
   auth: {
-    api_key: process.env.MAILGUN_API_KEY as string,
-    domain: process.env.MAILGUN_DOMAIN as string,
+    api_key: env.MAILGUN_API_KEY as string,
+    domain: env.MAILGUN_DOMAIN as string,
   },
 };
 
@@ -3157,6 +2765,1078 @@ export const sendMail = async (mail: any) => {
   }
 };
 
+
+File: src/common/base/base.repository.ts
+--------------------------------------------------
+Content of src/common/base/base.repository.ts:
+import { Model, UpdateQuery, SortOrder, RootFilterQuery } from "mongoose";
+import { FindByQueryDto } from "@/schemas/find-by-query";
+import { logger } from "@/common/winston/winston";
+import { mongoDbApplyFilter } from "@/utils/mongodb-apply-filter";
+
+const IGNORE_FIELDS = { password: 0 };
+
+export class BaseRepository<T, TCreateDto, TUpdateDto> {
+  private collectionName: string;
+  private model: Model<T>;
+
+  constructor(model: Model<T>, collectionName: string) {
+    this.collectionName = collectionName;
+    this.model = model;
+  }
+
+  /**
+   * Fetches all entities from the collection.
+   * @returns Array of entities
+   */
+  getAll = async (): Promise<T[]> => {
+    try {
+      logger.info(`[${this.collectionName} Repository] Fetching all from ${this.model.modelName}`);
+      return await this.model.find({}, IGNORE_FIELDS);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      logger.warn(`[${this.collectionName} Repository] Error fetching all from ${this.model.modelName}`, {
+        error: error.message,
+      });
+      throw new Error(error);
+    }
+  };
+
+  /**
+   * Fetches an entity by ID.
+   * @param id - Entity's unique identifier
+   * @returns Entity data or null if not found
+   */
+  getById = async (id: string): Promise<T | null> => {
+    try {
+      logger.info(`[${this.collectionName} Repository] Fetching ${this.model.modelName} with id: ${id}`);
+      return await this.model.findById(id, IGNORE_FIELDS);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      logger.warn(`[${this.collectionName} Repository] Error fetching ${this.model.modelName} by id`, {
+        id,
+        error: error.message,
+      });
+      throw new Error(error);
+    }
+  };
+
+  /**
+   * Fetches a entity by their id.
+   * @param uuid - entity's unique identifier
+   * @returns entity data or null if not found
+   */
+  getByUuid = async (uuid: string): Promise<T | null> => {
+    try {
+      logger.info(`[${this.collectionName} Repository] Fetching ${this.model.modelName} with uuid: ${uuid}`);
+      return await this.model.findOne({ uuid }, IGNORE_FIELDS);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      logger.warn(`[${this.collectionName} Repository] Error fetching ${this.model.modelName} by uuid`, {
+        uuid,
+        error: error.message,
+      });
+      throw new Error(error);
+    }
+  };
+
+  /**
+   * Fetches a entity by their email.
+   * @param email - entity's email
+   * @returns entity data or null if not found
+   */
+  getByEmail = async (email: string): Promise<T | null> => {
+    try {
+      logger.info(`[${this.collectionName} Repository] Fetching ${this.model.modelName} with email: ${email}`);
+      return await this.model.findOne({ email }, IGNORE_FIELDS);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      logger.warn(`[${this.collectionName} Repository] Error fetching ${this.model.modelName} by email`, {
+        email,
+        error: error.message,
+      });
+      throw new Error(error);
+    }
+  };
+
+  /**
+   * Fetches a entity by their username.
+   * @param username - entity's username
+   * @returns entity data or null if not found
+   */
+  getByUsername = async (username: string): Promise<T | null> => {
+    try {
+      logger.info(
+        `[${this.collectionName} Repository] Fetching ${this.model.modelName} with username: ${username}`,
+      );
+      return await this.model.findOne({ username }, IGNORE_FIELDS);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      logger.warn(`[${this.collectionName} Repository] Error fetching ${this.model.modelName} by username`, {
+        username,
+        error: error.message,
+      });
+      throw new Error(error);
+    }
+  };
+
+  /**
+   * Fetches a document based on a specified field and its value.
+   * @param field - The field name to search by.
+   * @param value - The value to match for the specified field.
+   * @returns The matched document or null if not found.
+   */
+  getByField = async (field: string, value: string | number): Promise<T | null> => {
+    try {
+      logger.info(`[${this.collectionName} Repository] Fetching ${this.model.modelName} where ${field}: ${value}`);
+      const query = { [field]: value };
+      return await this.model.findOne(query as RootFilterQuery<T>, IGNORE_FIELDS);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      logger.warn(`[${this.collectionName} Repository] Error fetching ${this.model.modelName} by ${field}`, {
+        field,
+        value,
+        error: error.message,
+      });
+      throw new Error(error);
+    }
+  };
+
+  /**
+   * Finds entities with pagination.
+   * @param options - Query options
+   * @returns Paginated data
+   */
+  findByQuery = async (options: FindByQueryDto) => {
+    const { filter = {}, paginate = { page: 1, perPage: 10 }, orderBy = [] } = options;
+
+    const { page, perPage } = paginate;
+
+    try {
+      // Build the sort object for MongoDB
+      const sortOptions = orderBy.reduce(
+        (acc, { sort, order }) => {
+          acc[sort] = order;
+          return acc;
+        },
+        {} as Record<string, SortOrder>,
+      );
+
+      // Convert the filter for MongoDB
+      const mongoFilter = mongoDbApplyFilter(filter);
+
+      // Query the collection
+      const [data, total] = await Promise.all([
+        this.model
+          .find(mongoFilter, IGNORE_FIELDS)
+          .sort(sortOptions)
+          .skip((page - 1) * perPage)
+          .limit(perPage)
+          .exec(),
+        this.model.countDocuments(mongoFilter),
+      ]);
+
+      return {
+        data,
+        total,
+        page,
+        perPage,
+        totalPages: Math.ceil(total / perPage),
+      };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      logger.warn(`[${this.collectionName} Repository] Error querying ${this.model.modelName}`, {
+        options,
+        error: error.message,
+      });
+      throw new Error(error);
+    }
+  };
+
+  /**
+   * Creates a new entity.
+   * @param createDto - Data for creating a new entity
+   * @returns Created entity data
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  create = async (createDto: TCreateDto): Promise<any> => {
+    try {
+      logger.info(`[${this.collectionName} Repository] Creating document in ${this.model.modelName}`);
+      const created = new this.model(createDto);
+      await created.save();
+      return this.getById(created.id);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      logger.warn(`[${this.collectionName} Repository] Error creating entry in ${this.model.modelName}`, {
+        createDto,
+        error: error.message,
+      });
+      throw new Error(error);
+    }
+  };
+
+  /**
+   * Updates an existing entity.
+   * @param uuid - Entity's unique identifier
+   * @param updateDto - Data to update the entity
+   * @returns Updated entity data
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  update = async (uuid: string, updateDto: TUpdateDto): Promise<any> => {
+    try {
+      logger.info(`[${this.collectionName} Repository] Updating ${this.model.modelName} with uuid: ${uuid}`);
+      return await this.model.findOneAndUpdate({ uuid }, updateDto as UpdateQuery<T>, {
+        new: true,
+      });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      logger.warn(`[${this.collectionName} Repository] Error updating ${this.model.modelName}`, {
+        uuid,
+        updateDto,
+        error: error.message,
+      });
+      throw new Error(error);
+    }
+  };
+
+  /**
+   * Deletes an entity by uuid.
+   * @param uuid - Entity's unique identifier
+   * @returns Deleted entity data
+   */
+  delete = async (uuid: string): Promise<T | null> => {
+    try {
+      logger.info(`[${this.collectionName} Repository] Deleting ${this.model.modelName} with uuid: ${uuid}`);
+      return await this.model.findOneAndDelete({ uuid });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      logger.warn(`[${this.collectionName} Repository] Error deleting ${this.model.modelName}`, {
+        uuid,
+        error: error.message,
+      });
+      throw new Error(error);
+    }
+  };
+
+  /**
+   * Deletes multiple entities by their uuids.
+   * @param uuids - List of entity uuids to delete
+   * @returns Deletion result
+   */
+  async deleteAll(uuids: string[]): Promise<{ deletedCount: number }> {
+    try {
+      return await this.model.deleteMany({ uuid: { $in: uuids } });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      logger.warn(`[${this.collectionName} Repository] Error deleting multiple ${this.model.modelName}`, {
+        uuids,
+        error: error.message,
+      });
+      throw new Error(error);
+    }
+  }
+
+  /**
+   * Imports multiple entity objects into the database.
+   * Skips objects where email or username already exist in the database.
+   * @param entities - Array of entity objects to be saved
+   * @returns Object containing created entities, created count, and skipped count
+   */
+  import = async (
+    entities: TCreateDto[],
+  ): Promise<{
+    createdEntities: T[];
+    createdCount: number;
+    skippedCount: number;
+  }> => {
+    try {
+      logger.info(
+        `[${this.collectionName} Repository] Importing ${entities.length} documents into ${this.model.modelName}`,
+      );
+      const uniqueEntities = [];
+      const skippedEntities = [];
+
+      for (const entity of entities) {
+        // eslint-disable-next-line no-await-in-loop
+        const exists = await this.model.exists({
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          $or: [{ email: (entity as any).email }, { username: (entity as any).username }],
+        });
+
+        if (exists) {
+          logger.info(
+            `[${this.collectionName} Repository] Email or username already exist in ${this.model.modelName}`,
+          );
+          skippedEntities.push(entity);
+        } else {
+          uniqueEntities.push(entity);
+        }
+      }
+
+      // Insert unique entities into the database
+      const createdEntities = (await this.model.insertMany(uniqueEntities, {
+        ordered: true,
+      })) as unknown as T[];
+
+      const createdCount = createdEntities.length;
+      const skippedCount = skippedEntities.length;
+
+      logger.info(`[${this.collectionName} Repository] Import Summary:`, {
+        createdCount,
+        skippedCount,
+        createdEntities,
+      });
+
+      return {
+        createdEntities,
+        createdCount,
+        skippedCount,
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      logger.warn(`[${this.collectionName} Repository] Error importing into ${this.model.modelName}`, {
+        totalEntities: entities.length,
+        error: error.message,
+      });
+      throw new Error(error);
+    }
+  };
+}
+
+
+File: src/common/base/base.services.ts
+--------------------------------------------------
+Content of src/common/base/base.services.ts:
+import { BaseRepository } from "@/common/base/base.repository";
+import { FindByQueryDto } from "@/schemas/find-by-query";
+import { logger } from "../winston/winston";
+import createHttpError from "http-errors";
+import { StatusCodes } from "http-status-codes";
+import { parseAsync } from "json2csv";
+import { Model } from "mongoose";
+
+export class BaseService<T, TCreateDto, TUpdateDto> {
+  private collectionName: string;
+  protected baseRepository: BaseRepository<T, TCreateDto, TUpdateDto>;
+
+  constructor(model: Model<T>, collectionName: string) {
+    this.collectionName = collectionName;
+    this.baseRepository = new BaseRepository<T, TCreateDto, TUpdateDto>(model, collectionName);
+  }
+
+  /**
+   * Fetches all entities from the database.
+   * @returns Array of entities
+   */
+  getAll = async (): Promise<T[]> => {
+    try {
+      logger.info(`[${this.collectionName} Service] Fetching all ${this.collectionName}`);
+      const data = await this.baseRepository.getAll();
+      return data;
+    } catch (error) {
+      if (error instanceof Error) {
+        logger.warn(`[${this.collectionName} Service] Error fetching all ${this.collectionName}`, {
+          error: error.message,
+        });
+        throw new Error(`Error fetching ${this.collectionName}: ${error.message}`);
+      }
+      logger.warn(
+        `[${this.collectionName} Service] Unknown error occurred while fetching all ${this.collectionName}`,
+      );
+      throw new Error(`Unknown error occurred while fetching ${this.collectionName}`);
+    }
+  };
+
+  /**
+   * Fetches a entity by their id.
+   * @param id - entity's unique identifier
+   * @returns entity data
+   */
+  getById = async (id: string): Promise<T> => {
+    try {
+      logger.info(`[${this.collectionName} Service] Fetching ${this.collectionName} with id: ${id}`);
+      const data = await this.baseRepository.getById(id);
+
+      if (!data) {
+        logger.warn(`[${this.collectionName} Service] ${this.collectionName} with id ${id} not found`);
+        throw createHttpError(StatusCodes.BAD_REQUEST, `${this.collectionName} not found`, {
+          resource: this.collectionName,
+        });
+      }
+
+      return data;
+    } catch (error) {
+      if (createHttpError.isHttpError(error)) {
+        throw error;
+      }
+      if (error instanceof Error) {
+        logger.warn(`[${this.collectionName} Service] Error fetching ${this.collectionName} by id`, {
+          id,
+          error: error.message,
+        });
+        throw new Error(`Error fetching ${this.collectionName} by id: ${error.message}`);
+      }
+      logger.warn(
+        `[${this.collectionName} Service] Unknown error occurred while fetching ${this.collectionName} by id`,
+      );
+      throw new Error(`Unknown error occurred while fetching ${this.collectionName} by id`);
+    }
+  };
+
+  /**
+   * Fetches a entity by their UUID.
+   * @param uuid - entity's unique identifier
+   * @returns entity data
+   */
+  getByUuid = async (uuid: string): Promise<T> => {
+    try {
+      logger.info(`[${this.collectionName} Service] Fetching ${this.collectionName} with uuid: ${uuid}`);
+      const data = await this.baseRepository.getByUuid(uuid);
+
+      if (!data) {
+        logger.warn(`[${this.collectionName} Service] ${this.collectionName} with uuid ${uuid} not found`);
+        throw createHttpError(StatusCodes.BAD_REQUEST, `${this.collectionName} not found`, {
+          resource: this.collectionName,
+        });
+      }
+
+      return data;
+    } catch (error) {
+      if (createHttpError.isHttpError(error)) {
+        throw error;
+      }
+      if (error instanceof Error) {
+        logger.warn(`[${this.collectionName} Service] Error fetching ${this.collectionName} by uuid`, {
+          uuid,
+          error: error.message,
+        });
+        throw new Error(`Error fetching ${this.collectionName} by uuid: ${error.message}`);
+      }
+      logger.warn(
+        `[${this.collectionName} Service] Unknown error occurred while fetching ${this.collectionName} by uuid`,
+      );
+      throw new Error(`Unknown error occurred while fetching ${this.collectionName} by uuid`);
+    }
+  };
+
+  /**
+   * Fetches a entity by their email.
+   * @param email - entity's email
+   * @returns entity data or false if not found
+   */
+  getByEmail = async (email: string): Promise<T | false> => {
+    try {
+      logger.info(`[${this.collectionName} Service] Fetching ${this.collectionName} with email: ${email}`);
+      const data = await this.baseRepository.getByEmail(email);
+
+      if (!data) {
+        logger.warn(`[${this.collectionName} Service] ${this.collectionName} with email ${email} not found`);
+        return false;
+      }
+
+      return data;
+    } catch (error) {
+      if (createHttpError.isHttpError(error)) {
+        throw error;
+      }
+      if (error instanceof Error) {
+        logger.warn(`[${this.collectionName} Service] Error fetching ${this.collectionName} by email`, {
+          email,
+          error: error.message,
+        });
+        throw new Error(`Error fetching ${this.collectionName} by email: ${error.message}`);
+      }
+      logger.warn(
+        `[${this.collectionName} Service] Unknown error occurred while fetching ${this.collectionName} by email`,
+      );
+      throw new Error(`Unknown error occurred while fetching ${this.collectionName} by email`);
+    }
+  };
+
+  /**
+   * Finds entities based on query parameters.
+   * @param options - Query parameters like pagination, sorting, and filtering
+   * @returns Paginated entity data
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  findByQuery = async (options: FindByQueryDto): Promise<any> => {
+    try {
+      logger.info(
+        `[${this.collectionName} Service] Querying ${this.collectionName} with options: ${JSON.stringify(options)}`,
+      );
+      return await this.baseRepository.findByQuery(options);
+    } catch (error) {
+      logger.warn(`[${this.collectionName} Service] Error querying ${this.collectionName}`, {
+        options,
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+      throw new Error(`Error querying ${this.collectionName}`);
+    }
+  };
+
+  /**
+   * Creates a new entity.
+   * @param createDto - Data for creating a new entity
+   * @returns Created entity data
+   */
+  create = async (createDto: TCreateDto): Promise<T> => {
+    try {
+      logger.info(
+        `[${this.collectionName} Service] Creating ${this.collectionName} ${createDto}`,
+      );
+      return await this.baseRepository.create(createDto);
+    } catch (error) {
+      if (createHttpError.isHttpError(error)) {
+        throw error;
+      }
+
+      if (error instanceof Error) {
+        logger.warn(`[${this.collectionName} Service] Error creating ${this.collectionName}`, {
+          createDto,
+          error: error.message,
+        });
+        throw new Error(`Error creating ${this.collectionName}: ${error.message}`);
+      }
+      logger.warn(
+        `[${this.collectionName} Service] Unknown error occurred while creating ${this.collectionName}`,
+      );
+      throw new Error(`Unknown error occurred while creating ${this.collectionName}`);
+    }
+  };
+
+  /**
+   * Updates an existing entity.
+   * @param uuid - entity's unique identifier
+   * @param updateDto - Data to update the entity with
+   * @returns Updated entity data
+   */
+  update = async (uuid: string, updateDto: TUpdateDto): Promise<T | null> => {
+    try {
+      logger.info(`[${this.collectionName} Service] Updating ${this.collectionName} with uuid: ${uuid}`);
+      const data = await this.getByUuid(uuid);
+
+      if (!data) {
+        logger.warn(`[${this.collectionName} Service] ${this.collectionName} with uuid ${uuid} does not exist!`);
+        throw createHttpError(StatusCodes.BAD_REQUEST, `${this.collectionName} does not exist!`, {
+          resource: this.collectionName,
+        });
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return await this.baseRepository.update(uuid, updateDto);
+    } catch (error) {
+      if (createHttpError.isHttpError(error)) {
+        throw error;
+      }
+
+      if (error instanceof Error) {
+        logger.warn(`[${this.collectionName} Service] Error updating ${this.collectionName}`, {
+          uuid,
+          updateDto,
+          error: error.message,
+        });
+        throw new Error(`Error updating ${this.collectionName}: ${error.message}`);
+      }
+      logger.warn(
+        `[${this.collectionName} Service] Unknown error occurred while updating ${this.collectionName}`,
+      );
+      throw new Error(`Unknown error occurred while updating ${this.collectionName}`);
+    }
+  };
+
+  /**
+   * Deletes a entity.
+   * @param uuid - entity's unique identifier
+   * @returns Deletion result
+   */
+  delete = async (uuid: string): Promise<T | null> => {
+    try {
+      logger.info(`[${this.collectionName} Service] Deleting ${this.collectionName} with uuid: ${uuid}`);
+      const data = await this.getByUuid(uuid);
+
+      if (!data) {
+        logger.warn(`[${this.collectionName} Service] ${this.collectionName} with uuid ${uuid} does not exist!`);
+        throw createHttpError(StatusCodes.BAD_REQUEST, `${this.collectionName} does not exist!`, {
+          resource: this.collectionName,
+        });
+      }
+
+      return await this.baseRepository.delete(uuid);
+    } catch (error) {
+      if (createHttpError.isHttpError(error)) {
+        throw error;
+      }
+
+      if (error instanceof Error) {
+        logger.warn(`[${this.collectionName} Service] Error deleting ${this.collectionName}`, {
+          uuid,
+          error: error.message,
+        });
+        throw new Error(`Error deleting ${this.collectionName}: ${error.message}`);
+      }
+      logger.warn(
+        `[${this.collectionName} Service] Unknown error occurred while deleting ${this.collectionName}`,
+      );
+      throw new Error(`Unknown error occurred while deleting ${this.collectionName}`);
+    }
+  };
+
+  /**
+   * Deletes multiple entities by their uuids.
+   * @param uuids - List of entity uuids to delete
+   * @returns Deletion result
+   */
+  deleteAll = async (uuids: string[]): Promise<{ deletedCount: number }> => {
+    if (!Array.isArray(uuids) || uuids.length === 0) {
+      logger.warn(`[${this.collectionName} Service] Invalid array of uuids for bulk delete`);
+      throw new Error("Invalid array of uuids");
+    }
+
+    const result = await this.baseRepository.deleteAll(uuids);
+
+    if (result.deletedCount === 0) {
+      logger.warn(`[${this.collectionName} Service] No ${this.collectionName} found to delete`, { uuids });
+      throw new Error(`No ${this.collectionName} found to delete`);
+    }
+
+    return result;
+  };
+
+  /**
+   * Import entities.
+   * @param importDto - Data for creating entities
+   * @param accountId - account id for creating entities
+   * @returns number of imported entities
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  import = async (importDto: TCreateDto[]): Promise<any> => {
+    try {
+      logger.info(`[${this.collectionName} Service] Starting import ${this.collectionName}`);
+
+      const imported = await this.baseRepository.import(importDto);
+
+      logger.info(
+        `[${this.collectionName} Service] ${imported.createdCount} completed, ${imported.skippedCount} skipped for ${this.collectionName}`,
+      );
+
+      return imported;
+    } catch (error) {
+      if (createHttpError.isHttpError(error)) {
+        throw error;
+      }
+
+      if (error instanceof Error) {
+        logger.warn(`[${this.collectionName} Service] Error creating ${this.collectionName}`, {
+          importDto,
+          error: error.message,
+        });
+        throw new Error(`Error creating ${this.collectionName}: ${error.message}`);
+      }
+      logger.warn(
+        `[${this.collectionName} Service] Unknown error occurred while creating ${this.collectionName}`,
+      );
+      throw new Error(`Unknown error occurred while creating ${this.collectionName}`);
+    }
+  };
+
+  /**
+   * Export entities from the database.
+   * @returns csv of entities
+   */
+  export = async (): Promise<string> => {
+    try {
+      logger.info(`[${this.collectionName} Service] Fetching all ${this.collectionName}`);
+      const data = await this.baseRepository.getAll();
+
+      if (data.length === 0) {
+        throw createHttpError(StatusCodes.NOT_FOUND, `No ${this.collectionName} found to export`);
+      }
+
+      const csv = await parseAsync(data);
+
+      return csv;
+    } catch (error) {
+      if (error instanceof Error) {
+        logger.warn(`[${this.collectionName} Service] Error fetching all ${this.collectionName}`, {
+          error: error.message,
+        });
+        throw new Error(`Error fetching ${this.collectionName}: ${error.message}`);
+      }
+      logger.warn(
+        `[${this.collectionName} Service] Unknown error occurred while fetching all ${this.collectionName}`,
+      );
+      throw new Error(`Unknown error occurred while fetching ${this.collectionName}`);
+    }
+  };
+}
+
+
+File: src/common/base/base.controller.ts
+--------------------------------------------------
+Content of src/common/base/base.controller.ts:
+import { NextFunction, Response } from "express";
+import { BaseService } from "@/common/base/base.services";
+import { CustomRequest } from "@/types/request";
+import { logger } from "../winston/winston";
+import { StatusCodes } from "http-status-codes";
+import createHttpError from "http-errors";
+import { csvBufferToJson, csvToJson } from "@/utils/csv-to-json";
+import { Model } from "mongoose";
+import { createResponse } from "@/utils/create-response";
+
+export class BaseController<T, TCreateDto, TUpdateDto> {
+    public collectionName: string;
+    protected baseService: BaseService<T, TCreateDto, TUpdateDto>;
+
+    constructor(model: Model<T>, collectionName: string) {
+        this.collectionName = collectionName;
+        this.baseService = new BaseService<T, TCreateDto, TUpdateDto>(model, collectionName);
+    }
+
+    /**
+     * Get all entities objects
+     * @param _req - CustomRequest object
+     * @param res - Response object
+     * @param next - Next middleware function
+     * @returns JSON list of entities
+     */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    getAll = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
+        try {
+            logger.info(`[${this.collectionName} Controller] Fetching all ${this.collectionName}`);
+            const data = await this.baseService.getAll();
+
+            return res.json(createResponse(req, data));
+        } catch (error) {
+            if (error instanceof Error) {
+                logger.warn(`[${this.collectionName} Controller] Error fetching all ${this.collectionName}`, {
+                    error: error.message,
+                });
+            }
+            next(error);
+        }
+    };
+
+    /**
+     * Get entity by ID
+     * @param req - CustomRequest object
+     * @param res - Response object
+     * @param next - Next middleware function
+     * @returns JSON entity object
+     */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    getById = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
+        const { id } = req.params;
+        const { loggedUser } = req;
+        try {
+            logger.info(`[${this.collectionName} Controller] Fetching ${this.collectionName} by ID`, { loggedUser, id });
+            const data = await this.baseService.getById(id);
+            return res.json(createResponse(req, data));
+        } catch (error) {
+            if (error instanceof Error) {
+                logger.warn(`[${this.collectionName} Controller] Error fetching ${this.collectionName} by ID`, {
+                    error: error.message,
+                    loggedUser,
+                    id,
+                });
+            }
+            next(error);
+        }
+    };
+
+    /**
+     * Get entity by ID
+     * @param req - CustomRequest object
+     * @param res - Response object
+     * @param next - Next middleware function
+     * @returns JSON entity object
+     */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    getByUuid = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
+        const { uuid } = req.params;
+        const { loggedUser } = req;
+        try {
+            logger.info(`[${this.collectionName} Controller] Fetching ${this.collectionName} by uuid`, {
+                loggedUser,
+                uuid,
+            });
+            const data = await this.baseService.getByUuid(uuid);
+            return res.json(createResponse(req, data));
+        } catch (error) {
+            if (error instanceof Error) {
+                logger.warn(`[${this.collectionName} Controller] Error fetching ${this.collectionName} by uuid`, {
+                    error: error.message,
+                    loggedUser,
+                    uuid,
+                });
+            }
+            next(error);
+        }
+    };
+
+    /**
+     * Get entity by email
+     * @param req - CustomRequest object
+     * @param res - Response object
+     * @param next - Next middleware function
+     * @returns JSON entity object
+     */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    getByEmail = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
+        const { email } = req.params;
+        const { loggedUser } = req;
+        try {
+            logger.info(`[${this.collectionName} Controller] Fetching ${this.collectionName} by email`, {
+                loggedUser,
+                email,
+            });
+            const data = await this.baseService.getByEmail(email);
+            return res.json(createResponse(req, data));
+        } catch (error) {
+            if (error instanceof Error) {
+                logger.warn(`[${this.collectionName} Controller] Error fetching ${this.collectionName} by email`, {
+                    error: error.message,
+                    loggedUser,
+                    email,
+                });
+            }
+            next(error);
+        }
+    };
+
+    /**
+     * Find entities by query (pagination, sorting, filtering)
+     * @param req - CustomRequest object
+     * @param res - Response object
+     * @param next - Next middleware function
+     * @returns JSON result of the query
+     */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    findByQuery = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
+        try {
+            const { paginate, orderBy, filter } = req.body;
+            const queryOptions = { paginate, orderBy, filter };
+            logger.info(`[${this.collectionName} Controller] Finding ${this.collectionName} by query`, { queryOptions });
+
+            const result = await this.baseService.findByQuery(queryOptions);
+            return res.json(createResponse(req, result));
+        } catch (error) {
+            if (error instanceof Error) {
+                logger.warn(`[${this.collectionName} Controller] Error finding ${this.collectionName} by query`, {
+                    error: error.message,
+                });
+            }
+            next(error);
+        }
+    };
+
+    /**
+     * Create a new entity
+     * @param req - CustomRequest object
+     * @param res - Response object
+     * @param next - Next middleware function
+     * @returns JSON created entity
+     */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    create = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
+        const createDto = req.body;
+        const { loggedUser } = req;
+        try {
+            logger.info(`[${this.collectionName} Controller] Creating new ${this.collectionName}`, {
+                loggedUser,
+                createDto,
+            });
+            const created = await this.baseService.create(createDto);
+            return res.json(
+                createResponse(req, created, "User created successfully", StatusCodes.CREATED),
+            );
+        } catch (error) {
+            if (error instanceof Error) {
+                logger.warn(`[${this.collectionName} Controller] Error creating ${this.collectionName}`, {
+                    error: error.message,
+                    loggedUser,
+                    createDto,
+                });
+            }
+            next(error);
+        }
+    };
+
+    /**
+     * Update an existing entity
+     * @param req - CustomRequest object
+     * @param res - Response object
+     * @param next - Next middleware function
+     * @returns JSON updated entity
+     */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    update = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
+        const { uuid } = req.params;
+        const updateDto = req.body;
+        const { loggedUser } = req;
+        try {
+            logger.info(`[${this.collectionName} Controller] Updating ${this.collectionName}`, {
+                loggedUser,
+                uuid,
+                updateDto,
+            });
+            const updatedData = await this.baseService.update(uuid, updateDto);
+            return res.json(createResponse(req, updatedData, "User updated successfully"));
+        } catch (error) {
+            if (error instanceof Error) {
+                logger.warn(`[${this.collectionName} Controller] Error updating ${this.collectionName}`, {
+                    error: error.message,
+                    loggedUser,
+                    uuid,
+                    updateDto,
+                });
+            }
+            next(error);
+        }
+    };
+
+    /**
+     * Delete a entity by ID
+     * @param req - CustomRequest object
+     * @param res - Response object
+     * @param next - Next middleware function
+     * @returns JSON success message
+     */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    delete = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
+        const { uuid } = req.params;
+        const { loggedUser } = req;
+        try {
+            logger.info(`[${this.collectionName} Controller] Deleting ${this.collectionName} by uuid`, {
+                loggedUser,
+                uuid,
+            });
+            await this.baseService.delete(uuid);
+            return res.json(createResponse(req, {}, "User deleted Successfully"));
+        } catch (error) {
+            if (error instanceof Error) {
+                logger.warn(`[${this.collectionName} Controller] Error deleting ${this.collectionName}`, {
+                    error: error.message,
+                    loggedUser,
+                    uuid,
+                });
+            }
+            next(error);
+        }
+    };
+
+    /**
+     * Delete multiple entities
+     * @param req - CustomRequest object
+     * @param res - Response object
+     * @param next - Next middleware function
+     * @returns JSON success message
+     */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    deleteAll = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
+        const { uuids } = req.body;
+        const { loggedUser } = req;
+        try {
+            if (!Array.isArray(uuids) || uuids.length === 0) {
+                throw createHttpError(StatusCodes.BAD_REQUEST, "Invalid or empty array of uuids", {
+                    resource: this.collectionName,
+                });
+            }
+
+            logger.info(`[${this.collectionName} Controller] Deleting multiple ${this.collectionName}`, {
+                loggedUser,
+                uuids,
+            });
+            const result = await this.baseService.deleteAll(uuids);
+
+            return res.json(
+                createResponse(
+                    req,
+                    {},
+                    `${result.deletedCount} ${this.collectionName} deleted successfully`,
+                ),
+            );
+        } catch (error) {
+            if (error instanceof Error) {
+                logger.warn(`[${this.collectionName} Controller] Error deleting ${this.collectionName}`, {
+                    error: error.message,
+                    loggedUser,
+                    uuids,
+                });
+            }
+            next(error);
+        }
+    };
+
+    /**
+     * Import entities
+     * @param req - CustomRequest object
+     * @param res - Response object
+     * @param next - Next middleware function
+     * @returns JSON created entity
+     */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    import = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
+        const { loggedUser, file } = req;
+        if (!file) {
+            return next(createHttpError(StatusCodes.BAD_REQUEST, "No file uploaded."));
+        }
+        try {
+            logger.info(`[${this.collectionName} Controller] Importing new ${this.collectionName}`, { loggedUser });
+            let importEntries;
+
+            if (file.buffer) {
+                importEntries = await csvBufferToJson(file.buffer);
+            } else {
+                importEntries = await csvToJson(file.path);
+            }
+
+            const imported = await this.baseService.import(importEntries);
+
+            return res.json(
+                createResponse(
+                    req,
+                    imported.createdEntities,
+                    `${imported.createdCount} completed, ${imported.skippedCount} skipped`,
+                ),
+            );
+        } catch (error) {
+            if (error instanceof Error) {
+                logger.warn(`[${this.collectionName} Controller] Error creating ${this.collectionName}`, {
+                    error: error.message,
+                    loggedUser,
+                });
+            }
+            next(error);
+        }
+    };
+
+    /**
+     * Export entities
+     * @param _req - CustomRequest object
+     * @param res - Response object
+     * @param next - Next middleware function
+     * @returns JSON list of entities
+     */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    export = async (_req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
+        try {
+            logger.info(`[${this.collectionName} Controller] Exporting ${this.collectionName}`);
+            const csv = await this.baseService.export();
+            res.setHeader("Content-Type", "text/csv");
+            res.attachment(`${this.collectionName}.csv`);
+            res.send(csv);
+        } catch (error) {
+            if (error instanceof Error) {
+                logger.warn(`[${this.collectionName} Controller] Error exporting ${this.collectionName}`, {
+                    error: error.message,
+                });
+            }
+            next(error);
+        }
+    };
+}
 
 File: src/common/winston/winston.ts
 --------------------------------------------------
@@ -3367,12 +4047,12 @@ import { logger } from "@/common/winston/winston";
 import { CustomRequest } from "@/types/request";
 
 export class AuthController {
-  private logFileName: string;
+  private collectionName: string;
   private authService: AuthService;
 
   constructor() {
-    this.logFileName = "[Auth Controller]";
-    this.authService = new AuthService("[Auth Service]");
+    this.collectionName = "Auth";
+    this.authService = new AuthService("Auth");
   }
 
   /**
@@ -3384,24 +4064,24 @@ export class AuthController {
   login = async (req: CustomRequest, res: Response, next: NextFunction): Promise<void> => {
     const loginDto: AuthDto = req.body;
     const { loggedUser } = req;
-    logger.info(`${this.logFileName} login API invoked`, { email: loginDto.email, loggedUser });
+    logger.info(`[${this.collectionName} Controller] login API invoked`, { email: loginDto.email, loggedUser });
 
     try {
       const result = await this.authService.login(loginDto);
-      logger.info(`${this.logFileName} User login successful`, {
+      logger.info(`[${this.collectionName} Controller] User login successful`, {
         email: loginDto.email,
         loggedUser,
       });
       res.json(result);
     } catch (error) {
       if (error instanceof Error) {
-        logger.warn(`${this.logFileName} login API error`, {
+        logger.warn(`[${this.collectionName} Controller] login API error`, {
           email: loginDto.email,
           error: error.message,
           loggedUser,
         });
       } else {
-        logger.warn(`${this.logFileName} login API error: Unknown error occurred`, { loggedUser });
+        logger.warn(`[${this.collectionName} Controller] login API error: Unknown error occurred`, { loggedUser });
       }
       next(error);
     }
@@ -3416,27 +4096,27 @@ export class AuthController {
   register = async (req: CustomRequest, res: Response, next: NextFunction): Promise<void> => {
     const registerDto: RegisterDto = req.body;
     const { loggedUser } = req;
-    logger.info(`${this.logFileName} Register API invoked`, {
+    logger.info(`[${this.collectionName} Controller] Register API invoked`, {
       email: registerDto.email,
       loggedUser,
     });
 
     try {
       const result = await this.authService.register(registerDto);
-      logger.info(`${this.logFileName} User registration successful`, {
+      logger.info(`[${this.collectionName} Controller] User registration successful`, {
         email: registerDto.email,
         loggedUser,
       });
       res.json(result);
     } catch (error) {
       if (error instanceof Error) {
-        logger.warn(`${this.logFileName} Register API error`, {
+        logger.warn(`[${this.collectionName} Controller] Register API error`, {
           email: registerDto.email,
           error: error.message,
           loggedUser,
         });
       } else {
-        logger.warn(`${this.logFileName} Register API error: Unknown error occurred`, {
+        logger.warn(`[${this.collectionName} Controller] Register API error: Unknown error occurred`, {
           loggedUser,
         });
       }
@@ -3453,21 +4133,21 @@ export class AuthController {
   logout = async (req: CustomRequest, res: Response, next: NextFunction): Promise<void> => {
     const token = req.headers.authorization?.split(" ")[1];
     const { loggedUser } = req;
-    logger.info(`${this.logFileName} Logout API invoked`, { token, loggedUser });
+    logger.info(`[${this.collectionName} Controller] Logout API invoked`, { token, loggedUser });
 
     try {
       const result = await this.authService.logout(token!);
-      logger.info(`${this.logFileName} User logout successful`, { token, loggedUser });
+      logger.info(`[${this.collectionName} Controller] User logout successful`, { token, loggedUser });
       res.json(result);
     } catch (error) {
       if (error instanceof Error) {
-        logger.warn(`${this.logFileName} Logout API error`, {
+        logger.warn(`[${this.collectionName} Controller] Logout API error`, {
           token,
           error: error.message,
           loggedUser,
         });
       } else {
-        logger.warn(`${this.logFileName} Logout API error: Unknown error occurred`, { loggedUser });
+        logger.warn(`[${this.collectionName} Controller] Logout API error: Unknown error occurred`, { loggedUser });
       }
       next(error);
     }
@@ -3482,21 +4162,21 @@ export class AuthController {
   extendToken = async (req: CustomRequest, res: Response, next: NextFunction): Promise<void> => {
     const token = req.headers.authorization?.split(" ")[1];
     const { loggedUser } = req;
-    logger.info(`${this.logFileName} ExtendToken API invoked`, { token, loggedUser });
+    logger.info(`[${this.collectionName} Controller] ExtendToken API invoked`, { token, loggedUser });
 
     try {
       const newToken = await this.authService.extendToken(token!);
-      logger.info(`${this.logFileName} Token extended successfully`, { newToken, loggedUser });
+      logger.info(`[${this.collectionName} Controller] Token extended successfully`, { newToken, loggedUser });
       res.json({ token: newToken });
     } catch (error) {
       if (error instanceof Error) {
-        logger.warn(`${this.logFileName} ExtendToken API error`, {
+        logger.warn(`[${this.collectionName} Controller] ExtendToken API error`, {
           token,
           error: error.message,
           loggedUser,
         });
       } else {
-        logger.warn(`${this.logFileName} ExtendToken API error: Unknown error occurred`, {
+        logger.warn(`[${this.collectionName} Controller] ExtendToken API error: Unknown error occurred`, {
           loggedUser,
         });
       }
@@ -3513,24 +4193,24 @@ export class AuthController {
   forgotPassword = async (req: CustomRequest, res: Response, next: NextFunction): Promise<void> => {
     const { email } = req.body;
     const { loggedUser } = req;
-    logger.info(`${this.logFileName} Forgot password API invoked`, { email, loggedUser });
+    logger.info(`[${this.collectionName} Controller] Forgot password API invoked`, { email, loggedUser });
 
     try {
       const message = await this.authService.forgotPassword(email);
-      logger.info(`${this.logFileName} Forgot password successful`, {
+      logger.info(`[${this.collectionName} Controller] Forgot password successful`, {
         email,
         loggedUser,
       });
       res.json(message);
     } catch (error) {
       if (error instanceof Error) {
-        logger.warn(`${this.logFileName} Forgot password API error`, {
+        logger.warn(`[${this.collectionName} Controller] Forgot password API error`, {
           email,
           error: error.message,
           loggedUser,
         });
       } else {
-        logger.warn(`${this.logFileName} Forgot password API error: Unknown error occurred`, {
+        logger.warn(`[${this.collectionName} Controller] Forgot password API error: Unknown error occurred`, {
           loggedUser,
         });
       }
@@ -3547,7 +4227,7 @@ export class AuthController {
   resetPassword = async (req: CustomRequest, res: Response, next: NextFunction): Promise<void> => {
     const { resetToken, password, confirmPassword } = req.body;
     const { loggedUser } = req;
-    logger.info(`${this.logFileName} Reset password API invoked`, { resetToken, loggedUser });
+    logger.info(`[${this.collectionName} Controller] Reset password API invoked`, { resetToken, loggedUser });
 
     const resetPasswordDto: ResetPasswordDto = {
       password: password as string,
@@ -3556,20 +4236,20 @@ export class AuthController {
     };
     try {
       const message = await this.authService.resetPassword(resetPasswordDto);
-      logger.info(`${this.logFileName} Reset password successful`, {
+      logger.info(`[${this.collectionName} Controller] Reset password successful`, {
         resetToken,
         loggedUser,
       });
       res.json(message);
     } catch (error) {
       if (error instanceof Error) {
-        logger.warn(`${this.logFileName} Reset password API error`, {
+        logger.warn(`[${this.collectionName} Controller] Reset password API error`, {
           resetToken,
           error: error.message,
           loggedUser,
         });
       } else {
-        logger.warn(`${this.logFileName} Reset password API error: Unknown error occurred`, {
+        logger.warn(`[${this.collectionName} Controller] Reset password API error: Unknown error occurred`, {
           loggedUser,
         });
       }
@@ -3811,22 +4491,20 @@ import createHttpError from "http-errors";
 import { StatusCodes } from "http-status-codes";
 import { UsersService } from "@/entities/users/users.service";
 import { sendMail } from "@/common/mail-sender/mail-sender";
-import { GenericRepository } from "@/common/repository/repository";
+import { BaseRepository } from "@/common/base/base.repository";
 import { CreateUsersDto, UpdateUsersDto, UsersDto, UsersModel } from "../users/users.dto";
 import { env } from "@/config/env";
 import { createTemplate } from "@/template/create-template";
 
 export class AuthService {
   private collectionName: string;
-  private logFileName: string;
   private usersService: UsersService;
-  private usersRepository: GenericRepository<UsersDto, UpdateUsersDto, CreateUsersDto>;
+  private usersRepository: BaseRepository<UsersDto, UpdateUsersDto, CreateUsersDto>;
 
-  constructor(logFileName: string) {
-    this.collectionName = "user";
-    this.logFileName = logFileName;
-    this.usersService = new UsersService(this.collectionName, `[${this.collectionName} Service]`);
-    this.usersRepository = new GenericRepository(UsersModel, `[${this.collectionName} Repository]`);
+  constructor(collectionName: string) {
+    this.collectionName = collectionName;
+    this.usersService = new UsersService(UsersModel, "Users");
+    this.usersRepository = new BaseRepository(UsersModel, "Users");
   }
 
   /**
@@ -3836,13 +4514,13 @@ export class AuthService {
    * @throws HTTP error if user not found or password is invalid.
    */
   login = async (authData: AuthDto) => {
-    logger.info(`${this.logFileName} login service invoked`, { email: authData.email });
+    logger.info(`[${this.collectionName} Service] login service invoked`, { email: authData.email });
 
     try {
       const user = await this.usersService.getByEmail(authData.email);
 
       if (!user) {
-        logger.warn(`${this.logFileName} ${this.collectionName} not found during login`, {
+        logger.warn(`[${this.collectionName} Service] ${this.collectionName} not found during login`, {
           email: authData.email,
         });
         throw createHttpError(StatusCodes.BAD_REQUEST, `${this.collectionName} does not exist!`, {
@@ -3851,7 +4529,7 @@ export class AuthService {
       }
 
       if (!(await compare(authData.password, user.password as string))) {
-        logger.warn(`${this.logFileName} Invalid password during login`, {
+        logger.warn(`[${this.collectionName} Service] Invalid password during login`, {
           email: authData.email,
         });
         throw createHttpError(StatusCodes.BAD_REQUEST, "Invalid email or password", {
@@ -3866,7 +4544,7 @@ export class AuthService {
         email: user.email,
       });
 
-      logger.info(`${this.logFileName} Token received successfully`, { email: authData.email });
+      logger.info(`[${this.collectionName} Service] Token received successfully`, { email: authData.email });
       return { user, token };
     } catch (error) {
       if (createHttpError.isHttpError(error)) {
@@ -3874,13 +4552,13 @@ export class AuthService {
       }
 
       if (error instanceof Error) {
-        logger.warn(`${this.logFileName} Error during login`, {
+        logger.warn(`[${this.collectionName} Service] Error during login`, {
           error: error.message,
           email: authData.email,
         });
         throw new Error(`Error while login: ${error.message}`);
       }
-      logger.warn(`${this.logFileName} Unknown error during login`, { email: authData.email });
+      logger.warn(`[${this.collectionName} Service] Unknown error during login`, { email: authData.email });
       throw new Error("Unknown error occurred while login");
     }
   };
@@ -3892,14 +4570,14 @@ export class AuthService {
    * @throws HTTP error if user already exists.
    */
   register = async (registerDto: RegisterDto) => {
-    logger.info(`${this.logFileName} Register service invoked`, { email: registerDto.email });
+    logger.info(`[${this.collectionName} Service] Register service invoked`, { email: registerDto.email });
 
     try {
       const user = await this.usersService.getByEmail(registerDto.email);
 
       if (user) {
         logger.warn(
-          `${this.logFileName} ${this.collectionName} already exists during registration`,
+          `[${this.collectionName} Service] ${this.collectionName} already exists during registration`,
           {
             email: registerDto.email,
           },
@@ -3913,7 +4591,7 @@ export class AuthService {
 
       const login = await this.login(registerDto);
 
-      logger.info(`${this.logFileName} ${this.collectionName} registered successfully`, {
+      logger.info(`[${this.collectionName} Service] ${this.collectionName} registered successfully`, {
         email: registerDto.email,
       });
       return login;
@@ -3923,16 +4601,16 @@ export class AuthService {
       }
 
       if (error instanceof Error) {
-        logger.warn(`${this.logFileName} Error during registration`, {
+        logger.warn(`[${this.collectionName} Service] Error during registration`, {
           error: error.message,
           email: registerDto.email,
         });
-        throw new Error(`${this.logFileName} Error while login: ${error.message}`);
+        throw new Error(`[${this.collectionName} Service] Error while login: ${error.message}`);
       }
-      logger.warn(`${this.logFileName} Unknown error during registration`, {
+      logger.warn(`[${this.collectionName} Service] Unknown error during registration`, {
         email: registerDto.email,
       });
-      throw new Error(`${this.logFileName} Unknown error occurred while login`);
+      throw new Error(`[${this.collectionName} Service] Unknown error occurred while login`);
     }
   };
 
@@ -3943,7 +4621,7 @@ export class AuthService {
    * @throws Error if token extension fails.
    */
   extendToken = async (token: string) => {
-    logger.info(`${this.logFileName} Extend token service invoked`, { token });
+    logger.info(`[${this.collectionName} Service] Extend token service invoked`, { token });
 
     try {
       const payload = verifyToken(token);
@@ -3953,15 +4631,15 @@ export class AuthService {
         name: payload.name,
         email: payload.email,
       });
-      logger.info(`${this.logFileName} Token extended successfully`, { newToken });
+      logger.info(`[${this.collectionName} Service] Token extended successfully`, { newToken });
       return newToken;
     } catch (error) {
       if (error instanceof Error) {
-        logger.warn(`${this.logFileName} Error extending token`, { error: error.message, token });
-        throw new Error(`${this.logFileName} Error extend token: ${error.message}`);
+        logger.warn(`[${this.collectionName} Service] Error extending token`, { error: error.message, token });
+        throw new Error(`[${this.collectionName} Service] Error extend token: ${error.message}`);
       }
-      logger.warn(`${this.logFileName} Unknown error while extending token`, { token });
-      throw new Error(`${this.logFileName} Unknown error occurred while extend token`);
+      logger.warn(`[${this.collectionName} Service] Unknown error while extending token`, { token });
+      throw new Error(`[${this.collectionName} Service] Unknown error occurred while extend token`);
     }
   };
 
@@ -3972,16 +4650,16 @@ export class AuthService {
    * @throws Error if logout fails.
    */
   logout = async (token: string) => {
-    logger.info(`${this.logFileName} Logout service invoked`, { token });
+    logger.info(`[${this.collectionName} Service] Logout service invoked`, { token });
 
     try {
       return { token, success: true };
     } catch (error) {
       if (error instanceof Error) {
-        logger.warn(`${this.logFileName} Error during logout`, { error: error.message, token });
+        logger.warn(`[${this.collectionName} Service] Error during logout`, { error: error.message, token });
         throw new Error(`Error logout: ${error.message}`);
       }
-      logger.warn(`${this.logFileName} Unknown error during logout`, { token });
+      logger.warn(`[${this.collectionName} Service] Unknown error during logout`, { token });
       throw new Error("Unknown error occurred while logout");
     }
   };
@@ -3993,13 +4671,13 @@ export class AuthService {
    * @throws HTTP error if any error occur.
    */
   forgotPassword = async (email: string) => {
-    logger.info(`${this.logFileName} Forgot password service invoked`, { email });
+    logger.info(`[${this.collectionName} Service] Forgot password service invoked`, { email });
 
     try {
       const user = await this.usersService.getByEmail(email);
 
       if (!user) {
-        logger.warn(`${this.logFileName} ${this.collectionName} does not exists!`, {
+        logger.warn(`[${this.collectionName} Service] ${this.collectionName} does not exists!`, {
           email,
         });
         throw createHttpError(StatusCodes.BAD_REQUEST, `${this.collectionName} does not exist!`, {
@@ -4036,7 +4714,7 @@ export class AuthService {
         throw new Error(`Error while sending email: ${error}`);
       }
 
-      logger.info(`${this.logFileName} Email reset link successfully sent`, { email, resetToken });
+      logger.info(`[${this.collectionName} Service] Email reset link successfully sent`, { email, resetToken });
       return { message: "Reset link sent. Check your inbox" };
     } catch (error) {
       if (createHttpError.isHttpError(error)) {
@@ -4044,21 +4722,21 @@ export class AuthService {
       }
 
       if (error instanceof Error) {
-        logger.warn(`${this.logFileName} Error during registration`, {
+        logger.warn(`[${this.collectionName} Service] Error during registration`, {
           error: error.message,
           email,
         });
-        throw new Error(`${this.logFileName} Error while forgot password: ${error.message}`);
+        throw new Error(`[${this.collectionName} Service] Error while forgot password: ${error.message}`);
       }
-      logger.warn(`${this.logFileName} Unknown error during registration`, {
+      logger.warn(`[${this.collectionName} Service] Unknown error during registration`, {
         email,
       });
-      throw new Error(`${this.logFileName} Unknown error occurred while forgot password`);
+      throw new Error(`[${this.collectionName} Service] Unknown error occurred while forgot password`);
     }
   };
 
   resetPassword = async (resetPasswordDto: ResetPasswordDto) => {
-    logger.info(`${this.logFileName} reset password service invoked`, {
+    logger.info(`[${this.collectionName} Service] reset password service invoked`, {
       resetToken: resetPasswordDto.resetToken,
     });
 
@@ -4066,7 +4744,7 @@ export class AuthService {
       const user = await this.usersRepository.getByField("resetToken", resetPasswordDto.resetToken);
 
       if (!user) {
-        logger.warn(`${this.logFileName} ${this.collectionName} does not exists!`, {
+        logger.warn(`[${this.collectionName} Service] ${this.collectionName} does not exists!`, {
           resetToken: resetPasswordDto.resetToken,
         });
         throw createHttpError(StatusCodes.BAD_REQUEST, `${this.collectionName} does not exist!`, {
@@ -4086,7 +4764,7 @@ export class AuthService {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
-      logger.info(`${this.logFileName} Password reset successful`, {
+      logger.info(`[${this.collectionName} Service] Password reset successful`, {
         resetToken: resetPasswordDto.resetToken,
       });
       return { message: "Password reset successful" };
@@ -4096,16 +4774,16 @@ export class AuthService {
       }
 
       if (error instanceof Error) {
-        logger.warn(`${this.logFileName} Error during registration`, {
+        logger.warn(`[${this.collectionName} Service] Error during registration`, {
           error: error.message,
           resetToken: resetPasswordDto.resetToken,
         });
-        throw new Error(`${this.logFileName} Error while reset password: ${error.message}`);
+        throw new Error(`[${this.collectionName} Service] Error while reset password: ${error.message}`);
       }
-      logger.warn(`${this.logFileName} Unknown error during registration`, {
+      logger.warn(`[${this.collectionName} Service] Unknown error during registration`, {
         resetToken: resetPasswordDto.resetToken,
       });
-      throw new Error(`${this.logFileName} Unknown error occurred while reset password`);
+      throw new Error(`[${this.collectionName} Service] Unknown error occurred while reset password`);
     }
   };
 }
@@ -4403,177 +5081,23 @@ export const UsersModel = model("Users", schema);
 File: src/entities/users/users.service.ts
 --------------------------------------------------
 Content of src/entities/users/users.service.ts:
-import { UsersModel, UsersDto, UpdateUsersDto, CreateUsersDto } from "@/entities/users/users.dto";
+import { UsersDto, UpdateUsersDto, CreateUsersDto } from "@/entities/users/users.dto";
 import { env } from "@/config/env";
 import { hash } from "bcrypt";
 import { v4 as uuidv4 } from "uuid";
-import { FindByQueryDto } from "@/schemas/find-by-query";
 import createHttpError from "http-errors";
 import { StatusCodes } from "http-status-codes";
 import { logger } from "@/common/winston/winston";
-import { parseAsync } from "json2csv";
-import { GenericRepository } from "@/common/repository/repository";
+import { BaseService } from "@/common/base/base.services";
+import { Model } from "mongoose";
 
-export class UsersService {
-  private usersRepository: GenericRepository<UsersDto, UpdateUsersDto, CreateUsersDto>;
-  private collectionName: string;
-  private logFileName: string;
+export class UsersService extends BaseService<UsersDto, CreateUsersDto, UpdateUsersDto> {
+  private collectionNameService: string;
 
-  constructor(collectionName: string, logFileName: string) {
-    this.usersRepository = new GenericRepository(UsersModel, `[${collectionName} Repository]`);
-    this.collectionName = collectionName;
-    this.logFileName = logFileName;
+  constructor(model: Model<UsersDto>, collectionName: string) {
+    super(model, collectionName);
+    this.collectionNameService = collectionName;
   }
-
-  /**
-   * Fetches all entities from the database.
-   * @returns Array of entities
-   */
-  getAll = async (): Promise<UsersDto[]> => {
-    try {
-      logger.info(`${this.logFileName} Fetching all ${this.collectionName}`);
-      const data = await this.usersRepository.getAll();
-      return data;
-    } catch (error) {
-      if (error instanceof Error) {
-        logger.warn(`${this.logFileName} Error fetching all ${this.collectionName}`, {
-          error: error.message,
-        });
-        throw new Error(`Error fetching ${this.collectionName}: ${error.message}`);
-      }
-      logger.warn(
-        `${this.logFileName} Unknown error occurred while fetching all ${this.collectionName}`,
-      );
-      throw new Error(`Unknown error occurred while fetching ${this.collectionName}`);
-    }
-  };
-
-  /**
-   * Fetches a entity by their id.
-   * @param id - entity's unique identifier
-   * @returns entity data
-   */
-  getById = async (id: string): Promise<UsersDto> => {
-    try {
-      logger.info(`${this.logFileName} Fetching ${this.collectionName} with id: ${id}`);
-      const data = await this.usersRepository.getById(id);
-
-      if (!data) {
-        logger.warn(`${this.logFileName} ${this.collectionName} with id ${id} not found`);
-        throw createHttpError(StatusCodes.BAD_REQUEST, `${this.collectionName} not found`, {
-          resource: this.collectionName,
-        });
-      }
-
-      return data;
-    } catch (error) {
-      if (createHttpError.isHttpError(error)) {
-        throw error;
-      }
-      if (error instanceof Error) {
-        logger.warn(`${this.logFileName} Error fetching ${this.collectionName} by id`, {
-          id,
-          error: error.message,
-        });
-        throw new Error(`Error fetching ${this.collectionName} by id: ${error.message}`);
-      }
-      logger.warn(
-        `${this.logFileName} Unknown error occurred while fetching ${this.collectionName} by id`,
-      );
-      throw new Error(`Unknown error occurred while fetching ${this.collectionName} by id`);
-    }
-  };
-
-  /**
-   * Fetches a entity by their UUID.
-   * @param uuid - entity's unique identifier
-   * @returns entity data
-   */
-  getByUuid = async (uuid: string): Promise<UsersDto> => {
-    try {
-      logger.info(`${this.logFileName} Fetching ${this.collectionName} with uuid: ${uuid}`);
-      const data = await this.usersRepository.getByUuid(uuid);
-
-      if (!data) {
-        logger.warn(`${this.logFileName} ${this.collectionName} with uuid ${uuid} not found`);
-        throw createHttpError(StatusCodes.BAD_REQUEST, `${this.collectionName} not found`, {
-          resource: this.collectionName,
-        });
-      }
-
-      return data;
-    } catch (error) {
-      if (createHttpError.isHttpError(error)) {
-        throw error;
-      }
-      if (error instanceof Error) {
-        logger.warn(`${this.logFileName} Error fetching ${this.collectionName} by uuid`, {
-          uuid,
-          error: error.message,
-        });
-        throw new Error(`Error fetching ${this.collectionName} by uuid: ${error.message}`);
-      }
-      logger.warn(
-        `${this.logFileName} Unknown error occurred while fetching ${this.collectionName} by uuid`,
-      );
-      throw new Error(`Unknown error occurred while fetching ${this.collectionName} by uuid`);
-    }
-  };
-
-  /**
-   * Fetches a entity by their email.
-   * @param email - entity's email
-   * @returns entity data or false if not found
-   */
-  getByEmail = async (email: string): Promise<UsersDto | false> => {
-    try {
-      logger.info(`${this.logFileName} Fetching ${this.collectionName} with email: ${email}`);
-      const data = await this.usersRepository.getByEmail(email);
-
-      if (!data) {
-        logger.warn(`${this.logFileName} ${this.collectionName} with email ${email} not found`);
-        return false;
-      }
-
-      return data;
-    } catch (error) {
-      if (createHttpError.isHttpError(error)) {
-        throw error;
-      }
-      if (error instanceof Error) {
-        logger.warn(`${this.logFileName} Error fetching ${this.collectionName} by email`, {
-          email,
-          error: error.message,
-        });
-        throw new Error(`Error fetching ${this.collectionName} by email: ${error.message}`);
-      }
-      logger.warn(
-        `${this.logFileName} Unknown error occurred while fetching ${this.collectionName} by email`,
-      );
-      throw new Error(`Unknown error occurred while fetching ${this.collectionName} by email`);
-    }
-  };
-
-  /**
-   * Finds entities based on query parameters.
-   * @param options - Query parameters like pagination, sorting, and filtering
-   * @returns Paginated entity data
-   */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  findByQuery = async (options: FindByQueryDto): Promise<any> => {
-    try {
-      logger.info(
-        `${this.logFileName} Querying ${this.collectionName} with options: ${JSON.stringify(options)}`,
-      );
-      return await this.usersRepository.findByQuery(options);
-    } catch (error) {
-      logger.warn(`${this.logFileName} Error querying ${this.collectionName}`, {
-        options,
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-      throw new Error(`Error querying ${this.collectionName}`);
-    }
-  };
 
   /**
    * Creates a new entity.
@@ -4583,23 +5107,23 @@ export class UsersService {
   create = async (createDto: CreateUsersDto): Promise<UsersDto> => {
     try {
       logger.info(
-        `${this.logFileName} Creating ${this.collectionName} with email: ${createDto.email}`,
+        `[${this.collectionNameService} Controller] Creating ${this.collectionNameService} with email: ${createDto.email}`,
       );
-      const data = await this.usersRepository.getByEmail(createDto.email);
-      const username = await this.usersRepository.getByUsername(createDto.username);
+      const data = await this.baseRepository.getByEmail(createDto.email);
+      const username = await this.baseRepository.getByUsername(createDto.username);
 
       if (data) {
         logger.warn(
-          `${this.logFileName} ${this.collectionName} with email ${createDto.email} already exists`,
+          `[${this.collectionNameService} Controller] ${this.collectionNameService} with email ${createDto.email} already exists`,
         );
-        throw createHttpError(StatusCodes.BAD_REQUEST, `${this.collectionName} already exists!`, {
-          resource: this.collectionName,
+        throw createHttpError(StatusCodes.BAD_REQUEST, `${this.collectionNameService} already exists!`, {
+          resource: this.collectionNameService,
         });
       }
 
       if (username) {
         logger.warn(
-          `${this.logFileName} ${this.collectionName} with username ${createDto.username} already exists.`,
+          `[${this.collectionNameService} Controller] ${this.collectionNameService} with username ${createDto.username} already exists.`,
         );
         throw createHttpError(StatusCodes.BAD_REQUEST, "username is taken!", {
           resource: "Users",
@@ -4616,23 +5140,23 @@ export class UsersService {
         updatedAt: currentTime,
       };
 
-      return await this.usersRepository.create(newDto);
+      return await this.baseRepository.create(newDto);
     } catch (error) {
       if (createHttpError.isHttpError(error)) {
         throw error;
       }
 
       if (error instanceof Error) {
-        logger.warn(`${this.logFileName} Error creating ${this.collectionName}`, {
+        logger.warn(`[${this.collectionNameService} Controller] Error creating ${this.collectionNameService}`, {
           createDto,
           error: error.message,
         });
-        throw new Error(`Error creating ${this.collectionName}: ${error.message}`);
+        throw new Error(`Error creating ${this.collectionNameService}: ${error.message}`);
       }
       logger.warn(
-        `${this.logFileName} Unknown error occurred while creating ${this.collectionName}`,
+        `[${this.collectionNameService} Controller] Unknown error occurred while creating ${this.collectionNameService}`,
       );
-      throw new Error(`Unknown error occurred while creating ${this.collectionName}`);
+      throw new Error(`Unknown error occurred while creating ${this.collectionNameService}`);
     }
   };
 
@@ -4644,36 +5168,36 @@ export class UsersService {
    */
   update = async (uuid: string, updateDto: UpdateUsersDto): Promise<UsersDto | null> => {
     try {
-      logger.info(`${this.logFileName} Updating ${this.collectionName} with uuid: ${uuid}`);
+      logger.info(`[${this.collectionNameService} Controller] Updating ${this.collectionNameService} with uuid: ${uuid}`);
       const data = await this.getByUuid(uuid);
 
       if (!data) {
-        logger.warn(`${this.logFileName} ${this.collectionName} with uuid ${uuid} does not exist!`);
-        throw createHttpError(StatusCodes.BAD_REQUEST, `${this.collectionName} does not exist!`, {
-          resource: this.collectionName,
+        logger.warn(`[${this.collectionNameService} Controller] ${this.collectionNameService} with uuid ${uuid} does not exist!`);
+        throw createHttpError(StatusCodes.BAD_REQUEST, `${this.collectionNameService} does not exist!`, {
+          resource: this.collectionNameService,
         });
       }
 
       if (updateDto.email) {
-        const email = await this.usersRepository.getByEmail(updateDto.email);
+        const email = await this.baseRepository.getByEmail(updateDto.email);
         if (email) {
           logger.warn(
-            `${this.logFileName} ${this.collectionName} with email ${updateDto.email} already exists`,
+            `[${this.collectionNameService} Controller] ${this.collectionNameService} with email ${updateDto.email} already exists`,
           );
           throw createHttpError(StatusCodes.BAD_REQUEST, "Email already exists!", {
-            resource: this.collectionName,
+            resource: this.collectionNameService,
           });
         }
       }
 
       if (updateDto.username) {
-        const username = await this.usersRepository.getByUsername(updateDto.username);
+        const username = await this.baseRepository.getByUsername(updateDto.username);
         if (username) {
           logger.warn(
-            `${this.logFileName} ${this.collectionName} with username ${updateDto.email} already exists`,
+            `[${this.collectionNameService} Controller] ${this.collectionNameService} with username ${updateDto.email} already exists`,
           );
           throw createHttpError(StatusCodes.BAD_REQUEST, "Username already exists!", {
-            resource: this.collectionName,
+            resource: this.collectionNameService,
           });
         }
       }
@@ -4685,149 +5209,24 @@ export class UsersService {
       updateDto.updatedAt = new Date();
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return await this.usersRepository.update(uuid, updateDto as any);
+      return await this.baseRepository.update(uuid, updateDto as any);
     } catch (error) {
       if (createHttpError.isHttpError(error)) {
         throw error;
       }
 
       if (error instanceof Error) {
-        logger.warn(`${this.logFileName} Error updating ${this.collectionName}`, {
+        logger.warn(`[${this.collectionNameService} Controller] Error updating ${this.collectionNameService}`, {
           uuid,
           updateDto,
           error: error.message,
         });
-        throw new Error(`Error updating ${this.collectionName}: ${error.message}`);
+        throw new Error(`Error updating ${this.collectionNameService}: ${error.message}`);
       }
       logger.warn(
-        `${this.logFileName} Unknown error occurred while updating ${this.collectionName}`,
+        `[${this.collectionNameService} Controller] Unknown error occurred while updating ${this.collectionNameService}`,
       );
-      throw new Error(`Unknown error occurred while updating ${this.collectionName}`);
-    }
-  };
-
-  /**
-   * Deletes a entity.
-   * @param uuid - entity's unique identifier
-   * @returns Deletion result
-   */
-  delete = async (uuid: string): Promise<UsersDto | null> => {
-    try {
-      logger.info(`${this.logFileName} Deleting ${this.collectionName} with uuid: ${uuid}`);
-      const data = await this.getByUuid(uuid);
-
-      if (!data) {
-        logger.warn(`${this.logFileName} ${this.collectionName} with uuid ${uuid} does not exist!`);
-        throw createHttpError(StatusCodes.BAD_REQUEST, `${this.collectionName} does not exist!`, {
-          resource: this.collectionName,
-        });
-      }
-
-      return await this.usersRepository.delete(uuid);
-    } catch (error) {
-      if (createHttpError.isHttpError(error)) {
-        throw error;
-      }
-
-      if (error instanceof Error) {
-        logger.warn(`${this.logFileName} Error deleting ${this.collectionName}`, {
-          uuid,
-          error: error.message,
-        });
-        throw new Error(`Error deleting ${this.collectionName}: ${error.message}`);
-      }
-      logger.warn(
-        `${this.logFileName} Unknown error occurred while deleting ${this.collectionName}`,
-      );
-      throw new Error(`Unknown error occurred while deleting ${this.collectionName}`);
-    }
-  };
-
-  /**
-   * Deletes multiple entities by their uuids.
-   * @param uuids - List of entity uuids to delete
-   * @returns Deletion result
-   */
-  deleteAll = async (uuids: string[]): Promise<{ deletedCount: number }> => {
-    if (!Array.isArray(uuids) || uuids.length === 0) {
-      logger.warn(`${this.logFileName} Invalid array of uuids for bulk delete`);
-      throw new Error("Invalid array of uuids");
-    }
-
-    const result = await this.usersRepository.deleteAll(uuids);
-
-    if (result.deletedCount === 0) {
-      logger.warn(`${this.logFileName} No ${this.collectionName} found to delete`, { uuids });
-      throw new Error(`No ${this.collectionName} found to delete`);
-    }
-
-    return result;
-  };
-
-  /**
-   * Import entities.
-   * @param importDto - Data for creating entities
-   * @param accountId - account id for creating entities
-   * @returns number of imported entities
-   */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  import = async (importDto: CreateUsersDto[]): Promise<any> => {
-    try {
-      logger.info(`${this.logFileName} Starting import ${this.collectionName}`);
-
-      const imported = await this.usersRepository.import(importDto);
-
-      logger.info(
-        `${this.logFileName} ${imported.createdCount} completed, ${imported.skippedCount} skipped for ${this.collectionName}`,
-      );
-
-      return imported;
-    } catch (error) {
-      if (createHttpError.isHttpError(error)) {
-        throw error;
-      }
-
-      if (error instanceof Error) {
-        logger.warn(`${this.logFileName} Error creating ${this.collectionName}`, {
-          importDto,
-          error: error.message,
-        });
-        throw new Error(`Error creating ${this.collectionName}: ${error.message}`);
-      }
-      logger.warn(
-        `${this.logFileName} Unknown error occurred while creating ${this.collectionName}`,
-      );
-      throw new Error(`Unknown error occurred while creating ${this.collectionName}`);
-    }
-  };
-
-  /**
-   * Export entities from the database.
-   * @returns csv of entities
-   */
-  export = async (): Promise<string> => {
-    try {
-      logger.info(`${this.logFileName} Fetching all ${this.collectionName}`);
-      const data = await this.usersRepository.getAll();
-
-      if (data.length === 0) {
-        throw createHttpError(StatusCodes.NOT_FOUND, `No ${this.collectionName} found to export`);
-      }
-
-      const csv = await parseAsync(data);
-
-      return csv;
-    } catch (error) {
-      if (error instanceof Error) {
-        logger.warn(`${this.logFileName} Error fetching all ${this.collectionName}`, {
-          error: error.message,
-        });
-        throw new Error(`Error fetching ${this.collectionName}: ${error.message}`);
-      }
-      logger.warn(
-        `${this.logFileName} Unknown error occurred while fetching all ${this.collectionName}`,
-      );
-      throw new Error(`Unknown error occurred while fetching ${this.collectionName}`);
+      throw new Error(`Unknown error occurred while updating ${this.collectionNameService}`);
     }
   };
 }
@@ -4838,160 +5237,22 @@ File: src/entities/users/users.controller.ts
 Content of src/entities/users/users.controller.ts:
 import { NextFunction, Response } from "express";
 import { UsersService } from "@/entities/users/users.service";
-import createHttpError from "http-errors";
 import { StatusCodes } from "http-status-codes";
 import { logger } from "@/common/winston/winston";
 import { CustomRequest } from "@/types/request";
-import { csvBufferToJson, csvToJson } from "@/utils/csv-to-json";
 import { createResponse } from "@/utils/create-response";
+import { BaseController } from "@/common/base/base.controller";
+import { CreateUsersDto, UpdateUsersDto, UsersDto, UsersModel } from "./users.dto";
 
-export class UsersController {
+export class UsersController extends BaseController<UsersDto, CreateUsersDto, UpdateUsersDto> {
   public collectionName: string;
-  public logFileName: string;
   public usersService: UsersService;
 
   constructor() {
-    this.collectionName = "users";
-    this.logFileName = `[${this.collectionName} Controller]`;
-    this.usersService = new UsersService(this.collectionName, `[${this.collectionName} Service]`);
+    super(UsersModel, "Users");
+    this.collectionName = "Users";
+    this.usersService = new UsersService(UsersModel, this.collectionName);
   }
-
-  /**
-   * Get all entities objects
-   * @param _req - CustomRequest object
-   * @param res - Response object
-   * @param next - Next middleware function
-   * @returns JSON list of entities
-   */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getAll = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
-    try {
-      logger.info(`${this.logFileName} Fetching all ${this.collectionName}`);
-      const data = await this.usersService.getAll();
-
-      return res.json(createResponse(req, data));
-    } catch (error) {
-      if (error instanceof Error) {
-        logger.warn(`${this.logFileName} Error fetching all ${this.collectionName}`, {
-          error: error.message,
-        });
-      }
-      next(error);
-    }
-  };
-
-  /**
-   * Get entity by ID
-   * @param req - CustomRequest object
-   * @param res - Response object
-   * @param next - Next middleware function
-   * @returns JSON entity object
-   */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getById = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
-    const { id } = req.params;
-    const { loggedUser } = req;
-    try {
-      logger.info(`${this.logFileName} Fetching ${this.collectionName} by ID`, { loggedUser, id });
-      const data = await this.usersService.getById(id);
-      return res.json(createResponse(req, data));
-    } catch (error) {
-      if (error instanceof Error) {
-        logger.warn(`${this.logFileName} Error fetching ${this.collectionName} by ID`, {
-          error: error.message,
-          loggedUser,
-          id,
-        });
-      }
-      next(error);
-    }
-  };
-
-  /**
-   * Get entity by ID
-   * @param req - CustomRequest object
-   * @param res - Response object
-   * @param next - Next middleware function
-   * @returns JSON entity object
-   */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getByUuid = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
-    const { uuid } = req.params;
-    const { loggedUser } = req;
-    try {
-      logger.info(`${this.logFileName} Fetching ${this.collectionName} by uuid`, {
-        loggedUser,
-        uuid,
-      });
-      const data = await this.usersService.getByUuid(uuid);
-      return res.json(createResponse(req, data));
-    } catch (error) {
-      if (error instanceof Error) {
-        logger.warn(`${this.logFileName} Error fetching ${this.collectionName} by uuid`, {
-          error: error.message,
-          loggedUser,
-          uuid,
-        });
-      }
-      next(error);
-    }
-  };
-
-  /**
-   * Get entity by email
-   * @param req - CustomRequest object
-   * @param res - Response object
-   * @param next - Next middleware function
-   * @returns JSON entity object
-   */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getByEmail = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
-    const { email } = req.params;
-    const { loggedUser } = req;
-    try {
-      logger.info(`${this.logFileName} Fetching ${this.collectionName} by email`, {
-        loggedUser,
-        email,
-      });
-      const data = await this.usersService.getByEmail(email);
-      return res.json(createResponse(req, data));
-    } catch (error) {
-      if (error instanceof Error) {
-        logger.warn(`${this.logFileName} Error fetching ${this.collectionName} by email`, {
-          error: error.message,
-          loggedUser,
-          email,
-        });
-      }
-      next(error);
-    }
-  };
-
-  /**
-   * Find entities by query (pagination, sorting, filtering)
-   * @param req - CustomRequest object
-   * @param res - Response object
-   * @param next - Next middleware function
-   * @returns JSON result of the query
-   */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  findByQuery = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
-    try {
-      const { paginate, orderBy, filter } = req.body;
-      const queryOptions = { paginate, orderBy, filter };
-      logger.info(`${this.logFileName} Finding ${this.collectionName} by query`, { queryOptions });
-
-      const result = await this.usersService.findByQuery(queryOptions);
-      return res.json(createResponse(req, result));
-    } catch (error) {
-      if (error instanceof Error) {
-        logger.warn(`${this.logFileName} Error finding ${this.collectionName} by query`, {
-          error: error.message,
-        });
-      }
-      next(error);
-    }
-  };
 
   /**
    * Create a new entity
@@ -5005,7 +5266,7 @@ export class UsersController {
     const createDto = req.body;
     const { loggedUser } = req;
     try {
-      logger.info(`${this.logFileName} Creating new ${this.collectionName}`, {
+      logger.info(`[${this.collectionName} Controller] Creating new ${this.collectionName}`, {
         loggedUser,
         createDto,
       });
@@ -5015,7 +5276,7 @@ export class UsersController {
       );
     } catch (error) {
       if (error instanceof Error) {
-        logger.warn(`${this.logFileName} Error creating ${this.collectionName}`, {
+        logger.warn(`[${this.collectionName} Controller] Error creating ${this.collectionName}`, {
           error: error.message,
           loggedUser,
           createDto,
@@ -5038,7 +5299,7 @@ export class UsersController {
     const updateDto = req.body;
     const { loggedUser } = req;
     try {
-      logger.info(`${this.logFileName} Updating ${this.collectionName}`, {
+      logger.info(`[${this.collectionName} Controller] Updating ${this.collectionName}`, {
         loggedUser,
         uuid,
         updateDto,
@@ -5047,152 +5308,11 @@ export class UsersController {
       return res.json(createResponse(req, updatedData, "User updated successfully"));
     } catch (error) {
       if (error instanceof Error) {
-        logger.warn(`${this.logFileName} Error updating ${this.collectionName}`, {
+        logger.warn(`[${this.collectionName} Controller] Error updating ${this.collectionName}`, {
           error: error.message,
           loggedUser,
           uuid,
           updateDto,
-        });
-      }
-      next(error);
-    }
-  };
-
-  /**
-   * Delete a entity by ID
-   * @param req - CustomRequest object
-   * @param res - Response object
-   * @param next - Next middleware function
-   * @returns JSON success message
-   */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  delete = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
-    const { uuid } = req.params;
-    const { loggedUser } = req;
-    try {
-      logger.info(`${this.logFileName} Deleting ${this.collectionName} by uuid`, {
-        loggedUser,
-        uuid,
-      });
-      await this.usersService.delete(uuid);
-      return res.json(createResponse(req, {}, "User deleted Successfully"));
-    } catch (error) {
-      if (error instanceof Error) {
-        logger.warn(`${this.logFileName} Error deleting ${this.collectionName}`, {
-          error: error.message,
-          loggedUser,
-          uuid,
-        });
-      }
-      next(error);
-    }
-  };
-
-  /**
-   * Delete multiple entities
-   * @param req - CustomRequest object
-   * @param res - Response object
-   * @param next - Next middleware function
-   * @returns JSON success message
-   */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  deleteAll = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
-    const { uuids } = req.body;
-    const { loggedUser } = req;
-    try {
-      if (!Array.isArray(uuids) || uuids.length === 0) {
-        throw createHttpError(StatusCodes.BAD_REQUEST, "Invalid or empty array of uuids", {
-          resource: this.collectionName,
-        });
-      }
-
-      logger.info(`${this.logFileName} Deleting multiple ${this.collectionName}`, {
-        loggedUser,
-        uuids,
-      });
-      const result = await this.usersService.deleteAll(uuids);
-
-      return res.json(
-        createResponse(
-          req,
-          {},
-          `${result.deletedCount} ${this.collectionName} deleted successfully`,
-        ),
-      );
-    } catch (error) {
-      if (error instanceof Error) {
-        logger.warn(`${this.logFileName} Error deleting ${this.collectionName}`, {
-          error: error.message,
-          loggedUser,
-          uuids,
-        });
-      }
-      next(error);
-    }
-  };
-
-  /**
-   * Import entities
-   * @param req - CustomRequest object
-   * @param res - Response object
-   * @param next - Next middleware function
-   * @returns JSON created entity
-   */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  import = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
-    const { loggedUser, file } = req;
-    if (!file) {
-      return next(createHttpError(StatusCodes.BAD_REQUEST, "No file uploaded."));
-    }
-    try {
-      logger.info(`${this.logFileName} Importing new ${this.collectionName}`, { loggedUser });
-      let importEntries;
-
-      if (file.buffer) {
-        importEntries = await csvBufferToJson(file.buffer);
-      } else {
-        importEntries = await csvToJson(file.path);
-      }
-
-      const imported = await this.usersService.import(importEntries);
-
-      return res.json(
-        createResponse(
-          req,
-          imported.createdEntities,
-          `${imported.createdCount} completed, ${imported.skippedCount} skipped`,
-        ),
-      );
-    } catch (error) {
-      if (error instanceof Error) {
-        logger.warn(`${this.logFileName} Error creating ${this.collectionName}`, {
-          error: error.message,
-          loggedUser,
-        });
-      }
-      next(error);
-    }
-  };
-
-  /**
-   * Export entities
-   * @param _req - CustomRequest object
-   * @param res - Response object
-   * @param next - Next middleware function
-   * @returns JSON list of entities
-   */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  export = async (_req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
-    try {
-      logger.info(`${this.logFileName} Exporting ${this.collectionName}`);
-      const csv = await this.usersService.export();
-      res.header("Content-Type", "text/csv");
-      res.header("Content-Disposition", "attachment; filename=accounts.csv");
-      res.send(csv);
-    } catch (error) {
-      if (error instanceof Error) {
-        logger.warn(`${this.logFileName} Error exporting ${this.collectionName}`, {
-          error: error.message,
         });
       }
       next(error);
@@ -5766,5 +5886,3 @@ filesRegistry.registerPath({
 filesRouter.delete("/:id", filesController.deleteFile);
 
 export default filesRouter;
-
-

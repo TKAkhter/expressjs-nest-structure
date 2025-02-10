@@ -21,7 +21,7 @@ export class UsersService extends BaseService<UsersDto, CreateUsersDto, UpdateUs
    * @param createDto - Data for creating a new entity
    * @returns Created entity data
    */
-  create = async (createDto: CreateUsersDto): Promise<UsersDto> => {
+  create = async (createDto: CreateUsersDto): Promise<UsersDto | null> => {
     try {
       logger.info(
         `[${this.collectionNameService} Service] Creating ${this.collectionNameService} with email: ${createDto.email}`,
@@ -140,8 +140,7 @@ export class UsersService extends BaseService<UsersDto, CreateUsersDto, UpdateUs
 
       updateDto.updatedAt = new Date();
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return await this.baseRepository.update(uuid, updateDto as any);
+      return await this.baseRepository.update(uuid, updateDto);
     } catch (error) {
       if (createHttpError.isHttpError(error)) {
         throw error;

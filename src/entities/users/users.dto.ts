@@ -13,15 +13,11 @@ export const UsersSchema = z.object({
   password: z.string().min(8, "Password must be at least 8 characters long"),
   bio: z.string().optional(),
   phoneNumber: z.string().optional(),
-  createdAt: z.date().optional(),
-  updatedAt: z.date().optional(),
   resetToken: z.string().optional(),
 });
 
 export const CreateUsersSchema = UsersSchema.omit({
   uuid: true,
-  createdAt: true,
-  updatedAt: true,
 });
 
 export const UpdateUsersSchema = z.object({

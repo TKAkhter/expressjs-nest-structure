@@ -21,4 +21,18 @@ export const FindByQuerySchema = z.object({
   orderBy: z.array(OrderBySchema).optional(),
 });
 
+export interface FindByQueryResult<T> {
+  data: T[];
+  total: number;
+  page: number;
+  perPage: number;
+  totalPages: number;
+}
+
+export interface ImportResult<T> {
+  createdEntities: T[];
+  createdCount: number;
+  skippedCount: number;
+}
+
 export type FindByQueryDto = z.infer<typeof FindByQuerySchema>;

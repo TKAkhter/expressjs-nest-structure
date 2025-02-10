@@ -88,8 +88,6 @@ export class FilesController extends BaseController<FilesDto, UploadFilesDto, Up
         userId: loggedUser,
         tags,
         uuid: uuidv4(),
-        createdAt: new Date(),
-        updatedAt: new Date(),
         views: views ?? "0",
       };
       const created = await this.baseService.create(fileUpload);

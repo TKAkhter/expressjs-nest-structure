@@ -14,14 +14,6 @@ export const FilesSchema = z.object({
   fileText: z.string().optional(),
   views: z.string().optional(),
   userId: z.string().optional(),
-  createdAt: z
-    .date()
-    .default(() => new Date())
-    .optional(),
-  updatedAt: z
-    .date()
-    .default(() => new Date())
-    .optional(),
 });
 
 export const UploadFilesSchema = FilesSchema.omit({
@@ -29,8 +21,6 @@ export const UploadFilesSchema = FilesSchema.omit({
   filePath: true,
   fileText: true,
   userId: true,
-  createdAt: true,
-  updatedAt: true,
 }).extend({
   file: z
     .any()
@@ -48,8 +38,6 @@ export const UpdateFilesSchema = FilesSchema.omit({
   filePath: true,
   fileText: true,
   userId: true,
-  createdAt: true,
-  updatedAt: true,
 }).extend({
   file: z
     .any()

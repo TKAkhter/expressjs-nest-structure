@@ -1,5 +1,5 @@
 import { Model, UpdateQuery, SortOrder, RootFilterQuery } from "mongoose";
-import { FindByQueryDto } from "@/schemas/find-by-query";
+import { FindByQueryDto, FindByQueryResult, ImportResult } from "@/schemas/find-by-query";
 import { logger } from "@/common/winston/winston";
 import { mongoDbApplyFilter } from "@/utils/mongodb-apply-filter";
 
@@ -186,7 +186,7 @@ export class BaseRepository<T, TCreateDto, TUpdateDto> {
    * @param options - Query options
    * @returns Paginated data
    */
-  findByQuery = async (options: FindByQueryDto) => {
+  findByQuery = async (options: FindByQueryDto): Promise<FindByQueryResult<T>> => {
     const { filter = {}, paginate = { page: 1, perPage: 10 }, orderBy = [] } = options;
 
     const { page, perPage } = paginate;
@@ -237,8 +237,7 @@ export class BaseRepository<T, TCreateDto, TUpdateDto> {
    * @param createDto - Data for creating a new entity
    * @returns Created entity data
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  create = async (createDto: TCreateDto): Promise<any> => {
+  create = async (createDto: TCreateDto): Promise<T | null> => {
     try {
       logger.info(
         `[${this.collectionName} Repository] Creating document in ${this.model.modelName}`,
@@ -265,8 +264,7 @@ export class BaseRepository<T, TCreateDto, TUpdateDto> {
    * @param updateDto - Data to update the entity
    * @returns Updated entity data
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  update = async (uuid: string, updateDto: TUpdateDto): Promise<any> => {
+  update = async (uuid: string, updateDto: TUpdateDto): Promise<T | null> => {
     try {
       logger.info(
         `[${this.collectionName} Repository] Updating ${this.model.modelName} with uuid: ${uuid}`,
@@ -333,13 +331,7 @@ export class BaseRepository<T, TCreateDto, TUpdateDto> {
    * @param entities - Array of entity objects to be saved
    * @returns Object containing created entities, created count, and skipped count
    */
-  import = async (
-    entities: TCreateDto[],
-  ): Promise<{
-    createdEntities: T[];
-    createdCount: number;
-    skippedCount: number;
-  }> => {
+  import = async (entities: TCreateDto[]): Promise<ImportResult<T>> => {
     try {
       logger.info(
         `[${this.collectionName} Repository] Importing ${entities.length} documents into ${this.model.modelName}`,

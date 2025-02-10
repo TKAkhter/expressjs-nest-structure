@@ -1,5 +1,5 @@
 import { BaseRepository } from "@/common/base/base.repository";
-import { FindByQueryDto } from "@/schemas/find-by-query";
+import { FindByQueryDto, FindByQueryResult, ImportResult } from "@/schemas/find-by-query";
 import { logger } from "../winston/winston";
 import createHttpError from "http-errors";
 import { StatusCodes } from "http-status-codes";
@@ -170,8 +170,7 @@ export class BaseService<T, TCreateDto, TUpdateDto> {
    * @param options - Query parameters like pagination, sorting, and filtering
    * @returns Paginated entity data
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  findByQuery = async (options: FindByQueryDto): Promise<any> => {
+  findByQuery = async (options: FindByQueryDto): Promise<FindByQueryResult<T>> => {
     try {
       logger.info(
         `[${this.collectionName} Service] Querying ${this.collectionName} with options: ${JSON.stringify(options)}`,
@@ -191,7 +190,7 @@ export class BaseService<T, TCreateDto, TUpdateDto> {
    * @param createDto - Data for creating a new entity
    * @returns Created entity data
    */
-  create = async (createDto: TCreateDto): Promise<T> => {
+  create = async (createDto: TCreateDto): Promise<T | null> => {
     try {
       logger.info(`[${this.collectionName} Service] Creating ${this.collectionName} ${createDto}`);
       return await this.baseRepository.create(createDto);
@@ -327,8 +326,7 @@ export class BaseService<T, TCreateDto, TUpdateDto> {
    * @param accountId - account id for creating entities
    * @returns number of imported entities
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  import = async (importDto: TCreateDto[]): Promise<any> => {
+  import = async (importDto: TCreateDto[]): Promise<ImportResult<T>> => {
     try {
       logger.info(`[${this.collectionName} Service] Starting import ${this.collectionName}`);
 

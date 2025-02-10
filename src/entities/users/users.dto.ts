@@ -1,7 +1,5 @@
 import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
-import { model } from "mongoose";
 import { z } from "zod";
-import { zodSchema } from "@zodyac/zod-mongoose";
 
 extendZodWithOpenApi(z);
 
@@ -33,6 +31,3 @@ export const UpdateUsersSchema = z.object({
 export type UsersDto = z.infer<typeof UsersSchema>;
 export type CreateUsersDto = z.infer<typeof CreateUsersSchema>;
 export type UpdateUsersDto = z.infer<typeof UpdateUsersSchema>;
-
-const schema = zodSchema(UsersSchema);
-export const UsersModel = model("Users", schema);

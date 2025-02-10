@@ -5,16 +5,20 @@ import { logger } from "@/common/winston/winston";
 import { CustomRequest } from "@/types/request";
 import { createResponse } from "@/utils/create-response";
 import { BaseController } from "@/common/base/base.controller";
-import { CreateUsersDto, UpdateUsersDto, UsersDto, UsersModel } from "./users.dto";
+import { CreateUsersDto, UpdateUsersDto, UsersDto } from "./users.dto";
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
+const IGNORE_FIELDS = { password: true, v: true };
 
 export class UsersController extends BaseController<UsersDto, CreateUsersDto, UpdateUsersDto> {
   public collectionName: string;
   public usersService: UsersService;
 
   constructor() {
-    super(UsersModel, "Users");
+    super(prisma.users, "Users", IGNORE_FIELDS);
     this.collectionName = "Users";
-    this.usersService = new UsersService(UsersModel, this.collectionName);
+    this.usersService = new UsersService(prisma.users, this.collectionName, IGNORE_FIELDS);
   }
 
   /**

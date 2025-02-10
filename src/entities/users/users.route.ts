@@ -166,7 +166,7 @@ usersRegistry.registerPath({
 usersRouter.delete(
   "/bulk",
   zodValidation(z.object({ uuids: z.array(z.string()) })),
-  usersController.deleteAll,
+  usersController.deleteMany,
 );
 
 //====================================================================================================

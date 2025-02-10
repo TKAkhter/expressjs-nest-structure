@@ -4,15 +4,19 @@ import { logger } from "../winston/winston";
 import createHttpError from "http-errors";
 import { StatusCodes } from "http-status-codes";
 import { parseAsync } from "json2csv";
-import { Model } from "mongoose";
 
 export class BaseService<T, TCreateDto, TUpdateDto> {
   private collectionName: string;
   protected baseRepository: BaseRepository<T, TCreateDto, TUpdateDto>;
 
-  constructor(model: Model<T>, collectionName: string) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  constructor(model: any, collectionName: string, ignoreFields?: Record<string, boolean>) {
     this.collectionName = collectionName;
-    this.baseRepository = new BaseRepository<T, TCreateDto, TUpdateDto>(model, collectionName);
+    this.baseRepository = new BaseRepository<T, TCreateDto, TUpdateDto>(
+      model,
+      collectionName,
+      ignoreFields,
+    );
   }
 
   /**
@@ -302,13 +306,13 @@ export class BaseService<T, TCreateDto, TUpdateDto> {
    * @param uuids - List of entity uuids to delete
    * @returns Deletion result
    */
-  deleteAll = async (uuids: string[]): Promise<{ deletedCount: number }> => {
+  deleteMany = async (uuids: string[]): Promise<{ deletedCount: number }> => {
     if (!Array.isArray(uuids) || uuids.length === 0) {
       logger.warn(`[${this.collectionName} Service] Invalid array of uuids for bulk delete`);
       throw new Error("Invalid array of uuids");
     }
 
-    const result = await this.baseRepository.deleteAll(uuids);
+    const result = await this.baseRepository.deleteMany(uuids);
 
     if (result.deletedCount === 0) {
       logger.warn(`[${this.collectionName} Service] No ${this.collectionName} found to delete`, {

@@ -6,13 +6,13 @@ import createHttpError from "http-errors";
 import { StatusCodes } from "http-status-codes";
 import { logger } from "@/common/winston/winston";
 import { BaseService } from "@/common/base/base.services";
-import { Model } from "mongoose";
 
 export class UsersService extends BaseService<UsersDto, CreateUsersDto, UpdateUsersDto> {
   private collectionNameService: string;
 
-  constructor(model: Model<UsersDto>, collectionName: string) {
-    super(model, collectionName);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  constructor(model: any, collectionName: string, ignoreFields?: Record<string, boolean>) {
+    super(model, collectionName, ignoreFields);
     this.collectionNameService = collectionName;
   }
 
@@ -52,13 +52,13 @@ export class UsersService extends BaseService<UsersDto, CreateUsersDto, UpdateUs
       }
 
       const hashedPassword = await hash(createDto.password, env.HASH!);
-      const currentTime = new Date();
+
       const newDto = {
-        ...createDto,
         uuid: uuidv4(),
+        name: createDto.name,
+        email: createDto.email,
+        username: createDto.username,
         password: hashedPassword,
-        createdAt: currentTime,
-        updatedAt: currentTime,
       };
 
       return await this.baseRepository.create(newDto);

@@ -5,16 +5,20 @@ import { logger } from "../winston/winston";
 import { StatusCodes } from "http-status-codes";
 import createHttpError from "http-errors";
 import { csvBufferToJson, csvToJson } from "@/utils/csv-to-json";
-import { Model } from "mongoose";
 import { createResponse } from "@/utils/create-response";
 
 export class BaseController<T, TCreateDto, TUpdateDto> {
   public collectionName: string;
   protected baseService: BaseService<T, TCreateDto, TUpdateDto>;
 
-  constructor(model: Model<T>, collectionName: string) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  constructor(model: any, collectionName: string, ignoreFields?: Record<string, boolean>) {
     this.collectionName = collectionName;
-    this.baseService = new BaseService<T, TCreateDto, TUpdateDto>(model, collectionName);
+    this.baseService = new BaseService<T, TCreateDto, TUpdateDto>(
+      model,
+      collectionName,
+      ignoreFields,
+    );
   }
 
   /**
@@ -306,7 +310,7 @@ export class BaseController<T, TCreateDto, TUpdateDto> {
    * @returns JSON success message
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  deleteAll = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
+  deleteMany = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
     const { uuids } = req.body;
     const { loggedUser } = req;
     try {
@@ -320,7 +324,7 @@ export class BaseController<T, TCreateDto, TUpdateDto> {
         loggedUser,
         uuids,
       });
-      const data = await this.baseService.deleteAll(uuids);
+      const data = await this.baseService.deleteMany(uuids);
 
       return res.json(
         createResponse(

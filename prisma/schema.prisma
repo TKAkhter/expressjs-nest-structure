@@ -1,0 +1,81 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("MONGODB_URI")
+}
+
+type ErrorLogsMetadata {
+  details    ErrorLogsMetadataDetails
+  loggedUser String
+  method     String
+  name       String
+  stack      String
+  status     Int
+  timestamp  String
+  url        String
+}
+
+type ErrorLogsMetadataDetails {
+  /// Could not determine type: the field only had null or empty values in the sample set.
+  code       Json?
+  /// Nested objects had no data in the sample dataset to introspect a nested type.
+  data       Json
+  email      String?
+  /// Could not determine type: the field only had null or empty values in the sample set.
+  id         Json?
+  /// Nested objects had no data in the sample dataset to introspect a nested type.
+  meta       Json
+  /// Could not determine type: the field only had null or empty values in the sample set.
+  name       Json?
+  /// Could not determine type: the field only had null or empty values in the sample set.
+  status     Json?
+  /// Could not determine type: the field only had null or empty values in the sample set.
+  statusText Json?
+}
+
+model developments {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+}
+
+model error_logs {
+  id        String            @id @default(auto()) @map("_id") @db.ObjectId
+  level     String
+  message   String
+  metadata  ErrorLogsMetadata
+  timestamp DateTime          @default(now()) @db.Date
+
+  @@index([timestamp(sort: Desc)], map: "timestamp_1")
+}
+
+model files {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  v         Int?     @default(0) @map("__v")
+  createdAt DateTime @default(now()) @db.Date
+  fileName  String?
+  filePath  String?
+  fileText  String?
+  tags      String?
+  updatedAt DateTime @default(now()) @db.Date
+  userId    String?
+  userRef   String?
+  uuid      String?   @unique
+  views     String?
+}
+
+model users {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  v           Int?      @default(0) @map("__v")
+  createdAt   DateTime  @default(now()) @db.Date
+  email       String    @unique
+  name        String?
+  password    String
+  resetToken  String?
+  updatedAt   DateTime? @default(now()) @db.Date
+  username    String?   @unique
+  uuid        String?   @unique
+  bio         String?
+  phoneNumber String?
+}

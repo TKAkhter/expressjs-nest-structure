@@ -7,7 +7,7 @@ import { StatusCodes } from "http-status-codes";
 import { UsersService } from "@/entities/users/users.service";
 import { sendMail } from "@/common/mail-sender/mail-sender";
 import { BaseRepository } from "@/common/base/base.repository";
-import { CreateUsersDto, UpdateUsersDto, UsersDto, UsersModel } from "../users/users.dto";
+import { CreateUsersDto, UpdateUsersDto, UsersDto } from "../users/users.dto";
 import { env } from "@/config/env";
 import { createTemplate } from "@/template/create-template";
 
@@ -16,10 +16,11 @@ export class AuthService {
   private usersService: UsersService;
   private usersRepository: BaseRepository<UsersDto, UpdateUsersDto, CreateUsersDto>;
 
-  constructor(collectionName: string) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  constructor(model: any, collectionName: string) {
     this.collectionName = collectionName;
-    this.usersService = new UsersService(UsersModel, "Users");
-    this.usersRepository = new BaseRepository(UsersModel, "Users");
+    this.usersService = new UsersService(model, "Users");
+    this.usersRepository = new BaseRepository(model, "Users");
   }
 
   /**

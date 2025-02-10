@@ -5,6 +5,9 @@ import { logger } from "@/common/winston/winston";
 import { CustomRequest } from "@/types/request";
 import { StatusCodes } from "http-status-codes";
 import { createResponse } from "@/utils/create-response";
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
 
 export class AuthController {
   private collectionName: string;
@@ -12,7 +15,7 @@ export class AuthController {
 
   constructor() {
     this.collectionName = "User";
-    this.authService = new AuthService("User");
+    this.authService = new AuthService(prisma.users, "User");
   }
 
   /**

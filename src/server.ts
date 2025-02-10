@@ -1,8 +1,8 @@
 import app from "@/app";
 import { env } from "@/config/env";
 import { logger } from "@/common/winston/winston";
-import { connectMongoDB } from "@/config/mongodb/mongodb";
-import { checkMongoDB, checkRedis } from "@/entities/health/health.helper";
+import { checkRedis } from "@/entities/health/health.helper";
+import { connectPrisma } from "./config/prisma/prisma";
 
 const { PORT, NODE_ENV, BASE_URL, ALLOW_ORIGIN } = env;
 
@@ -15,9 +15,8 @@ async function checkConnections() {
     logger.info("Checking database connections...");
     await checkRedis();
     logger.info("Redis connections verified successfully.");
-    await connectMongoDB();
-    await checkMongoDB();
-    logger.info("MongoDB connections verified successfully.");
+    await connectPrisma();
+    logger.info("Prisma connections verified successfully.");
   } catch (error) {
     if (error instanceof Error) {
       logger.warn("MongoDB, or Redis connection failed", { error: error.message });

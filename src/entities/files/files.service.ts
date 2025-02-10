@@ -1,14 +1,14 @@
 import createHttpError from "http-errors";
 import { logger } from "@/common/winston/winston";
 import { BaseService } from "@/common/base/base.services";
-import { Model } from "mongoose";
 import { FilesDto, UpdateFilesDto, UploadFilesDto } from "./files.dto";
 
 export class FilesService extends BaseService<FilesDto, UploadFilesDto, UpdateFilesDto> {
   private collectionNameService: string;
 
-  constructor(model: Model<FilesDto>, collectionName: string) {
-    super(model, collectionName);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  constructor(model: any, collectionName: string, ignoreFields?: Record<string, boolean>) {
+    super(model, collectionName, ignoreFields);
     this.collectionNameService = collectionName;
   }
 

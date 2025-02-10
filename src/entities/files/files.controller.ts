@@ -1,5 +1,5 @@
 import { NextFunction, Response } from "express";
-import { FilesDto, FilesModel, UpdateFilesDto, UploadFilesDto } from "@/entities/files/files.dto";
+import { FilesDto, UpdateFilesDto, UploadFilesDto } from "@/entities/files/files.dto";
 import { logger } from "@/common/winston/winston";
 import { CustomRequest } from "@/types/request";
 import { saveFileToDisk } from "@/common/multer/save-file-to-disk";
@@ -10,15 +10,19 @@ import { v4 as uuidv4 } from "uuid";
 import { createResponse } from "@/utils/create-response";
 import { StatusCodes } from "http-status-codes";
 import { FilesService } from "./files.service";
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
+const IGNORE_FIELDS = { v: true };
 
 export class FilesController extends BaseController<FilesDto, UploadFilesDto, UpdateFilesDto> {
   public collectionName: string;
   public filesService: FilesService;
 
   constructor() {
-    super(FilesModel, "Files");
+    super(prisma.files, "Files", IGNORE_FIELDS);
     this.collectionName = "Files";
-    this.filesService = new FilesService(FilesModel, this.collectionName);
+    this.filesService = new FilesService(prisma.files, this.collectionName, IGNORE_FIELDS);
   }
 
   /**
@@ -67,10 +71,10 @@ export class FilesController extends BaseController<FilesDto, UploadFilesDto, Up
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   upload = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
     const { loggedUser } = req;
-    const { buffer, mimetype } = req.file!;
-    const { tags, views, userRef } = req.body;
-
     try {
+      const { buffer, mimetype } = req.file!;
+      const { tags, views, userRef } = req.body;
+
       const { fileName, filePath } = await saveFileToDisk(req.file);
       logger.info(`[${this.collectionName} Controller] Creating new ${this.collectionName}`, {
         loggedUser,
@@ -119,9 +123,9 @@ export class FilesController extends BaseController<FilesDto, UploadFilesDto, Up
   update = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
     const { loggedUser } = req;
     const { uuid } = req.params;
-    const { buffer, mimetype } = req.file!;
-    const updateData = req.body;
     try {
+      const { buffer, mimetype } = req.file!;
+      const updateData = req.body;
       const existFile = await this.baseService.getByUuid(uuid);
       if (!existFile) {
         throw new Error("File not found");

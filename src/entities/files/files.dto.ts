@@ -1,7 +1,5 @@
 import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
-import { model } from "mongoose";
 import { z } from "zod";
-import { zodSchema } from "@zodyac/zod-mongoose";
 
 extendZodWithOpenApi(z);
 
@@ -52,6 +50,3 @@ export const UpdateFilesSchema = FilesSchema.omit({
 export type FilesDto = z.infer<typeof FilesSchema>;
 export type UploadFilesDto = z.infer<typeof UploadFilesSchema>;
 export type UpdateFilesDto = z.infer<typeof UpdateFilesSchema>;
-
-const schema = zodSchema(FilesSchema);
-export const FilesModel = model("Files", schema);

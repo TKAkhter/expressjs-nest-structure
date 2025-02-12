@@ -1,5 +1,26 @@
 import Redis from "ioredis";
 import { env } from "@/config/env";
-const redis = new Redis(env.REDIS_URL);
+import { logger } from "@/common/winston/winston";
 
-export default redis;
+class RedisClient {
+  private static instance: Redis;
+
+  static getInstance(): Redis {
+    if (!RedisClient.instance) {
+      RedisClient.instance = new Redis(env.REDIS_URL);
+      RedisClient.instance.on("connect", () => logger.info("Redis connected"));
+      RedisClient.instance.on("end", () => logger.info("Redis disconnected"));
+    }
+    return RedisClient.instance;
+  }
+
+  static async disconnect(): Promise<void> {
+    if (RedisClient.instance) {
+      await RedisClient.instance.quit();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      RedisClient.instance = undefined as any;
+    }
+  }
+}
+
+export { RedisClient };

@@ -67,7 +67,6 @@
     "juice": "^11.0.0",
     "lodash": "^4.17.21",
     "mailgun.js": "^11.1.0",
-    "mongoose": "^8.10.0",
     "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.1",
     "nocache": "^4.0.0",

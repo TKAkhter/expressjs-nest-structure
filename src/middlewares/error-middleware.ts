@@ -4,26 +4,9 @@ import { StatusCodes } from "http-status-codes";
 import { env } from "@/config/env";
 import { logger } from "@/common/winston/winston";
 import { CustomRequest } from "@/types/request";
-import { checkMemoryAndLog } from "@/config/mongodb/mongodb";
+import { PrismaClient } from "@prisma/client";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const transformMetaData = (metadata: any) => {
-  if (!metadata) {
-    return "";
-  }
-
-  // Extract common properties
-  const { code, meta, name, response } = metadata;
-
-  return {
-    code,
-    meta: { ...meta },
-    data: { ...response?.data },
-    status: response?.status,
-    statusText: response?.statusText,
-    name,
-  };
-};
+const prisma = new PrismaClient();
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const findDeep = (obj: any, keys: string[]): any => {
@@ -71,19 +54,32 @@ export const errorMiddleware = (
     ? err.status || StatusCodes.INTERNAL_SERVER_ERROR
     : StatusCodes.INTERNAL_SERVER_ERROR;
 
-  const name = isHttpError ? err.name : "AppError";
+  const appName = isHttpError ? err.name : "AppError";
 
   const loggedUser = req.loggedUser || "Unknown User";
   const { method } = req;
   const url = req.originalUrl;
 
-  const { stack } = err;
+  const stack = err.stack || "";
 
   // Extract email or id using the helper function
   const email = findDeep(req.body, ["email"]);
   const id = findDeep(req.body, ["id"]);
 
-  const transformDetails = { ...transformMetaData(details), email, id };
+  // Extract common properties
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { code, meta, name, response }: any = details;
+
+  const transformDetails = {
+    code,
+    meta: { ...meta },
+    data: { ...response?.data },
+    status: response?.status,
+    statusText: response?.statusText,
+    name,
+    email,
+    id,
+  };
 
   const errorPayload = {
     status: statusCode,
@@ -91,7 +87,7 @@ export const errorMiddleware = (
     method,
     url,
     loggedUser,
-    name,
+    name: appName,
     details: transformDetails,
     stack,
   };
@@ -102,16 +98,15 @@ export const errorMiddleware = (
     const errorLogs = {
       level: "error",
       message,
-      timestamp: new Date().toISOString(),
       metadata: errorPayload,
     };
 
-    checkMemoryAndLog(errorLogs)
-      // eslint-disable-next-line no-empty-function
-      .then(() => {})
-      .catch((error) => {
-        logger.error("Error saving error logs", error);
-      });
+    prisma.error_logs
+      .create({
+        data: errorLogs,
+      })
+      .then(() => logger.info("Error logs saved successfully"))
+      .catch((error) => logger.error("Error saving error logs", error));
   }
 
   const responsePayload = {

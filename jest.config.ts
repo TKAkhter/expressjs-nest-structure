@@ -18,7 +18,7 @@ const jestConfig: JestConfigWithTsJest = {
   // CacheDirectory: "/private/var/folders/b9/m478lz_d2632k8g9wfsm5lj00000gn/T/jest_dx",
 
   // Automatically clear mock calls, instances, contexts and results before every test
-  // ClearMocks: false,
+  clearMocks: true,
 
   // Indicates whether the coverage information should be collected while executing the test
   // CollectCoverage: false,
@@ -108,7 +108,7 @@ const jestConfig: JestConfigWithTsJest = {
   // Projects: undefined,
 
   // Use this configuration option to add custom reporters to Jest
-  // Reporters: undefined,
+  reporters: ["default"],
 
   // Automatically reset mock state before every test
   // ResetMocks: false,
@@ -137,7 +137,7 @@ const jestConfig: JestConfigWithTsJest = {
   // SetupFiles: [],
 
   // A list of paths to modules that run some code to configure or set up the testing framework before each test
-  // SetupFilesAfterEnv: [],
+  setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
 
   // The number of seconds after which a test is considered as slow and reported as such in the results.
   // SlowTestThreshold: 5,
@@ -146,7 +146,7 @@ const jestConfig: JestConfigWithTsJest = {
   // SnapshotSerializers: [],
 
   // The test environment that will be used for testing
-  // TestEnvironment: "jest-environment-node",
+  testEnvironment: "node",
 
   // Options that will be passed to the testEnvironment
   // TestEnvironmentOptions: {},
@@ -194,6 +194,10 @@ const jestConfig: JestConfigWithTsJest = {
 
   // Whether to use watchman for file crawling
   // Watchman: true,
+  testTimeout: 30000,
+  // Silent: true,
+  detectOpenHandles: true,
+  forceExit: true,
 };
 
 export default jestConfig;

@@ -1,0 +1,18 @@
+{
+  "register": {
+    "name": "name",
+    "username": "username",
+    "email": "email",
+    "password": "password",
+    "confirmPassword": "confirmPassword"
+  },
+  "login": {
+    "email": "email",
+    "password": "password"
+  },
+  "newPassword": "newPassword",
+  "invalidLogin": {
+    "email": "email",
+    "password": "password"
+  }
+}

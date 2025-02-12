@@ -264,9 +264,9 @@ export class AuthController {
     });
 
     const resetPasswordDto: ResetPasswordDto = {
-      password: password as string,
-      confirmPassword: confirmPassword as string,
-      resetToken: resetToken as string,
+      password,
+      confirmPassword,
+      resetToken,
     };
     try {
       const data = await this.authService.resetPassword(resetPasswordDto);

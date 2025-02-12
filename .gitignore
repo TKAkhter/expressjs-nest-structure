@@ -48,3 +48,4 @@ coverage/
 jest/
 
 uploads/
+test-data.json

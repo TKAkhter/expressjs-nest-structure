@@ -166,7 +166,7 @@ export class BaseRepository<T, TCreateDto, TUpdateDto> {
       logger.info(
         `[${this.collectionName} Repository] Fetching ${this.collectionName} where ${field}: ${value}`,
       );
-      return await this.model.find({ where: { [field]: value }, omit: this.ignoreFields });
+      return await this.model.findMany({ where: { [field]: value }, omit: this.ignoreFields });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       logger.warn(

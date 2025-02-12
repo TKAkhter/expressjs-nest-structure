@@ -14,7 +14,6 @@ type ErrorLogsMetadata {
   name       String
   stack      String
   status     Int
-  timestamp  String
   url        String
 }
 
@@ -45,9 +44,7 @@ model error_logs {
   level     String
   message   String
   metadata  ErrorLogsMetadata
-  timestamp DateTime          @default(now()) @db.Date
-
-  @@index([timestamp(sort: Desc)], map: "timestamp_1")
+  timestamp DateTime?          @default(now()) @db.Date
 }
 
 model files {

@@ -272,9 +272,13 @@ export class AuthService {
     });
 
     try {
-      const user = await this.usersRepository.getByField("resetToken", resetPasswordDto.resetToken);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const user: any = await this.usersRepository.getByField(
+        "resetToken",
+        resetPasswordDto.resetToken,
+      );
 
-      if (!user) {
+      if (user.length === 0) {
         logger.warn(`[${this.collectionName} Service] ${this.collectionName} does not exists!`, {
           resetToken: resetPasswordDto.resetToken,
         });
@@ -283,15 +287,15 @@ export class AuthService {
         });
       }
 
-      if (!user.resetToken || resetPasswordDto.resetToken !== user.resetToken) {
+      if (!user[0].resetToken || resetPasswordDto.resetToken !== user[0].resetToken) {
         throw createHttpError(StatusCodes.BAD_REQUEST, "Invalid or expired reset token.");
       }
 
       const hashedPassword = await hash(resetPasswordDto.password, env.HASH!);
 
-      await this.usersRepository.update(user.uuid, {
+      await this.usersService.update(user[0].uuid, {
         password: hashedPassword,
-        resetToken: undefined,
+        resetToken: null,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 

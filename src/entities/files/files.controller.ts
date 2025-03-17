@@ -1,5 +1,5 @@
 import { NextFunction, Response } from "express";
-import { FilesDto, UpdateFilesDto, UploadFilesDto } from "@/entities/files/files.dto";
+import { UpdateFilesDto, UploadFilesDto } from "@/entities/files/files.dto";
 import { logger } from "@/common/winston/winston";
 import { CustomRequest } from "@/types/request";
 import { saveFileToDisk } from "@/common/multer/save-file-to-disk";
@@ -10,12 +10,12 @@ import { v4 as uuidv4 } from "uuid";
 import { createResponse } from "@/utils/create-response";
 import { StatusCodes } from "http-status-codes";
 import { FilesService } from "./files.service";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, files as Files } from "@prisma/client";
 
 const prisma = new PrismaClient();
 const IGNORE_FIELDS = { v: true };
 
-export class FilesController extends BaseController<FilesDto, UploadFilesDto, UpdateFilesDto> {
+export class FilesController extends BaseController<Files, UploadFilesDto, UpdateFilesDto> {
   public collectionName: string;
   public filesService: FilesService;
 
@@ -43,9 +43,7 @@ export class FilesController extends BaseController<FilesDto, UploadFilesDto, Up
       });
       const data = await this.filesService.getByUser(userId);
 
-      return res.json(
-        createResponse(req, data, `${this.collectionName} fetched successfully`, StatusCodes.OK),
-      );
+      return res.json(createResponse({ data }));
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(
@@ -84,7 +82,7 @@ export class FilesController extends BaseController<FilesDto, UploadFilesDto, Up
       });
       const fileText = `data:${mimetype};base64,${buffer.toString("base64")}`;
 
-      const fileUpload: FilesDto = {
+      const fileUpload = {
         fileName,
         fileText,
         filePath,
@@ -96,14 +94,7 @@ export class FilesController extends BaseController<FilesDto, UploadFilesDto, Up
       };
       const created = await this.baseService.create(fileUpload);
 
-      return res.json(
-        createResponse(
-          req,
-          created,
-          `${this.collectionName} created successfully`,
-          StatusCodes.CREATED,
-        ),
-      );
+      return res.json(createResponse({ data: created, status: StatusCodes.CREATED }));
     } catch (error) {
       if (error instanceof Error) {
         logger.warn("Error uploading file", { error: error.message, loggedUser });
@@ -138,14 +129,7 @@ export class FilesController extends BaseController<FilesDto, UploadFilesDto, Up
       };
       const updated = await this.baseService.update(uuid, fileData);
 
-      return res.json(
-        createResponse(
-          req,
-          updated,
-          `${this.collectionName} updated successfully`,
-          StatusCodes.CREATED,
-        ),
-      );
+      return res.json(createResponse({ data: updated, status: StatusCodes.CREATED }));
     } catch (error) {
       if (error instanceof Error) {
         logger.warn("Error updating file", { error: error.message, loggedUser, uuid });
@@ -173,14 +157,7 @@ export class FilesController extends BaseController<FilesDto, UploadFilesDto, Up
       await deleteFileFromDisk(existFile.fileName!);
       const deleted = await this.baseService.delete(uuid);
 
-      return res.json(
-        createResponse(
-          req,
-          deleted,
-          `${this.collectionName} deleted successfully`,
-          StatusCodes.CREATED,
-        ),
-      );
+      return res.json(createResponse({ data: deleted, status: StatusCodes.CREATED }));
     } catch (error) {
       if (error instanceof Error) {
         logger.warn("Error deleting file", { error: error.message, loggedUser, uuid });

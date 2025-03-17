@@ -4,49 +4,30 @@ import { z } from "zod";
 extendZodWithOpenApi(z);
 
 export const FilesSchema = z.object({
-  uuid: z.string(),
+  id: z.string(),
   userRef: z.string(),
-  filePath: z.string(),
   tags: z.string(),
-  fileName: z.string().optional(),
-  fileText: z.string().optional(),
-  views: z.string().optional(),
-  userId: z.string().optional(),
+  fileName: z.string(),
+  views: z.string(),
+  file: z
+    .any()
+    .openapi({
+      type: "string",
+      format: "binary",
+    })
+    .describe("The file to upload")
+    .optional(),
 });
 
 export const UploadFilesSchema = FilesSchema.omit({
-  uuid: true,
-  filePath: true,
-  fileText: true,
-  userId: true,
-}).extend({
-  file: z
-    .any()
-    .openapi({
-      type: "string",
-      format: "binary",
-    })
-    .describe("The file to upload")
-    .optional(),
+  id: true,
 });
 
-export const UpdateFilesSchema = FilesSchema.omit({
-  uuid: true,
+export const UpdateFilesSchema = UploadFilesSchema.omit({
   userRef: true,
-  filePath: true,
-  fileText: true,
-  userId: true,
 }).extend({
-  file: z
-    .any()
-    .openapi({
-      type: "string",
-      format: "binary",
-    })
-    .describe("The file to upload")
-    .optional(),
+  updatedAt: z.date().default(() => new Date()),
 });
 
-export type FilesDto = z.infer<typeof FilesSchema>;
 export type UploadFilesDto = z.infer<typeof UploadFilesSchema>;
 export type UpdateFilesDto = z.infer<typeof UpdateFilesSchema>;

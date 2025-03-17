@@ -4,8 +4,7 @@ import app from "../src/app";
 import { RedisClient } from "../src/config/redis/redis";
 import { logger } from "../src/common/winston/winston";
 import { loadTestData } from "./test.helper";
-import { UsersDto } from "@/entities/users/users.dto";
-import { FilesDto } from "@/entities/files/files.dto";
+import { users as Users, files as Files } from "@prisma/client";
 
 const ROUTE = "/api/files";
 
@@ -22,8 +21,8 @@ afterAll(async () => {
 
 describe("Files API Tests", () => {
   let authToken: string;
-  let testUser: UsersDto;
-  let testFile: FilesDto;
+  let testUser: Users;
+  let testFile: Files;
 
   beforeAll(async () => {
     const { login } = loadTestData();

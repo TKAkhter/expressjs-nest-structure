@@ -5,13 +5,13 @@ import { logger } from "@/common/winston/winston";
 import { CustomRequest } from "@/types/request";
 import { createResponse } from "@/utils/create-response";
 import { BaseController } from "@/common/base/base.controller";
-import { CreateUsersDto, UpdateUsersDto, UsersDto } from "./users.dto";
-import { PrismaClient } from "@prisma/client";
+import { CreateUsersDto, UpdateUsersDto } from "./users.dto";
+import { PrismaClient, users as Users } from "@prisma/client";
 
 const prisma = new PrismaClient();
 const IGNORE_FIELDS = { password: true, v: true };
 
-export class UsersController extends BaseController<UsersDto, CreateUsersDto, UpdateUsersDto> {
+export class UsersController extends BaseController<Users, CreateUsersDto, UpdateUsersDto> {
   public collectionName: string;
   public usersService: UsersService;
 
@@ -38,14 +38,7 @@ export class UsersController extends BaseController<UsersDto, CreateUsersDto, Up
         createDto,
       });
       const created = await this.usersService.create(createDto);
-      return res.json(
-        createResponse(
-          req,
-          created,
-          `${this.collectionName} created successfully`,
-          StatusCodes.CREATED,
-        ),
-      );
+      return res.json(createResponse({ data: created, status: StatusCodes.CREATED }));
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(`[${this.collectionName} Controller] Error creating ${this.collectionName}`, {
@@ -77,9 +70,7 @@ export class UsersController extends BaseController<UsersDto, CreateUsersDto, Up
         updateDto,
       });
       const updatedData = await this.usersService.update(uuid, updateDto);
-      return res.json(
-        createResponse(req, updatedData, `${this.collectionName} updated successfully`),
-      );
+      return res.json(createResponse({ data: updatedData, status: StatusCodes.CREATED }));
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(`[${this.collectionName} Controller] Error updating ${this.collectionName}`, {

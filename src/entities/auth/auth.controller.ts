@@ -40,9 +40,7 @@ export class AuthController {
         loggedUser,
       });
 
-      return res.json(
-        createResponse(req, data, `${this.collectionName} login successfully`, StatusCodes.CREATED),
-      );
+      return res.json(createResponse({ data, status: StatusCodes.CREATED }));
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(`[${this.collectionName} Controller] login API error`, {
@@ -81,14 +79,7 @@ export class AuthController {
         loggedUser,
       });
 
-      return res.json(
-        createResponse(
-          req,
-          data,
-          `${this.collectionName} registered successfully`,
-          StatusCodes.CREATED,
-        ),
-      );
+      return res.json(createResponse({ data, status: StatusCodes.CREATED }));
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(`[${this.collectionName} Controller] Register API error`, {
@@ -127,14 +118,7 @@ export class AuthController {
         loggedUser,
       });
 
-      return res.json(
-        createResponse(
-          req,
-          data,
-          `${this.collectionName} logout successfully`,
-          StatusCodes.CREATED,
-        ),
-      );
+      return res.json(createResponse({ data, status: StatusCodes.CREATED }));
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(`[${this.collectionName} Controller] Logout API error`, {
@@ -173,14 +157,7 @@ export class AuthController {
         data,
         loggedUser,
       });
-      return res.json(
-        createResponse(
-          req,
-          data,
-          `${this.collectionName} extend token successfully`,
-          StatusCodes.CREATED,
-        ),
-      );
+      return res.json(createResponse({ data, status: StatusCodes.CREATED }));
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(`[${this.collectionName} Controller] ExtendToken API error`, {
@@ -221,14 +198,7 @@ export class AuthController {
         email,
         loggedUser,
       });
-      return res.json(
-        createResponse(
-          req,
-          data,
-          `${this.collectionName} forgot password successfully`,
-          StatusCodes.CREATED,
-        ),
-      );
+      return res.json(createResponse({ data, status: StatusCodes.CREATED }));
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(`[${this.collectionName} Controller] Forgot password API error`, {
@@ -274,14 +244,7 @@ export class AuthController {
         resetToken,
         loggedUser,
       });
-      return res.json(
-        createResponse(
-          req,
-          data,
-          `${this.collectionName} reset password successfully`,
-          StatusCodes.CREATED,
-        ),
-      );
+      return res.json(createResponse({ data, status: StatusCodes.CREATED }));
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(`[${this.collectionName} Controller] Reset password API error`, {

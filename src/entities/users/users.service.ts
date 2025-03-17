@@ -1,4 +1,4 @@
-import { UsersDto, UpdateUsersDto, CreateUsersDto } from "@/entities/users/users.dto";
+import { UpdateUsersDto, CreateUsersDto } from "@/entities/users/users.dto";
 import { env } from "@/config/env";
 import { hash } from "bcrypt";
 import { v4 as uuidv4 } from "uuid";
@@ -6,8 +6,9 @@ import createHttpError from "http-errors";
 import { StatusCodes } from "http-status-codes";
 import { logger } from "@/common/winston/winston";
 import { BaseService } from "@/common/base/base.services";
+import { users as Users } from "@prisma/client";
 
-export class UsersService extends BaseService<UsersDto, CreateUsersDto, UpdateUsersDto> {
+export class UsersService extends BaseService<Users, CreateUsersDto, UpdateUsersDto> {
   private collectionNameService: string;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -21,13 +22,13 @@ export class UsersService extends BaseService<UsersDto, CreateUsersDto, UpdateUs
    * @param createDto - Data for creating a new entity
    * @returns Created entity data
    */
-  create = async (createDto: CreateUsersDto): Promise<UsersDto | null> => {
+  create = async (createDto: CreateUsersDto): Promise<Users | null> => {
     try {
       logger.info(
         `[${this.collectionNameService} Service] Creating ${this.collectionNameService} with email: ${createDto.email}`,
       );
-      const data = await this.baseRepository.getByEmail(createDto.email);
-      const username = await this.baseRepository.getByUsername(createDto.username);
+      const data = await this.baseRepository.getByEmail(createDto.email!);
+      const username = await this.baseRepository.getByUsername(createDto.username!);
 
       if (data) {
         logger.warn(
@@ -51,7 +52,7 @@ export class UsersService extends BaseService<UsersDto, CreateUsersDto, UpdateUs
         });
       }
 
-      const hashedPassword = await hash(createDto.password, env.HASH!);
+      const hashedPassword = await hash(createDto.password!, env.HASH!);
 
       const newDto = {
         uuid: uuidv4(),
@@ -90,7 +91,7 @@ export class UsersService extends BaseService<UsersDto, CreateUsersDto, UpdateUs
    * @param updateDto - Data to update the entity with
    * @returns Updated entity data
    */
-  update = async (uuid: string, updateDto: UpdateUsersDto): Promise<UsersDto | null> => {
+  update = async (uuid: string, updateDto: UpdateUsersDto): Promise<Users | null> => {
     try {
       logger.info(
         `[${this.collectionNameService} Service] Updating ${this.collectionNameService} with uuid: ${uuid}`,

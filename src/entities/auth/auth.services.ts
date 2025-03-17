@@ -7,14 +7,15 @@ import { StatusCodes } from "http-status-codes";
 import { UsersService } from "@/entities/users/users.service";
 import { sendMail } from "@/common/mail-sender/mail-sender";
 import { BaseRepository } from "@/common/base/base.repository";
-import { CreateUsersDto, UpdateUsersDto, UsersDto } from "../users/users.dto";
+import { CreateUsersDto, UpdateUsersDto } from "../users/users.dto";
 import { env } from "@/config/env";
 import { createTemplate } from "@/template/create-template";
+import { users as Users } from "@prisma/client";
 
 export class AuthService {
   private collectionName: string;
   private usersService: UsersService;
-  private usersRepository: BaseRepository<UsersDto, UpdateUsersDto, CreateUsersDto>;
+  private usersRepository: BaseRepository<Users, UpdateUsersDto, CreateUsersDto>;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor(model: any, collectionName: string) {
@@ -59,7 +60,8 @@ export class AuthService {
       }
 
       const token = generateToken({
-        id: user.uuid,
+        id: user.id,
+        uuid: user.uuid,
         username: user.username,
         name: user.name,
         email: user.email,
@@ -216,7 +218,13 @@ export class AuthService {
         email: user.email,
       });
 
-      await this.usersService.update(user.uuid, { resetToken });
+      await this.usersService.update(user.uuid as string, {
+        resetToken,
+        name: user.name,
+        email: user.email,
+        updatedAt: new Date(),
+        username: user.username,
+      });
 
       // Send email
       try {

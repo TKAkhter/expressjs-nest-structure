@@ -4,7 +4,7 @@ import app from "../src/app";
 import { RedisClient } from "../src/config/redis/redis";
 import { logger } from "../src/common/winston/winston";
 import { loadTestData } from "./test.helper";
-import { users as Users, files as Files } from "@prisma/client";
+import { user as User, file as File } from "@prisma/client";
 
 const ROUTE = "/api/files";
 
@@ -21,8 +21,8 @@ afterAll(async () => {
 
 describe("Files API Tests", () => {
   let authToken: string;
-  let testUser: Users;
-  let testFile: Files;
+  let testUser: User;
+  let testFile: File;
 
   beforeAll(async () => {
     const { login } = loadTestData();
@@ -40,7 +40,7 @@ describe("Files API Tests", () => {
       .set("Authorization", `Bearer ${authToken}`)
       .field({
         tags: "test, file",
-        userRef: testUser.uuid,
+        userRef: testUser.id,
       })
       .attach("file", path.join(__dirname, "test-file.png"));
 
@@ -59,7 +59,7 @@ describe("Files API Tests", () => {
 
   it("should fetch uploaded files by id", async () => {
     const response = await request(app)
-      .get(`${ROUTE}/uuid/${testFile.uuid}`)
+      .get(`${ROUTE}/id/${testFile.id}`)
       .set("Authorization", `Bearer ${authToken}`);
 
     expect(response.status).toBe(200);
@@ -67,7 +67,7 @@ describe("Files API Tests", () => {
 
   it("should fetch uploaded files by user id", async () => {
     const response = await request(app)
-      .get(`${ROUTE}/user/${testFile.userRef}`)
+      .get(`${ROUTE}/user/${testFile.userId}`)
       .set("Authorization", `Bearer ${authToken}`);
 
     expect(response.status).toBe(200);

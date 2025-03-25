@@ -10,12 +10,12 @@ import { BaseRepository } from "@/common/base/base.repository";
 import { CreateUsersDto, UpdateUsersDto } from "../users/users.dto";
 import { env } from "@/config/env";
 import { createTemplate } from "@/template/create-template";
-import { users as Users } from "@prisma/client";
+import { user as User } from "@prisma/client";
 
 export class AuthService {
   private collectionName: string;
   private usersService: UsersService;
-  private usersRepository: BaseRepository<Users, UpdateUsersDto, CreateUsersDto>;
+  private usersRepository: BaseRepository<User, UpdateUsersDto, CreateUsersDto>;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor(model: any, collectionName: string) {
@@ -61,8 +61,6 @@ export class AuthService {
 
       const token = generateToken({
         id: user.id,
-        uuid: user.uuid,
-        username: user.username,
         name: user.name,
         email: user.email,
       });
@@ -145,7 +143,6 @@ export class AuthService {
       const payload = verifyToken(token);
       const newToken = generateToken({
         id: payload.id,
-        username: payload.username,
         name: payload.name,
         email: payload.email,
       });
@@ -212,18 +209,16 @@ export class AuthService {
       }
 
       const resetToken = generateToken({
-        id: user.uuid,
-        username: user.username,
+        id: user.id,
         name: user.name,
         email: user.email,
       });
 
-      await this.usersService.update(user.uuid as string, {
+      await this.usersService.update(user.id as string, {
         resetToken,
-        name: user.name,
+        name: user.name!,
         email: user.email,
         updatedAt: new Date(),
-        username: user.username,
       });
 
       // Send email
@@ -301,7 +296,7 @@ export class AuthService {
 
       const hashedPassword = await hash(resetPasswordDto.password, env.HASH!);
 
-      await this.usersService.update(user[0].uuid, {
+      await this.usersService.update(user[0].id, {
         password: hashedPassword,
         resetToken: null,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

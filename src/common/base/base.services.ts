@@ -86,49 +86,6 @@ export class BaseService<T, TCreateDto, TUpdateDto> {
   };
 
   /**
-   * Fetches a entity by their UUID.
-   * @param uuid - entity's unique identifier
-   * @returns entity data
-   */
-  getByUuid = async (uuid: string): Promise<T> => {
-    try {
-      logger.info(
-        `[${this.collectionName} Service] Fetching ${this.collectionName} with uuid: ${uuid}`,
-      );
-      const data = await this.baseRepository.getByUuid(uuid);
-
-      if (!data) {
-        logger.warn(
-          `[${this.collectionName} Service] ${this.collectionName} with uuid ${uuid} not found`,
-        );
-        throw createHttpError(StatusCodes.BAD_REQUEST, `${this.collectionName} not found`, {
-          resource: this.collectionName,
-        });
-      }
-
-      return data;
-    } catch (error) {
-      if (createHttpError.isHttpError(error)) {
-        throw error;
-      }
-      if (error instanceof Error) {
-        logger.warn(
-          `[${this.collectionName} Service] Error fetching ${this.collectionName} by uuid`,
-          {
-            uuid,
-            error: error.message,
-          },
-        );
-        throw new Error(`Error fetching ${this.collectionName} by uuid: ${error.message}`);
-      }
-      logger.warn(
-        `[${this.collectionName} Service] Unknown error occurred while fetching ${this.collectionName} by uuid`,
-      );
-      throw new Error(`Unknown error occurred while fetching ${this.collectionName} by uuid`);
-    }
-  };
-
-  /**
    * Fetches a entity by their email.
    * @param email - entity's email
    * @returns entity data or false if not found
@@ -219,27 +176,16 @@ export class BaseService<T, TCreateDto, TUpdateDto> {
 
   /**
    * Updates an existing entity.
-   * @param uuid - entity's unique identifier
+   * @param id - entity's unique identifier
    * @param updateDto - Data to update the entity with
    * @returns Updated entity data
    */
-  update = async (uuid: string, updateDto: TUpdateDto): Promise<T | null> => {
+  update = async (id: string, updateDto: TUpdateDto): Promise<T | null> => {
     try {
       logger.info(
-        `[${this.collectionName} Service] Updating ${this.collectionName} with uuid: ${uuid}`,
+        `[${this.collectionName} Service] Updating ${this.collectionName} with id: ${id}`,
       );
-      const data = await this.getByUuid(uuid);
-
-      if (!data) {
-        logger.warn(
-          `[${this.collectionName} Service] ${this.collectionName} with uuid ${uuid} does not exist!`,
-        );
-        throw createHttpError(StatusCodes.BAD_REQUEST, `${this.collectionName} does not exist!`, {
-          resource: this.collectionName,
-        });
-      }
-
-      return await this.baseRepository.update(uuid, updateDto);
+      return await this.baseRepository.update(id, updateDto);
     } catch (error) {
       if (createHttpError.isHttpError(error)) {
         throw error;
@@ -247,7 +193,7 @@ export class BaseService<T, TCreateDto, TUpdateDto> {
 
       if (error instanceof Error) {
         logger.warn(`[${this.collectionName} Service] Error updating ${this.collectionName}`, {
-          uuid,
+          id,
           updateDto,
           error: error.message,
         });
@@ -262,26 +208,26 @@ export class BaseService<T, TCreateDto, TUpdateDto> {
 
   /**
    * Deletes a entity.
-   * @param uuid - entity's unique identifier
+   * @param id - entity's unique identifier
    * @returns Deletion result
    */
-  delete = async (uuid: string): Promise<T | null> => {
+  delete = async (id: string): Promise<T | null> => {
     try {
       logger.info(
-        `[${this.collectionName} Service] Deleting ${this.collectionName} with uuid: ${uuid}`,
+        `[${this.collectionName} Service] Deleting ${this.collectionName} with id: ${id}`,
       );
-      const data = await this.getByUuid(uuid);
+      const data = await this.getById(id);
 
       if (!data) {
         logger.warn(
-          `[${this.collectionName} Service] ${this.collectionName} with uuid ${uuid} does not exist!`,
+          `[${this.collectionName} Service] ${this.collectionName} with id ${id} does not exist!`,
         );
         throw createHttpError(StatusCodes.BAD_REQUEST, `${this.collectionName} does not exist!`, {
           resource: this.collectionName,
         });
       }
 
-      return await this.baseRepository.delete(uuid);
+      return await this.baseRepository.delete(id);
     } catch (error) {
       if (createHttpError.isHttpError(error)) {
         throw error;
@@ -289,7 +235,7 @@ export class BaseService<T, TCreateDto, TUpdateDto> {
 
       if (error instanceof Error) {
         logger.warn(`[${this.collectionName} Service] Error deleting ${this.collectionName}`, {
-          uuid,
+          id,
           error: error.message,
         });
         throw new Error(`Error deleting ${this.collectionName}: ${error.message}`);
@@ -302,21 +248,21 @@ export class BaseService<T, TCreateDto, TUpdateDto> {
   };
 
   /**
-   * Deletes multiple entities by their uuids.
-   * @param uuids - List of entity uuids to delete
+   * Deletes multiple entities by their ids.
+   * @param ids - List of entity ids to delete
    * @returns Deletion result
    */
-  deleteMany = async (uuids: string[]): Promise<{ deletedCount: number }> => {
-    if (!Array.isArray(uuids) || uuids.length === 0) {
-      logger.warn(`[${this.collectionName} Service] Invalid array of uuids for bulk delete`);
-      throw new Error("Invalid array of uuids");
+  deleteMany = async (ids: string[]): Promise<{ deletedCount: number }> => {
+    if (!Array.isArray(ids) || ids.length === 0) {
+      logger.warn(`[${this.collectionName} Service] Invalid array of ids for bulk delete`);
+      throw new Error("Invalid array of ids");
     }
 
-    const result = await this.baseRepository.deleteMany(uuids);
+    const result = await this.baseRepository.deleteMany(ids);
 
     if (result.deletedCount === 0) {
       logger.warn(`[${this.collectionName} Service] No ${this.collectionName} found to delete`, {
-        uuids,
+        ids,
       });
       throw new Error(`No ${this.collectionName} found to delete`);
     }

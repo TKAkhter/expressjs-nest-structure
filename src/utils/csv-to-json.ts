@@ -1,7 +1,6 @@
 import * as fs from "fs";
 import csv from "csv-parser";
 import { Readable } from "stream";
-import { v4 as uuidv4 } from "uuid";
 import _ from "lodash";
 import { hash } from "bcrypt";
 import { env } from "@/config/env";
@@ -58,9 +57,7 @@ export const csvToJson = (filePath: string): Promise<any[]> => {
               return acc;
             },
             {
-              uuid: uuidv4(),
-              createdAt: new Date(),
-              updatedAt: new Date(),
+              // Add default fields here
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } as Record<string, any>,
           ),
@@ -113,9 +110,7 @@ export const csvBufferToJson = (buffer: string): Promise<any[]> => {
               return acc;
             },
             {
-              uuid: uuidv4(),
-              createdAt: new Date(),
-              updatedAt: new Date(),
+              // Add default fields here
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } as Record<string, any>,
           ),

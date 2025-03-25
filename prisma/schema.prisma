@@ -2,77 +2,66 @@ generator client {
   provider = "prisma-client-js"
 }
 
+generator zod {
+  provider                         = "zod-prisma-types"
+  output                           = "../src/generated/zod"
+  useMultipleFiles                 = false
+  writeBarrelFiles                 = false
+  createInputTypes                 = false
+  createModelTypes                 = true
+  addInputTypeValidation           = false
+  addIncludeType                   = false
+  addSelectType                    = false
+  validateWhereUniqueInput         = false
+  createOptionalDefaultValuesTypes = false
+  createRelationValuesTypes        = false
+  createPartialTypes               = false
+  useDefaultValidators             = false
+  coerceDate                       = false
+  writeNullishInModelTypes         = false
+}
+
 datasource db {
   provider = "mongodb"
   url      = env("MONGODB_URI")
 }
 
-type ErrorLogsMetadata {
-  details    ErrorLogsMetadataDetails
-  loggedUser String
-  method     String
-  name       String
-  stack      String
-  status     Int
-  url        String
-}
-
-type ErrorLogsMetadataDetails {
-  /// Could not determine type: the field only had null or empty values in the sample set.
-  code       Json?
-  /// Nested objects had no data in the sample dataset to introspect a nested type.
-  data       Json
-  email      String?
-  /// Could not determine type: the field only had null or empty values in the sample set.
-  id         Json?
-  /// Nested objects had no data in the sample dataset to introspect a nested type.
-  meta       Json
-  /// Could not determine type: the field only had null or empty values in the sample set.
-  name       Json?
-  /// Could not determine type: the field only had null or empty values in the sample set.
-  status     Json?
-  /// Could not determine type: the field only had null or empty values in the sample set.
-  statusText Json?
-}
-
-model developments {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-}
-
-model error_logs {
-  id        String            @id @default(auto()) @map("_id") @db.ObjectId
-  level     String
-  message   String
-  metadata  ErrorLogsMetadata
-  timestamp DateTime?          @default(now()) @db.Date
-}
-
-model files {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  v         Int?     @default(0) @map("__v")
-  createdAt DateTime @default(now()) @db.Date
-  fileName  String?
-  filePath  String?
-  fileText  String?
-  tags      String?
-  updatedAt DateTime @default(now()) @db.Date
-  userId    String?
-  userRef   String?
-  uuid      String?   @unique
-  views     String?
-}
-
-model users {
+model user {
   id          String    @id @default(auto()) @map("_id") @db.ObjectId
-  v           Int?      @default(0) @map("__v")
-  createdAt   DateTime  @default(now()) @db.Date
-  email       String    @unique
   name        String?
-  password    String
+  email       String
+  password    String?
   resetToken  String?
-  updatedAt   DateTime? @default(now()) @db.Date
-  username    String?   @unique
-  uuid        String?   @unique
-  bio         String?
+  createdAt   DateTime? @default(now())
+  updatedAt   DateTime? @updatedAt
   phoneNumber String?
+  bio         String?
+  file        file[]
+}
+
+model file {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  user      user?     @relation(fields: [userId], references: [id])
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt
+  name      String?
+  path      String?
+  text      String?
+  tags      String?
+  views     Int?
+  userId    String?   @db.ObjectId
+}
+
+model errorLogs {
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  status     String?
+  message    String?
+  method     String?
+  url        String?
+  loggedUser String?
+  name       String?
+  stack      String?
+  details    Json?
+  createdAt  DateTime? @default(now())
+  updatedAt  DateTime? @updatedAt
 }

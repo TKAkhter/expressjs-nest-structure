@@ -6,19 +6,19 @@ import { CustomRequest } from "@/types/request";
 import { createResponse } from "@/utils/create-response";
 import { BaseController } from "@/common/base/base.controller";
 import { CreateUsersDto, UpdateUsersDto } from "./users.dto";
-import { PrismaClient, users as Users } from "@prisma/client";
+import { PrismaClient, user as User } from "@prisma/client";
 
 const prisma = new PrismaClient();
-const IGNORE_FIELDS = { password: true, v: true };
+const IGNORE_FIELDS = { password: true };
 
-export class UsersController extends BaseController<Users, CreateUsersDto, UpdateUsersDto> {
+export class UsersController extends BaseController<User, CreateUsersDto, UpdateUsersDto> {
   public collectionName: string;
   public usersService: UsersService;
 
   constructor() {
-    super(prisma.users, "Users", IGNORE_FIELDS);
+    super(prisma.user, "Users", IGNORE_FIELDS);
     this.collectionName = "Users";
-    this.usersService = new UsersService(prisma.users, this.collectionName, IGNORE_FIELDS);
+    this.usersService = new UsersService(prisma.user, this.collectionName, IGNORE_FIELDS);
   }
 
   /**
@@ -60,23 +60,23 @@ export class UsersController extends BaseController<Users, CreateUsersDto, Updat
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   update = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
-    const { uuid } = req.params;
+    const { id } = req.params;
     const updateDto = req.body;
     const { loggedUser } = req;
     try {
       logger.info(`[${this.collectionName} Controller] Updating ${this.collectionName}`, {
         loggedUser,
-        uuid,
+        id,
         updateDto,
       });
-      const updatedData = await this.usersService.update(uuid, updateDto);
+      const updatedData = await this.usersService.update(id, updateDto);
       return res.json(createResponse({ data: updatedData, status: StatusCodes.CREATED }));
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(`[${this.collectionName} Controller] Error updating ${this.collectionName}`, {
           error: error.message,
           loggedUser,
-          uuid,
+          id,
           updateDto,
         });
       }

@@ -1,5 +1,6 @@
 import { FindByQueryDto, FindByQueryResult, ImportResult } from "@/schemas/find-by-query";
 import { logger } from "@/common/winston/winston";
+import { formatPrismaError } from "@/config/prisma/errors.prisma";
 
 export class BaseRepository<T, TCreateDto, TUpdateDto> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -31,7 +32,7 @@ export class BaseRepository<T, TCreateDto, TUpdateDto> {
           error: error.message,
         },
       );
-      throw new Error(error);
+      throw new Error(formatPrismaError(error));
     }
   };
 
@@ -55,37 +56,13 @@ export class BaseRepository<T, TCreateDto, TUpdateDto> {
           error: error.message,
         },
       );
-      throw new Error(error);
-    }
-  };
-
-  /**
-   * Fetches a entity by their id.
-   * @param uuid - entity's unique identifier
-   * @returns entity data or null if not found
-   */
-  getByUuid = async (uuid: string): Promise<T | null> => {
-    try {
-      logger.info(
-        `[${this.collectionName} Repository] Fetching ${this.collectionName} with uuid: ${uuid}`,
-      );
-      return await this.model.findUnique({ where: { uuid }, omit: this.ignoreFields });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      logger.warn(
-        `[${this.collectionName} Repository] Error fetching ${this.collectionName} by uuid`,
-        {
-          uuid,
-          error: error.message,
-        },
-      );
-      throw new Error(error);
+      throw new Error(formatPrismaError(error));
     }
   };
 
   /**
    * Fetches a entity or entities by their userId.
-   * @param uuid - entity's unique identifier
+   * @param id - entity's unique identifier
    * @returns entity data or null if not found
    */
   getByUser = async (userId: string): Promise<T | T[] | null> => {
@@ -93,7 +70,7 @@ export class BaseRepository<T, TCreateDto, TUpdateDto> {
       logger.info(
         `[${this.collectionName} Repository] Fetching ${this.collectionName} with userId: ${userId}`,
       );
-      return await this.model.findMany({ where: { userRef: userId }, omit: this.ignoreFields });
+      return await this.model.findMany({ where: { userId }, omit: this.ignoreFields });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       logger.warn(
@@ -103,7 +80,7 @@ export class BaseRepository<T, TCreateDto, TUpdateDto> {
           error: error.message,
         },
       );
-      throw new Error(error);
+      throw new Error(formatPrismaError(error));
     }
   };
 
@@ -117,7 +94,7 @@ export class BaseRepository<T, TCreateDto, TUpdateDto> {
       logger.info(
         `[${this.collectionName} Repository] Fetching ${this.collectionName} with email: ${email}`,
       );
-      return await this.model.findUnique({ where: { email } });
+      return await this.model.findFirst({ where: { email } });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       logger.warn(
@@ -127,31 +104,7 @@ export class BaseRepository<T, TCreateDto, TUpdateDto> {
           error: error.message,
         },
       );
-      throw new Error(error);
-    }
-  };
-
-  /**
-   * Fetches a entity by their username.
-   * @param username - entity's username
-   * @returns entity data or null if not found
-   */
-  getByUsername = async (username: string): Promise<T | null> => {
-    try {
-      logger.info(
-        `[${this.collectionName} Repository] Fetching ${this.collectionName} with username: ${username}`,
-      );
-      return await this.model.findUnique({ where: { username }, omit: this.ignoreFields });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      logger.warn(
-        `[${this.collectionName} Repository] Error fetching ${this.collectionName} by username`,
-        {
-          username,
-          error: error.message,
-        },
-      );
-      throw new Error(error);
+      throw new Error(formatPrismaError(error));
     }
   };
 
@@ -177,7 +130,7 @@ export class BaseRepository<T, TCreateDto, TUpdateDto> {
           error: error.message,
         },
       );
-      throw new Error(error);
+      throw new Error(formatPrismaError(error));
     }
   };
 
@@ -217,7 +170,7 @@ export class BaseRepository<T, TCreateDto, TUpdateDto> {
         options,
         error: error.message,
       });
-      throw new Error(error);
+      throw new Error(formatPrismaError(error));
     }
   };
 
@@ -231,7 +184,7 @@ export class BaseRepository<T, TCreateDto, TUpdateDto> {
       logger.info(
         `[${this.collectionName} Repository] Creating document in ${this.collectionName}`,
       );
-      const created = this.model.create({ data: createDto });
+      const created = await this.model.create({ data: createDto });
       return created;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
@@ -242,79 +195,79 @@ export class BaseRepository<T, TCreateDto, TUpdateDto> {
           error: error.message,
         },
       );
-      throw new Error(error);
+      throw new Error(formatPrismaError(error));
     }
   };
 
   /**
    * Updates an existing entity.
-   * @param uuid - Entity's unique identifier
+   * @param id - Entity's unique identifier
    * @param updateDto - Data to update the entity
    * @returns Updated entity data
    */
-  update = async (uuid: string, updateDto: TUpdateDto): Promise<T | null> => {
+  update = async (id: string, updateDto: TUpdateDto): Promise<T | null> => {
     try {
       logger.info(
-        `[${this.collectionName} Repository] Updating ${this.collectionName} with uuid: ${uuid}`,
+        `[${this.collectionName} Repository] Updating ${this.collectionName} with id: ${id}`,
       );
-      return await this.model.update({ where: { uuid }, data: updateDto });
+      return await this.model.update({ where: { id }, data: updateDto });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       logger.warn(`[${this.collectionName} Repository] Error updating ${this.collectionName}`, {
-        uuid,
+        id,
         updateDto,
         error: error.message,
       });
-      throw new Error(error);
+      throw new Error(formatPrismaError(error));
     }
   };
 
   /**
-   * Deletes an entity by uuid.
-   * @param uuid - Entity's unique identifier
+   * Deletes an entity by id.
+   * @param id - Entity's unique identifier
    * @returns Deleted entity data
    */
-  delete = async (uuid: string): Promise<T | null> => {
+  delete = async (id: string): Promise<T | null> => {
     try {
       logger.info(
-        `[${this.collectionName} Repository] Deleting ${this.collectionName} with uuid: ${uuid}`,
+        `[${this.collectionName} Repository] Deleting ${this.collectionName} with id: ${id}`,
       );
-      return await this.model.delete({ where: { uuid } });
+      return await this.model.delete({ where: { id } });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       logger.warn(`[${this.collectionName} Repository] Error deleting ${this.collectionName}`, {
-        uuid,
+        id,
         error: error.message,
       });
-      throw new Error(error);
+      throw new Error(formatPrismaError(error));
     }
   };
 
   /**
-   * Deletes multiple entities by their uuids.
-   * @param uuids - List of entity uuids to delete
+   * Deletes multiple entities by their ids.
+   * @param ids - List of entity ids to delete
    * @returns Deletion result
    */
-  async deleteMany(uuids: string[]): Promise<{ deletedCount: number }> {
+  async deleteMany(ids: string[]): Promise<{ deletedCount: number }> {
     try {
-      const result = await this.model.deleteMany({ where: { uuid: { in: uuids } } });
+      const result = await this.model.deleteMany({ where: { id: { in: ids } } });
       return { deletedCount: result.count };
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       logger.warn(
         `[${this.collectionName} Repository] Error deleting multiple ${this.collectionName}`,
         {
-          uuids,
+          ids,
           error: error.message,
         },
       );
-      throw new Error(error);
+      throw new Error(formatPrismaError(error));
     }
   }
 
   /**
    * Imports multiple entity objects into the database.
-   * Skips objects where email or username already exist in the database.
+   * Skips objects where email already exist in the database.
    * @param entities - Array of entity objects to be saved
    * @returns Object containing created entities, created count, and skipped count
    */
@@ -326,13 +279,14 @@ export class BaseRepository<T, TCreateDto, TUpdateDto> {
 
       const uniqueEntities = [];
       const skippedEntities = [];
+      let createdEntities = [];
 
       for (const entity of entities) {
         // eslint-disable-next-line no-await-in-loop
         const exists = await this.model.findFirst({
           where: {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            OR: [{ email: (entity as any).email }, { username: (entity as any).username }],
+            OR: [{ email: (entity as any).email }],
           },
         });
 
@@ -342,20 +296,22 @@ export class BaseRepository<T, TCreateDto, TUpdateDto> {
           uniqueEntities.push(entity);
         }
       }
-
-      const createdEntities = await this.model.createMany({
-        data: uniqueEntities,
-      });
+      if (uniqueEntities.length !== 0) {
+        createdEntities = await this.model.createMany({
+          data: uniqueEntities,
+        });
+      }
 
       logger.info(`[${this.collectionName} Repository] Import Summary:`, {
-        createdEntities,
-        createdCount: createdEntities.length,
+        createdEntities: uniqueEntities,
+        createdCount: createdEntities.count ?? createdEntities.length,
         skippedCount: skippedEntities.length,
       });
 
       return {
-        createdEntities,
-        createdCount: createdEntities.length,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        createdEntities: uniqueEntities as any,
+        createdCount: createdEntities.count ?? createdEntities.length,
         skippedCount: skippedEntities.length,
       };
 
@@ -368,7 +324,7 @@ export class BaseRepository<T, TCreateDto, TUpdateDto> {
           error: error.message,
         },
       );
-      throw new Error(error);
+      throw new Error(formatPrismaError(error));
     }
   };
 }

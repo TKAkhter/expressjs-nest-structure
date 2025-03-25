@@ -3,7 +3,7 @@ import { z } from "zod";
 
 extendZodWithOpenApi(z);
 
-const PASSWORD_SCHEMA = z
+const passwordSchema = z
   .string()
   .min(8)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -38,27 +38,27 @@ const PASSWORD_SCHEMA = z
     }
   });
 
-export const AuthSchema = z.object({
+export const loginSchema = z.object({
   email: z.string().email(),
-  password: PASSWORD_SCHEMA,
+  password: passwordSchema,
 });
 
-export const LogoutSchema = z.object({
+export const logoutSchema = z.object({
   success: z.boolean(),
 });
 
-export const ExtendTokenSchema = z.object({
+export const extendTokenSchema = z.object({
   token: z.string(),
 });
 
-export const ForgotPasswordSchema = z.object({
+export const forgotPasswordSchema = z.object({
   email: z.string().email().trim(),
 });
 
-export const ResetPasswordSchema = z
+export const resetPasswordSchema = z
   .object({
     resetToken: z.string(),
-    password: PASSWORD_SCHEMA,
+    password: passwordSchema,
     confirmPassword: z.string().min(8),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -66,12 +66,10 @@ export const ResetPasswordSchema = z
     path: ["confirmPassword"],
   });
 
-export const RegisterSchema = z
+export const registerSchema = z
   .object({
-    name: z.string().min(4, { message: "Name must be at least 4 characters long" }),
-    username: z.string().min(4, { message: "Username must be at least 4 characters long" }),
     email: z.string().email(),
-    password: PASSWORD_SCHEMA,
+    password: passwordSchema,
     confirmPassword: z.string().min(8),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -79,6 +77,6 @@ export const RegisterSchema = z
     path: ["confirmPassword"],
   });
 
-export type RegisterDto = z.infer<typeof RegisterSchema>;
-export type AuthDto = z.infer<typeof AuthSchema>;
-export type ResetPasswordDto = z.infer<typeof ResetPasswordSchema>;
+export type RegisterDto = z.infer<typeof registerSchema>;
+export type AuthDto = z.infer<typeof loginSchema>;
+export type ResetPasswordDto = z.infer<typeof resetPasswordSchema>;

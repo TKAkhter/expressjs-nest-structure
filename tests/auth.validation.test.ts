@@ -3,7 +3,7 @@ import app from "../src/app";
 import { RedisClient } from "../src/config/redis/redis";
 import { logger } from "../src/common/winston/winston";
 import { loadTestData } from "./test.helper";
-import { users as Users } from "@prisma/client";
+import { user as User } from "@prisma/client";
 
 const ROUTE = "/api/auth";
 
@@ -16,7 +16,7 @@ jest.spyOn(logger, "error").mockImplementation(() => {});
 
 describe("Auth API Tests", () => {
   let authToken: string;
-  let testUser: Users;
+  let testUser: User;
 
   afterAll(async () => {
     await RedisClient.disconnect();

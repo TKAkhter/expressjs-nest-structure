@@ -1,14 +1,13 @@
 import { UpdateUsersDto, CreateUsersDto } from "@/entities/users/users.dto";
 import { env } from "@/config/env";
 import { hash } from "bcrypt";
-import { v4 as uuidv4 } from "uuid";
 import createHttpError from "http-errors";
 import { StatusCodes } from "http-status-codes";
 import { logger } from "@/common/winston/winston";
 import { BaseService } from "@/common/base/base.services";
-import { users as Users } from "@prisma/client";
+import { user as User } from "@prisma/client";
 
-export class UsersService extends BaseService<Users, CreateUsersDto, UpdateUsersDto> {
+export class UsersService extends BaseService<User, CreateUsersDto, UpdateUsersDto> {
   private collectionNameService: string;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -22,13 +21,12 @@ export class UsersService extends BaseService<Users, CreateUsersDto, UpdateUsers
    * @param createDto - Data for creating a new entity
    * @returns Created entity data
    */
-  create = async (createDto: CreateUsersDto): Promise<Users | null> => {
+  create = async (createDto: CreateUsersDto): Promise<User | null> => {
     try {
       logger.info(
         `[${this.collectionNameService} Service] Creating ${this.collectionNameService} with email: ${createDto.email}`,
       );
       const data = await this.baseRepository.getByEmail(createDto.email!);
-      const username = await this.baseRepository.getByUsername(createDto.username!);
 
       if (data) {
         logger.warn(
@@ -43,22 +41,11 @@ export class UsersService extends BaseService<Users, CreateUsersDto, UpdateUsers
         );
       }
 
-      if (username) {
-        logger.warn(
-          `[${this.collectionNameService} Service] ${this.collectionNameService} with username ${createDto.username} already exists.`,
-        );
-        throw createHttpError(StatusCodes.BAD_REQUEST, "username is taken!", {
-          resource: "Users",
-        });
-      }
-
       const hashedPassword = await hash(createDto.password!, env.HASH!);
 
       const newDto = {
-        uuid: uuidv4(),
         name: createDto.name,
         email: createDto.email,
-        username: createDto.username,
         password: hashedPassword,
       };
 
@@ -87,20 +74,20 @@ export class UsersService extends BaseService<Users, CreateUsersDto, UpdateUsers
 
   /**
    * Updates an existing entity.
-   * @param uuid - entity's unique identifier
+   * @param id - entity's unique identifier
    * @param updateDto - Data to update the entity with
    * @returns Updated entity data
    */
-  update = async (uuid: string, updateDto: UpdateUsersDto): Promise<Users | null> => {
+  update = async (id: string, updateDto: UpdateUsersDto): Promise<User | null> => {
     try {
       logger.info(
-        `[${this.collectionNameService} Service] Updating ${this.collectionNameService} with uuid: ${uuid}`,
+        `[${this.collectionNameService} Service] Updating ${this.collectionNameService} with id: ${id}`,
       );
-      const data = await this.getByUuid(uuid);
+      const data = await this.getById(id);
 
       if (!data) {
         logger.warn(
-          `[${this.collectionNameService} Service] ${this.collectionNameService} with uuid ${uuid} does not exist!`,
+          `[${this.collectionNameService} Service] ${this.collectionNameService} with id ${id} does not exist!`,
         );
         throw createHttpError(
           StatusCodes.BAD_REQUEST,
@@ -123,25 +110,13 @@ export class UsersService extends BaseService<Users, CreateUsersDto, UpdateUsers
         }
       }
 
-      if (updateDto.username) {
-        const username = await this.baseRepository.getByUsername(updateDto.username);
-        if (username) {
-          logger.warn(
-            `[${this.collectionNameService} Service] ${this.collectionNameService} with username ${updateDto.email} already exists`,
-          );
-          throw createHttpError(StatusCodes.BAD_REQUEST, "Username already exists!", {
-            resource: this.collectionNameService,
-          });
-        }
-      }
-
       // If (updateDto.password) {
       //   UpdateDto.password = await hash(updateDto.password, env.HASH!);
       // }
 
       updateDto.updatedAt = new Date();
 
-      return await this.baseRepository.update(uuid, updateDto);
+      return await this.baseRepository.update(id, updateDto);
     } catch (error) {
       if (createHttpError.isHttpError(error)) {
         throw error;
@@ -151,7 +126,7 @@ export class UsersService extends BaseService<Users, CreateUsersDto, UpdateUsers
         logger.warn(
           `[${this.collectionNameService} Service] Error updating ${this.collectionNameService}`,
           {
-            uuid,
+            id,
             updateDto,
             error: error.message,
           },

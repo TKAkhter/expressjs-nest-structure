@@ -25,7 +25,7 @@ export const saveFileToDisk = async (file: any) => {
 
       logger.info(`File saved to: ${filePath}`);
     });
-    return { fileName, filePath };
+    return { name: fileName, path: filePath };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     logger.warn("Error saving file:", error);

@@ -6,23 +6,23 @@ import { saveFileToDisk } from "@/common/multer/save-file-to-disk";
 import { updateImageToDisk } from "@/common/multer/update-file-to-disk";
 import { deleteFileFromDisk } from "@/common/multer/delete-file-from-disk";
 import { BaseController } from "@/common/base/base.controller";
-import { v4 as uuidv4 } from "uuid";
 import { createResponse } from "@/utils/create-response";
 import { StatusCodes } from "http-status-codes";
 import { FilesService } from "./files.service";
-import { PrismaClient, files as Files } from "@prisma/client";
+import { PrismaClient, file as File } from "@prisma/client";
+import _ from "lodash";
 
 const prisma = new PrismaClient();
-const IGNORE_FIELDS = { v: true };
+const IGNORE_FIELDS = {};
 
-export class FilesController extends BaseController<Files, UploadFilesDto, UpdateFilesDto> {
+export class FilesController extends BaseController<File, UploadFilesDto, UpdateFilesDto> {
   public collectionName: string;
   public filesService: FilesService;
 
   constructor() {
-    super(prisma.files, "Files", IGNORE_FIELDS);
+    super(prisma.file, "Files", IGNORE_FIELDS);
     this.collectionName = "Files";
-    this.filesService = new FilesService(prisma.files, this.collectionName, IGNORE_FIELDS);
+    this.filesService = new FilesService(prisma.file, this.collectionName, IGNORE_FIELDS);
   }
 
   /**
@@ -70,27 +70,22 @@ export class FilesController extends BaseController<Files, UploadFilesDto, Updat
   upload = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
     const { loggedUser } = req;
     try {
-      const { buffer, mimetype } = req.file!;
-      const { tags, views, userRef } = req.body;
+      const { tags, userId, name, fileViews } = req.body;
 
-      const { fileName, filePath } = await saveFileToDisk(req.file);
+      const { path } = await saveFileToDisk(req.file);
       logger.info(`[${this.collectionName} Controller] Creating new ${this.collectionName}`, {
         loggedUser,
         tags,
-        fileName,
-        filePath,
+        name,
+        path,
       });
-      const fileText = `data:${mimetype};base64,${buffer.toString("base64")}`;
 
       const fileUpload = {
-        fileName,
-        fileText,
-        filePath,
-        userRef,
-        userId: loggedUser,
+        name,
+        path,
+        userId,
         tags,
-        uuid: uuidv4(),
-        views: views ?? "0",
+        views: fileViews ? Number(fileViews) : 0,
       };
       const created = await this.baseService.create(fileUpload);
 
@@ -113,26 +108,29 @@ export class FilesController extends BaseController<Files, UploadFilesDto, Updat
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   update = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
     const { loggedUser } = req;
-    const { uuid } = req.params;
+    const { id } = req.params;
     try {
-      const { buffer, mimetype } = req.file!;
       const updateData = req.body;
-      const existFile = await this.baseService.getByUuid(uuid);
+      const existFile = await this.baseService.getById(id);
       if (!existFile) {
         throw new Error("File not found");
       }
-      await updateImageToDisk(existFile.fileName!, req.file);
-      const fileText = `data:${mimetype};base64,${buffer.toString("base64")}`;
-      const fileData: UpdateFilesDto = {
-        fileText,
-        ...updateData,
+      const fileName = existFile.path!.split("/").pop();
+      if (req.file) {
+        await updateImageToDisk(fileName!, req.file);
+      }
+      const fileData = {
+        name: _.isEmpty(updateData.name) ? existFile.name : updateData.name,
+        userId: _.isEmpty(updateData.userId) ? existFile.userId : updateData.userId,
+        tags: _.isEmpty(updateData.tags) ? existFile.tags : updateData.tags,
+        views: _.isEmpty(updateData.fileViews) ? existFile.views : Number(updateData.fileViews),
       };
-      const updated = await this.baseService.update(uuid, fileData);
+      const updated = await this.baseService.update(id, fileData);
 
       return res.json(createResponse({ data: updated, status: StatusCodes.CREATED }));
     } catch (error) {
       if (error instanceof Error) {
-        logger.warn("Error updating file", { error: error.message, loggedUser, uuid });
+        logger.warn("Error updating file", { error: error.message, loggedUser, id });
       }
       next(error);
     }
@@ -148,19 +146,20 @@ export class FilesController extends BaseController<Files, UploadFilesDto, Updat
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   delete = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
     const { loggedUser } = req;
-    const { uuid } = req.params;
+    const { id } = req.params;
     try {
-      const existFile = await this.baseService.getByUuid(uuid);
+      const existFile = await this.baseService.getById(id);
       if (!existFile) {
         throw new Error("File not found");
       }
-      await deleteFileFromDisk(existFile.fileName!);
-      const deleted = await this.baseService.delete(uuid);
+      const fileName = existFile.path!.split("/").pop();
+      await deleteFileFromDisk(fileName!);
+      const deleted = await this.baseService.delete(id);
 
       return res.json(createResponse({ data: deleted, status: StatusCodes.CREATED }));
     } catch (error) {
       if (error instanceof Error) {
-        logger.warn("Error deleting file", { error: error.message, loggedUser, uuid });
+        logger.warn("Error deleting file", { error: error.message, loggedUser, id });
       }
       next(error);
     }

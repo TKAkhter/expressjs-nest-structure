@@ -101,7 +101,7 @@ export const errorMiddleware = (
       metadata: errorPayload,
     };
 
-    prisma.error_logs
+    prisma.errorLogs
       .create({
         data: errorLogs,
       })

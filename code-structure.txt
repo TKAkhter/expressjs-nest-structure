@@ -1,5 +1,9 @@
 ├── .husky/
 │   └── pre-commit
+├── .vscode/
+│   └── launch.json
+├── prisma/
+│   └── schema.prisma
 ├── src/
 │   ├── common/
 │   │   ├── base/
@@ -23,8 +27,8 @@
 │   │   └── winston/
 │   │       └── winston.ts
 │   ├── config/
-│   │   ├── mongodb/
-│   │   │   └── mongodb.ts
+│   │   ├── prisma/
+│   │   │   └── prisma.ts
 │   │   ├── redis/
 │   │   │   └── redis.ts
 │   │   └── env.ts
@@ -37,7 +41,6 @@
 │   │   ├── files/
 │   │   │   ├── files.controller.ts
 │   │   │   ├── files.dto.ts
-│   │   │   ├── files.repository.ts
 │   │   │   ├── files.route.ts
 │   │   │   └── files.service.ts
 │   │   ├── health/
@@ -49,14 +52,15 @@
 │   │       ├── users.dto.ts
 │   │       ├── users.route.ts
 │   │       └── users.service.ts
+│   ├── generated/
+│   │   └── zod/
+│   │       └── index.ts
 │   ├── middlewares/
 │   │   ├── auth-middleware.ts
 │   │   ├── cors.ts
 │   │   ├── error-middleware.ts
 │   │   ├── index.ts
 │   │   └── zod-validation.ts
-│   ├── models/
-│   │   └── error-logs.ts
 │   ├── routes/
 │   │   └── routes.ts
 │   ├── schemas/
@@ -72,17 +76,15 @@
 │   ├── utils/
 │   │   ├── create-response.ts
 │   │   ├── csv-to-json.ts
-│   │   ├── mongodb-apply-filter.ts
 │   │   └── utils.ts
 │   ├── .DS_Store
 │   ├── app.ts
 │   └── server.ts
 ├── tests/
-│   └── auth.validation.test.ts
+│   ├── auth.validation.test.ts
+│   ├── files.test.ts
+│   └── test.helper.ts
 ├── uploads/
-│   ├── file-1732863659479-858448142.png
-│   ├── file-1732864787666-267731371.png
-│   └── file-1733207824665-322188582.png
 ├── .DS_Store
 ├── .env
 ├── .env.example
@@ -90,9 +92,13 @@
 ├── .prettierignore
 ├── .prettierrc
 ├── code-structure.txt
+├── code.txt
 ├── eslint.config.mjs
 ├── jest.config.ts
+├── jest.setup.ts
 ├── nodemon.json
 ├── package.json
 ├── README.md
+├── test-data.example.json
+├── test-data.json
 └── tsconfig.json

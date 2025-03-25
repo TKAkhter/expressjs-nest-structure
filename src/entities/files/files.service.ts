@@ -2,9 +2,9 @@ import createHttpError from "http-errors";
 import { logger } from "@/common/winston/winston";
 import { BaseService } from "@/common/base/base.services";
 import { UpdateFilesDto, UploadFilesDto } from "./files.dto";
-import { files as Files } from "@prisma/client";
+import { file as File } from "@prisma/client";
 
-export class FilesService extends BaseService<Files, UploadFilesDto, UpdateFilesDto> {
+export class FilesService extends BaseService<File, UploadFilesDto, UpdateFilesDto> {
   private collectionNameService: string;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -18,7 +18,7 @@ export class FilesService extends BaseService<Files, UploadFilesDto, UpdateFiles
    * @param userId - entity's userId
    * @returns entity data or false if not found
    */
-  getByUser = async (userId: string): Promise<Files | Files[] | false> => {
+  getByUser = async (userId: string): Promise<File | File[] | false> => {
     try {
       logger.info(
         `[${this.collectionNameService} Service] Fetching ${this.collectionNameService} with userId: ${userId}`,

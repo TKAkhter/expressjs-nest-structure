@@ -5,20 +5,20 @@ extendZodWithOpenApi(z);
 
 // See query examples in query-examples.txt
 
-const OrderBySchema = z.object({
-  sort: z.string(),
+const orderBySchema = z.object({
+  sort: z.string().default("id"),
   order: z.enum(["asc", "desc"]),
 });
 
-const PaginateSchema = z.object({
+const paginateSchema = z.object({
   page: z.number().min(1).default(1),
   perPage: z.number().min(1).default(10),
 });
 
-export const FindByQuerySchema = z.object({
+export const findByQuerySchema = z.object({
   filter: z.object({}),
-  paginate: PaginateSchema.optional(),
-  orderBy: z.array(OrderBySchema).optional(),
+  paginate: paginateSchema.optional(),
+  orderBy: z.array(orderBySchema).optional(),
 });
 
 export interface FindByQueryResult<T> {
@@ -35,4 +35,4 @@ export interface ImportResult<T> {
   skippedCount: number;
 }
 
-export type FindByQueryDto = z.infer<typeof FindByQuerySchema>;
+export type FindByQueryDto = z.infer<typeof findByQuerySchema>;

@@ -15,7 +15,7 @@ export class AuthController {
 
   constructor() {
     this.collectionName = "User";
-    this.authService = new AuthService(prisma.users, "User");
+    this.authService = new AuthService(prisma.user, "User");
   }
 
   /**

@@ -1,4 +1,4 @@
-# Node.js Express TypeScript Boilerplate
+# Advance Node.js Express TypeScript Boilerplate
 
 This is a **Node.js Express TypeScript** boilerplate designed to follow a structured architecture similar to **NestJS**, making it highly **scalable, maintainable, and modular**.  
 It is built with best practices in mind, incorporating **Prisma ORM**, **Swagger API documentation**, **Redis caching**, and **Winston logging**.
@@ -38,8 +38,8 @@ Unlike basic Express.js boilerplates that lack structure and scalability, this b
 
 ### Clone the Repository
 ```sh
-git clone https://github.com/TKAkhter/expressjs-nest-structure.git
-cd expressjs-nest-structure
+git clone https://github.com/TKAkhter/advance-expressjs-boilerplate.git
+cd advance-expressjs-boilerplate
 ```
 
 ### Install Dependencies

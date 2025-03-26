@@ -119,7 +119,7 @@ Content of ./README.md:
 # epressjs-nest-structure
 
 repo to file command
-python3 repo2file/dump.py ./expressjs-nest-structure ./expressjs-nest-structure/code.txt node_modules
+python3 repo2file/dump.py ./advance-expressjs-boilerplate ./advance-expressjs-boilerplate/code.txt node_modules
 
 File: ./jest.setup.ts
 --------------------------------------------------
@@ -192,7 +192,7 @@ File: ./package.json
 --------------------------------------------------
 Content of ./package.json:
 {
-  "name": "expressjs-nest-structure",
+  "name": "advance-expressjs-boilerplate",
   "version": "3.0.0",
   "description": "",
   "main": "build/src/server.js",

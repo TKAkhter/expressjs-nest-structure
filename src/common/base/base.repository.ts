@@ -248,7 +248,7 @@ export class BaseRepository<T, TCreateDto, TUpdateDto> {
    * @param ids - List of entity ids to delete
    * @returns Deletion result
    */
-  async deleteMany(ids: string[]): Promise<{ deletedCount: number }> {
+  deleteMany = async (ids: string[]): Promise<{ deletedCount: number }> => {
     try {
       const result = await this.model.deleteMany({ where: { id: { in: ids } } });
       return { deletedCount: result.count };
@@ -263,7 +263,7 @@ export class BaseRepository<T, TCreateDto, TUpdateDto> {
       );
       throw new Error(formatPrismaError(error));
     }
-  }
+  };
 
   /**
    * Imports multiple entity objects into the database.

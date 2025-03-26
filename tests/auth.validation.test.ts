@@ -111,12 +111,12 @@ describe("Auth API Tests", () => {
   });
 
   test("Access Protected Route Without Token - Failure", async () => {
-    const res = await request(app).get("/api/users");
+    const res = await request(app).get("/api/user");
     expect(res.status).toBe(401);
   });
 
   test("Access Protected Route With Valid Token - Failure", async () => {
-    const res = await request(app).get("/api/users").set("Authorization", `Bearer ${authToken}`);
+    const res = await request(app).get("/api/user").set("Authorization", `Bearer ${authToken}`);
     expect(res.status).toBe(200);
   });
 

@@ -31,6 +31,7 @@ Directory Structure:
 │   │       └── winston.ts
 │   ├── config/
 │   │   ├── prisma/
+│   │   │   ├── errors.prisma.ts
 │   │   │   └── prisma.ts
 │   │   ├── redis/
 │   │   │   └── redis.ts
@@ -41,20 +42,20 @@ Directory Structure:
 │   │   │   ├── auth.dto.ts
 │   │   │   ├── auth.route.ts
 │   │   │   └── auth.services.ts
-│   │   ├── files/
-│   │   │   ├── files.controller.ts
-│   │   │   ├── files.dto.ts
-│   │   │   ├── files.route.ts
-│   │   │   └── files.service.ts
+│   │   ├── file/
+│   │   │   ├── file.controller.ts
+│   │   │   ├── file.dto.ts
+│   │   │   ├── file.route.ts
+│   │   │   └── file.service.ts
 │   │   ├── health/
 │   │   │   ├── health.controller.ts
 │   │   │   ├── health.helper.ts
 │   │   │   └── health.route.ts
-│   │   └── users/
-│   │       ├── users.controller.ts
-│   │       ├── users.dto.ts
-│   │       ├── users.route.ts
-│   │       └── users.service.ts
+│   │   └── user/
+│   │       ├── user.controller.ts
+│   │       ├── user.dto.ts
+│   │       ├── user.route.ts
+│   │       └── user.service.ts
 │   ├── generated/
 │   │   └── zod/
 │   │       └── index.ts
@@ -87,15 +88,12 @@ Directory Structure:
 │   ├── auth.validation.test.ts
 │   ├── files.test.ts
 │   └── test.helper.ts
-├── uploads/
 ├── .DS_Store
 ├── .env
 ├── .env.example
 ├── .gitignore
 ├── .prettierignore
 ├── .prettierrc
-├── code-structure.txt
-├── code.txt
 ├── eslint.config.mjs
 ├── jest.config.ts
 ├── jest.setup.ts
@@ -119,6 +117,9 @@ File: ./README.md
 --------------------------------------------------
 Content of ./README.md:
 # epressjs-nest-structure
+
+repo to file command
+python3 repo2file/dump.py ./expressjs-nest-structure ./expressjs-nest-structure/code.txt node_modules
 
 File: ./jest.setup.ts
 --------------------------------------------------
@@ -232,7 +233,7 @@ Content of ./package.json:
   "license": "ISC",
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "^7.2.0",
-    "@prisma/client": "^6.3.1",
+    "@prisma/client": "^6.5.0",
     "@typescript-eslint/eslint-plugin": "^8.15.0",
     "@typescript-eslint/parser": "^8.15.0",
     "axios": "^1.7.7",
@@ -300,7 +301,7 @@ Content of ./package.json:
     "jest": "^29.7.0",
     "lint-staged": "^15.2.10",
     "prettier": "^3.3.3",
-    "prisma": "^6.3.1",
+    "prisma": "^6.5.0",
     "supertest": "^7.0.0",
     "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
@@ -507,7 +508,7 @@ pluginJs.configs.recommended,
     "max-depth": ["error"],
     // "max-lines": ["error"],
     "max-nested-callbacks": ["error"],
-    "max-statements-per-line": ["error"],
+    // "max-statements-per-line": ["error"],
     // "multiline-comment-style": ["error"],
     "multiline-ternary": ["error"],
     "new-parens": ["error"],
@@ -1095,8 +1096,8 @@ datasource db {
 model user {
   id          String    @id @default(auto()) @map("_id") @db.ObjectId
   name        String?
-  email       String    @unique
-  password    String
+  email       String
+  password    String?
   resetToken  String?
   createdAt   DateTime? @default(now())
   updatedAt   DateTime? @updatedAt
@@ -1249,12 +1250,12 @@ describe("Auth API Tests", () => {
   });
 
   test("Access Protected Route Without Token - Failure", async () => {
-    const res = await request(app).get("/api/users");
+    const res = await request(app).get("/api/user");
     expect(res.status).toBe(401);
   });
 
   test("Access Protected Route With Valid Token - Failure", async () => {
-    const res = await request(app).get("/api/users").set("Authorization", `Bearer ${authToken}`);
+    const res = await request(app).get("/api/user").set("Authorization", `Bearer ${authToken}`);
     expect(res.status).toBe(200);
   });
 
@@ -1316,7 +1317,7 @@ import { logger } from "../src/common/winston/winston";
 import { loadTestData } from "./test.helper";
 import { user as User, file as File } from "@prisma/client";
 
-const ROUTE = "/api/files";
+const ROUTE = "/api/file";
 
 // eslint-disable-next-line no-empty-function
 jest.spyOn(logger, "info").mockImplementation(() => {});
@@ -1360,14 +1361,14 @@ describe("Files API Tests", () => {
     expect(response.body.data).toHaveProperty("filePath");
   });
 
-  it("should fetch uploaded files", async () => {
+  it("should fetch uploaded file", async () => {
     const response = await request(app).get(ROUTE).set("Authorization", `Bearer ${authToken}`);
 
     expect(response.status).toBe(200);
     expect(Array.isArray(response.body.data)).toBe(true);
   });
 
-  it("should fetch uploaded files by id", async () => {
+  it("should fetch uploaded file by id", async () => {
     const response = await request(app)
       .get(`${ROUTE}/id/${testFile.id}`)
       .set("Authorization", `Bearer ${authToken}`);
@@ -1375,7 +1376,7 @@ describe("Files API Tests", () => {
     expect(response.status).toBe(200);
   });
 
-  it("should fetch uploaded files by user id", async () => {
+  it("should fetch uploaded file by user id", async () => {
     const response = await request(app)
       .get(`${ROUTE}/user/${testFile.userId}`)
       .set("Authorization", `Bearer ${authToken}`);
@@ -1383,6 +1384,7 @@ describe("Files API Tests", () => {
     expect(response.status).toBe(200);
   });
 });
+
 
 File: .vscode/launch.json
 --------------------------------------------------
@@ -1547,8 +1549,8 @@ import app from "@/app";
 import { env } from "@/config/env";
 import { logger } from "@/common/winston/winston";
 import { checkRedis } from "@/entities/health/health.helper";
-import { connectPrisma } from "./config/prisma/prisma";
-import { RedisClient } from "./config/redis/redis";
+import { connectPrisma } from "@/config/prisma/prisma";
+import { RedisClient } from "@/config/redis/redis";
 
 const { PORT, NODE_ENV, BASE_URL, ALLOW_ORIGIN } = env;
 
@@ -1623,8 +1625,8 @@ checkConnections().then(() => {
 File: src/generated/zod/index.ts
 --------------------------------------------------
 Content of src/generated/zod/index.ts:
-import { z } from 'zod';
-import { Prisma } from '@prisma/client';
+import { z } from "zod";
+import { Prisma } from "@prisma/client";
 
 /////////////////////////////////////////
 // HELPER FUNCTIONS
@@ -1633,11 +1635,21 @@ import { Prisma } from '@prisma/client';
 // JSON
 //------------------------------------------------------
 
-export type NullableJsonInput = Prisma.JsonValue | null | 'JsonNull' | 'DbNull' | Prisma.NullTypes.DbNull | Prisma.NullTypes.JsonNull;
+export type NullableJsonInput =
+  | Prisma.JsonValue
+  | null
+  | "JsonNull"
+  | "DbNull"
+  | Prisma.NullTypes.DbNull
+  | Prisma.NullTypes.JsonNull;
 
 export const transformJsonNull = (v?: NullableJsonInput) => {
-  if (!v || v === 'DbNull') return Prisma.DbNull;
-  if (v === 'JsonNull') return Prisma.JsonNull;
+  if (!v || v === "DbNull") {
+    return Prisma.DbNull;
+  }
+  if (v === "JsonNull") {
+    return Prisma.JsonNull;
+  }
   return v;
 };
 
@@ -1649,13 +1661,13 @@ export const JsonValueSchema: z.ZodType<Prisma.JsonValue> = z.lazy(() =>
     z.literal(null),
     z.record(z.lazy(() => JsonValueSchema.optional())),
     z.array(z.lazy(() => JsonValueSchema)),
-  ])
+  ]),
 );
 
 export type JsonValueType = z.infer<typeof JsonValueSchema>;
 
 export const NullableJsonValue = z
-  .union([JsonValueSchema, z.literal('DbNull'), z.literal('JsonNull')])
+  .union([JsonValueSchema, z.literal("DbNull"), z.literal("JsonNull")])
   .nullable()
   .transform((v) => transformJsonNull(v));
 
@@ -1669,25 +1681,56 @@ export const InputJsonValueSchema: z.ZodType<Prisma.InputJsonValue> = z.lazy(() 
     z.object({ toJSON: z.function(z.tuple([]), z.any()) }),
     z.record(z.lazy(() => z.union([InputJsonValueSchema, z.literal(null)]))),
     z.array(z.lazy(() => z.union([InputJsonValueSchema, z.literal(null)]))),
-  ])
+  ]),
 );
 
 export type InputJsonValueType = z.infer<typeof InputJsonValueSchema>;
-
 
 /////////////////////////////////////////
 // ENUMS
 /////////////////////////////////////////
 
-export const UserScalarFieldEnumSchema = z.enum(['id','name','email','password','resetToken','createdAt','updatedAt','phoneNumber','bio']);
+export const UserScalarFieldEnumSchema = z.enum([
+  "id",
+  "name",
+  "email",
+  "password",
+  "resetToken",
+  "createdAt",
+  "updatedAt",
+  "phoneNumber",
+  "bio",
+]);
 
-export const FileScalarFieldEnumSchema = z.enum(['id','createdAt','updatedAt','name','path','text','tags','views','userId']);
+export const FileScalarFieldEnumSchema = z.enum([
+  "id",
+  "createdAt",
+  "updatedAt",
+  "name",
+  "path",
+  "text",
+  "tags",
+  "views",
+  "userId",
+]);
 
-export const ErrorLogsScalarFieldEnumSchema = z.enum(['id','status','message','method','url','loggedUser','name','stack','details','createdAt','updatedAt']);
+export const ErrorLogsScalarFieldEnumSchema = z.enum([
+  "id",
+  "status",
+  "message",
+  "method",
+  "url",
+  "loggedUser",
+  "name",
+  "stack",
+  "details",
+  "createdAt",
+  "updatedAt",
+]);
 
-export const SortOrderSchema = z.enum(['asc','desc']);
+export const SortOrderSchema = z.enum(["asc", "desc"]);
 
-export const QueryModeSchema = z.enum(['default','insensitive']);
+export const QueryModeSchema = z.enum(["default", "insensitive"]);
 /////////////////////////////////////////
 // MODELS
 /////////////////////////////////////////
@@ -1700,15 +1743,15 @@ export const userSchema = z.object({
   id: z.string(),
   name: z.string().nullable(),
   email: z.string(),
-  password: z.string(),
+  password: z.string().nullable(),
   resetToken: z.string().nullable(),
   createdAt: z.date().nullable(),
   updatedAt: z.date().nullable(),
   phoneNumber: z.string().nullable(),
   bio: z.string().nullable(),
-})
+});
 
-export type user = z.infer<typeof userSchema>
+export type user = z.infer<typeof userSchema>;
 
 /////////////////////////////////////////
 // FILE SCHEMA
@@ -1724,9 +1767,9 @@ export const fileSchema = z.object({
   tags: z.string().nullable(),
   views: z.number().nullable(),
   userId: z.string().nullable(),
-})
+});
 
-export type file = z.infer<typeof fileSchema>
+export type file = z.infer<typeof fileSchema>;
 
 /////////////////////////////////////////
 // ERROR LOGS SCHEMA
@@ -1744,9 +1787,9 @@ export const errorLogsSchema = z.object({
   details: JsonValueSchema.nullable(),
   createdAt: z.date().nullable(),
   updatedAt: z.date().nullable(),
-})
+});
 
-export type errorLogs = z.infer<typeof errorLogsSchema>
+export type errorLogs = z.infer<typeof errorLogsSchema>;
 
 
 File: src/types/pagination.ts
@@ -1814,7 +1857,7 @@ import { z } from "zod";
 dotenv.config();
 
 const envSchema = z.object({
-  NODE_ENV: z.enum(["local", "development", "test", "production"]).default("local"),
+  NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   TZ: z.string().default("UTC"),
   BASE_URL: z.string().url(),
   BASE_URL_HTTPS: z.string().url().optional(),
@@ -1824,23 +1867,20 @@ const envSchema = z.object({
   ALLOW_ORIGIN: z.string(),
   APP_URL: z.string().url(),
   LOGS_DIRECTORY: z.string(),
-  BP_GENERATED_PASSWORD_LENGTH: z.string().default("10"),
-
-  // Redis Configuration
-  REDIS_URL: z.string(),
 
   // Basic Auth Secrets
   JWT_SECRET: z.string(),
   JWT_SECRET_EXPIRATION: z.string().default("1d"),
   HASH: z.string().transform((val) => parseInt(val, 10)),
+  GENERATED_PASSWORD_LENGTH: z.string().default("10"),
 
+  // DB Configuration
+  REDIS_URL: z.string(),
   MONGODB_URI: z.string().url(),
+
   ENABLE_WINSTON: z.enum(["0", "1"]).default("0"),
-  ENABLE_LOGS: z.enum(["0", "1"]).default("0"),
-  ENABLE_ERROR_LOGS: z.enum(["0", "1"]).default("0"),
   LOGS_TYPE: z.enum(["mongodb", "directory"]).default("mongodb"),
   MONGODB_ERROR_COLLECTION_NAME: z.string(),
-  MONGODB_MEMORY_LIMIT: z.string().default("512"),
 
   // Mail sender
   MAILGUN_API_KEY: z.string().optional(),
@@ -1898,6 +1938,53 @@ export const connectPrisma = async () => {
     logger.error("Error connecting to Prisma:", { error });
     throw new Error("Error connecting to Prisma");
   }
+};
+
+
+File: src/config/prisma/errors.prisma.ts
+--------------------------------------------------
+Content of src/config/prisma/errors.prisma.ts:
+import { Prisma } from "@prisma/client";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const formatValidationError = (error: any): string => {
+  const { message } = error;
+  const match = message.match(/Unknown argument `(\w+)`. Did you mean `(\w+)`?/);
+
+  const unknownArg = match?.[1] || "Unknown";
+  const suggestedArg = match?.[2] || "Check schema";
+
+  return `-> Prisma Validation Error:
+    - Unknown argument: \`${unknownArg}\`
+    - Suggested fix: Replace \`${unknownArg}\` with \`${suggestedArg}\`
+    - Full Message: ${message}`;
+};
+
+const formatKnownRequestError = (error: Prisma.PrismaClientKnownRequestError): string => {
+  switch (error.code) {
+    case "P2002":
+      return "-> Unique Constraint Violation: A record with this value already exists.";
+    case "P2025":
+      return "-> Record Not Found: The requested record does not exist.";
+    default:
+      return `-> Prisma Request Error (${error.code}): ${error.message}`;
+  }
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const formatPrismaError = (error: any): string => {
+  if (error instanceof Prisma.PrismaClientValidationError) {
+    return formatValidationError(error);
+  } else if (error instanceof Prisma.PrismaClientKnownRequestError) {
+    return formatKnownRequestError(error);
+  } else if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+    return `-> Prisma Unknown Request Error: ${error.message}`;
+  } else if (error instanceof Prisma.PrismaClientInitializationError) {
+    return `-> Prisma Initialization Error: ${error.message}`;
+  } else if (error instanceof Prisma.PrismaClientRustPanicError) {
+    return `-> Prisma Rust Panic Error: ${error.message}`;
+  }
+  return `-> Unknown Error: ${error.message || error}`;
 };
 
 
@@ -2103,7 +2190,7 @@ export const errorMiddleware = (
 
   logger.error(errorPayload.message, errorPayload);
 
-  if (env.ENABLE_WINSTON !== "1" && env.ENABLE_ERROR_LOGS === "1") {
+  if (env.ENABLE_WINSTON !== "1") {
     const errorLogs = {
       level: "error",
       message,
@@ -2197,7 +2284,7 @@ File: src/middlewares/zod-validation.ts
 Content of src/middlewares/zod-validation.ts:
 import { NextFunction, Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
-import { ZodTypeAny } from "zod";
+import { ZodError, ZodTypeAny } from "zod";
 import { logger } from "@/common/winston/winston";
 import { createResponse } from "@/utils/create-response";
 
@@ -2213,17 +2300,16 @@ export const zodValidation =
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      logger.warn("Zod Validation Error", error);
-      return res
-        .status(StatusCodes.BAD_REQUEST)
-        .json(
-          createResponse({
-            req,
-            data: error,
-            message: "Zod Validation Error",
-            status: StatusCodes.BAD_REQUEST,
-          }),
-        );
+      const errorMessage = `Validation Error: ${(error as ZodError).errors.map((e) => e.message).join(", ")}`;
+      logger.warn(errorMessage, error);
+      return res.status(StatusCodes.BAD_REQUEST).json(
+        createResponse({
+          req,
+          data: error,
+          message: errorMessage,
+          status: StatusCodes.BAD_REQUEST,
+        }),
+      );
     }
   };
 
@@ -2285,7 +2371,7 @@ export const generatePassword = (): string => {
 
   const password = categories.map(getRandomChar).join("");
 
-  const remainingLength = Number(env.BP_GENERATED_PASSWORD_LENGTH || 10) - password.length;
+  const remainingLength = Number(env.GENERATED_PASSWORD_LENGTH || 10) - password.length;
   const allCharacters = categories.join("");
   const randomChars = Array.from({ length: remainingLength }, () => getRandomChar(allCharacters));
 
@@ -2661,7 +2747,7 @@ extendZodWithOpenApi(z);
 // See query examples in query-examples.txt
 
 const orderBySchema = z.object({
-  sort: z.string(),
+  sort: z.string().default("id"),
   order: z.enum(["asc", "desc"]),
 });
 
@@ -2851,16 +2937,11 @@ import { OpenAPIRegistry, OpenApiGeneratorV3 } from "@asteasolutions/zod-to-open
 import { env } from "@/config/env";
 import { healthRegistry } from "@/entities/health/health.route";
 import { authRegistry } from "@/entities/auth/auth.route";
-import { usersRegistry } from "@/entities/users/users.route";
-import { filesRegistry } from "@/entities/files/files.route";
+import { userRegistry } from "@/entities/user/user.route";
+import { fileRegistry } from "@/entities/file/file.route";
 
 export function generateOpenAPIDocument() {
-  const registry = new OpenAPIRegistry([
-    healthRegistry,
-    authRegistry,
-    usersRegistry,
-    filesRegistry,
-  ]);
+  const registry = new OpenAPIRegistry([healthRegistry, authRegistry, userRegistry, fileRegistry]);
 
   registry.registerComponent("securitySchemes", "bearerAuth", {
     type: "http",
@@ -3135,6 +3216,7 @@ File: src/common/base/base.repository.ts
 Content of src/common/base/base.repository.ts:
 import { FindByQueryDto, FindByQueryResult, ImportResult } from "@/schemas/find-by-query";
 import { logger } from "@/common/winston/winston";
+import { formatPrismaError } from "@/config/prisma/errors.prisma";
 
 export class BaseRepository<T, TCreateDto, TUpdateDto> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -3166,7 +3248,7 @@ export class BaseRepository<T, TCreateDto, TUpdateDto> {
           error: error.message,
         },
       );
-      throw new Error(error);
+      throw new Error(formatPrismaError(error));
     }
   };
 
@@ -3190,7 +3272,7 @@ export class BaseRepository<T, TCreateDto, TUpdateDto> {
           error: error.message,
         },
       );
-      throw new Error(error);
+      throw new Error(formatPrismaError(error));
     }
   };
 
@@ -3204,7 +3286,7 @@ export class BaseRepository<T, TCreateDto, TUpdateDto> {
       logger.info(
         `[${this.collectionName} Repository] Fetching ${this.collectionName} with userId: ${userId}`,
       );
-      return await this.model.findMany({ where: { userRef: userId }, omit: this.ignoreFields });
+      return await this.model.findMany({ where: { userId }, omit: this.ignoreFields });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       logger.warn(
@@ -3214,7 +3296,7 @@ export class BaseRepository<T, TCreateDto, TUpdateDto> {
           error: error.message,
         },
       );
-      throw new Error(error);
+      throw new Error(formatPrismaError(error));
     }
   };
 
@@ -3228,7 +3310,7 @@ export class BaseRepository<T, TCreateDto, TUpdateDto> {
       logger.info(
         `[${this.collectionName} Repository] Fetching ${this.collectionName} with email: ${email}`,
       );
-      return await this.model.findUnique({ where: { email } });
+      return await this.model.findFirst({ where: { email } });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       logger.warn(
@@ -3238,7 +3320,7 @@ export class BaseRepository<T, TCreateDto, TUpdateDto> {
           error: error.message,
         },
       );
-      throw new Error(error);
+      throw new Error(formatPrismaError(error));
     }
   };
 
@@ -3264,7 +3346,7 @@ export class BaseRepository<T, TCreateDto, TUpdateDto> {
           error: error.message,
         },
       );
-      throw new Error(error);
+      throw new Error(formatPrismaError(error));
     }
   };
 
@@ -3304,7 +3386,7 @@ export class BaseRepository<T, TCreateDto, TUpdateDto> {
         options,
         error: error.message,
       });
-      throw new Error(error);
+      throw new Error(formatPrismaError(error));
     }
   };
 
@@ -3318,7 +3400,7 @@ export class BaseRepository<T, TCreateDto, TUpdateDto> {
       logger.info(
         `[${this.collectionName} Repository] Creating document in ${this.collectionName}`,
       );
-      const created = this.model.create({ data: createDto });
+      const created = await this.model.create({ data: createDto });
       return created;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
@@ -3329,7 +3411,7 @@ export class BaseRepository<T, TCreateDto, TUpdateDto> {
           error: error.message,
         },
       );
-      throw new Error(error);
+      throw new Error(formatPrismaError(error));
     }
   };
 
@@ -3352,7 +3434,7 @@ export class BaseRepository<T, TCreateDto, TUpdateDto> {
         updateDto,
         error: error.message,
       });
-      throw new Error(error);
+      throw new Error(formatPrismaError(error));
     }
   };
 
@@ -3373,7 +3455,7 @@ export class BaseRepository<T, TCreateDto, TUpdateDto> {
         id,
         error: error.message,
       });
-      throw new Error(error);
+      throw new Error(formatPrismaError(error));
     }
   };
 
@@ -3382,7 +3464,7 @@ export class BaseRepository<T, TCreateDto, TUpdateDto> {
    * @param ids - List of entity ids to delete
    * @returns Deletion result
    */
-  async deleteMany(ids: string[]): Promise<{ deletedCount: number }> {
+  deleteMany = async (ids: string[]): Promise<{ deletedCount: number }> => {
     try {
       const result = await this.model.deleteMany({ where: { id: { in: ids } } });
       return { deletedCount: result.count };
@@ -3395,9 +3477,9 @@ export class BaseRepository<T, TCreateDto, TUpdateDto> {
           error: error.message,
         },
       );
-      throw new Error(error);
+      throw new Error(formatPrismaError(error));
     }
-  }
+  };
 
   /**
    * Imports multiple entity objects into the database.
@@ -3413,6 +3495,7 @@ export class BaseRepository<T, TCreateDto, TUpdateDto> {
 
       const uniqueEntities = [];
       const skippedEntities = [];
+      let createdEntities = [];
 
       for (const entity of entities) {
         // eslint-disable-next-line no-await-in-loop
@@ -3429,20 +3512,22 @@ export class BaseRepository<T, TCreateDto, TUpdateDto> {
           uniqueEntities.push(entity);
         }
       }
-
-      const createdEntities = await this.model.createMany({
-        data: uniqueEntities,
-      });
+      if (uniqueEntities.length !== 0) {
+        createdEntities = await this.model.createMany({
+          data: uniqueEntities,
+        });
+      }
 
       logger.info(`[${this.collectionName} Repository] Import Summary:`, {
-        createdEntities,
-        createdCount: createdEntities.length,
+        createdEntities: uniqueEntities,
+        createdCount: createdEntities.count ?? createdEntities.length,
         skippedCount: skippedEntities.length,
       });
 
       return {
-        createdEntities,
-        createdCount: createdEntities.length,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        createdEntities: uniqueEntities as any,
+        createdCount: createdEntities.count ?? createdEntities.length,
         skippedCount: skippedEntities.length,
       };
 
@@ -3455,7 +3540,7 @@ export class BaseRepository<T, TCreateDto, TUpdateDto> {
           error: error.message,
         },
       );
-      throw new Error(error);
+      throw new Error(formatPrismaError(error));
     }
   };
 }
@@ -3466,7 +3551,7 @@ File: src/common/base/base.services.ts
 Content of src/common/base/base.services.ts:
 import { BaseRepository } from "@/common/base/base.repository";
 import { FindByQueryDto, FindByQueryResult, ImportResult } from "@/schemas/find-by-query";
-import { logger } from "../winston/winston";
+import { logger } from "@/common/winston/winston";
 import createHttpError from "http-errors";
 import { StatusCodes } from "http-status-codes";
 import { parseAsync } from "json2csv";
@@ -3651,17 +3736,6 @@ export class BaseService<T, TCreateDto, TUpdateDto> {
       logger.info(
         `[${this.collectionName} Service] Updating ${this.collectionName} with id: ${id}`,
       );
-      const data = await this.getById(id);
-
-      if (!data) {
-        logger.warn(
-          `[${this.collectionName} Service] ${this.collectionName} with id ${id} does not exist!`,
-        );
-        throw createHttpError(StatusCodes.BAD_REQUEST, `${this.collectionName} does not exist!`, {
-          resource: this.collectionName,
-        });
-      }
-
       return await this.baseRepository.update(id, updateDto);
     } catch (error) {
       if (createHttpError.isHttpError(error)) {
@@ -3821,7 +3895,7 @@ Content of src/common/base/base.controller.ts:
 import { NextFunction, Response } from "express";
 import { BaseService } from "@/common/base/base.services";
 import { CustomRequest } from "@/types/request";
-import { logger } from "../winston/winston";
+import { logger } from "@/common/winston/winston";
 import { StatusCodes } from "http-status-codes";
 import createHttpError from "http-errors";
 import { csvBufferToJson, csvToJson } from "@/utils/csv-to-json";
@@ -3849,9 +3923,12 @@ export class BaseController<T, TCreateDto, TUpdateDto> {
    * @returns JSON list of entities
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getAll = async (_req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
+  getAll = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
+    const { loggedUser } = req;
     try {
-      logger.info(`[${this.collectionName} Controller] Fetching all ${this.collectionName}`);
+      logger.info(`[${this.collectionName} Controller] Fetching all ${this.collectionName}`, {
+        loggedUser,
+      });
       const data = await this.baseService.getAll();
 
       return res.json(createResponse({ data }));
@@ -3861,6 +3938,7 @@ export class BaseController<T, TCreateDto, TUpdateDto> {
           `[${this.collectionName} Controller] Error fetching all ${this.collectionName}`,
           {
             error: error.message,
+            loggedUser,
           },
         );
       }
@@ -3877,12 +3955,12 @@ export class BaseController<T, TCreateDto, TUpdateDto> {
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getById = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
-    const { id } = req.params;
     const { loggedUser } = req;
+    const { id } = req.params;
     try {
       logger.info(`[${this.collectionName} Controller] Fetching ${this.collectionName} by ID`, {
-        loggedUser,
         id,
+        loggedUser,
       });
       const data = await this.baseService.getById(id);
 
@@ -3893,8 +3971,8 @@ export class BaseController<T, TCreateDto, TUpdateDto> {
           `[${this.collectionName} Controller] Error fetching ${this.collectionName} by ID`,
           {
             error: error.message,
-            loggedUser,
             id,
+            loggedUser,
           },
         );
       }
@@ -3911,12 +3989,12 @@ export class BaseController<T, TCreateDto, TUpdateDto> {
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getByEmail = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
-    const { email } = req.params;
     const { loggedUser } = req;
+    const { email } = req.params;
     try {
       logger.info(`[${this.collectionName} Controller] Fetching ${this.collectionName} by email`, {
-        loggedUser,
         email,
+        loggedUser,
       });
       const data = await this.baseService.getByEmail(email);
 
@@ -3927,8 +4005,8 @@ export class BaseController<T, TCreateDto, TUpdateDto> {
           `[${this.collectionName} Controller] Error fetching ${this.collectionName} by email`,
           {
             error: error.message,
-            loggedUser,
             email,
+            loggedUser,
           },
         );
       }
@@ -3945,11 +4023,13 @@ export class BaseController<T, TCreateDto, TUpdateDto> {
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   findByQuery = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
+    const { loggedUser } = req;
+    const { paginate, orderBy, filter } = req.body;
     try {
-      const { paginate, orderBy, filter } = req.body;
       const queryOptions = { paginate, orderBy, filter };
       logger.info(`[${this.collectionName} Controller] Finding ${this.collectionName} by query`, {
         queryOptions,
+        loggedUser,
       });
 
       const data = await this.baseService.findByQuery(queryOptions);
@@ -3961,6 +4041,7 @@ export class BaseController<T, TCreateDto, TUpdateDto> {
           `[${this.collectionName} Controller] Error finding ${this.collectionName} by query`,
           {
             error: error.message,
+            loggedUser,
           },
         );
       }
@@ -3977,12 +4058,12 @@ export class BaseController<T, TCreateDto, TUpdateDto> {
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   create = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
-    const createDto = req.body;
     const { loggedUser } = req;
+    const createDto = req.body;
     try {
       logger.info(`[${this.collectionName} Controller] Creating new ${this.collectionName}`, {
-        loggedUser,
         createDto,
+        loggedUser,
       });
       const created = await this.baseService.create(createDto);
       return res.json(createResponse({ data: created, status: StatusCodes.CREATED }));
@@ -3990,8 +4071,8 @@ export class BaseController<T, TCreateDto, TUpdateDto> {
       if (error instanceof Error) {
         logger.warn(`[${this.collectionName} Controller] Error creating ${this.collectionName}`, {
           error: error.message,
-          loggedUser,
           createDto,
+          loggedUser,
         });
       }
       next(error);
@@ -4007,14 +4088,14 @@ export class BaseController<T, TCreateDto, TUpdateDto> {
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   update = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
+    const { loggedUser } = req;
     const { id } = req.params;
     const updateDto = req.body;
-    const { loggedUser } = req;
     try {
       logger.info(`[${this.collectionName} Controller] Updating ${this.collectionName}`, {
-        loggedUser,
         id,
         updateDto,
+        loggedUser,
       });
       const updated = await this.baseService.update(id, updateDto);
       return res.json(createResponse({ data: updated }));
@@ -4022,9 +4103,9 @@ export class BaseController<T, TCreateDto, TUpdateDto> {
       if (error instanceof Error) {
         logger.warn(`[${this.collectionName} Controller] Error updating ${this.collectionName}`, {
           error: error.message,
-          loggedUser,
           id,
           updateDto,
+          loggedUser,
         });
       }
       next(error);
@@ -4040,12 +4121,12 @@ export class BaseController<T, TCreateDto, TUpdateDto> {
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   delete = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
-    const { id } = req.params;
     const { loggedUser } = req;
+    const { id } = req.params;
     try {
       logger.info(`[${this.collectionName} Controller] Deleting ${this.collectionName} by id`, {
-        loggedUser,
         id,
+        loggedUser,
       });
       const data = await this.baseService.delete(id);
 
@@ -4054,8 +4135,8 @@ export class BaseController<T, TCreateDto, TUpdateDto> {
       if (error instanceof Error) {
         logger.warn(`[${this.collectionName} Controller] Error deleting ${this.collectionName}`, {
           error: error.message,
-          loggedUser,
           id,
+          loggedUser,
         });
       }
       next(error);
@@ -4071,18 +4152,19 @@ export class BaseController<T, TCreateDto, TUpdateDto> {
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   deleteMany = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
-    const { ids } = req.body;
     const { loggedUser } = req;
+    const { ids } = req.body;
     try {
       if (!Array.isArray(ids) || ids.length === 0) {
         throw createHttpError(StatusCodes.BAD_REQUEST, "Invalid or empty array of ids", {
           resource: this.collectionName,
+          loggedUser,
         });
       }
 
       logger.info(`[${this.collectionName} Controller] Deleting multiple ${this.collectionName}`, {
-        loggedUser,
         ids,
+        loggedUser,
       });
       const data = await this.baseService.deleteMany(ids);
 
@@ -4091,8 +4173,8 @@ export class BaseController<T, TCreateDto, TUpdateDto> {
       if (error instanceof Error) {
         logger.warn(`[${this.collectionName} Controller] Error deleting ${this.collectionName}`, {
           error: error.message,
-          loggedUser,
           ids,
+          loggedUser,
         });
       }
       next(error);
@@ -4146,9 +4228,12 @@ export class BaseController<T, TCreateDto, TUpdateDto> {
    * @returns JSON list of entities
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  export = async (_req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
+  export = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
+    const { loggedUser } = req;
     try {
-      logger.info(`[${this.collectionName} Controller] Exporting ${this.collectionName}`);
+      logger.info(`[${this.collectionName} Controller] Exporting ${this.collectionName}`, {
+        loggedUser,
+      });
       const csv = await this.baseService.export();
       res.setHeader("Content-Type", "text/csv");
       res.attachment(`${this.collectionName}.csv`);
@@ -4157,6 +4242,7 @@ export class BaseController<T, TCreateDto, TUpdateDto> {
       if (error instanceof Error) {
         logger.warn(`[${this.collectionName} Controller] Error exporting ${this.collectionName}`, {
           error: error.message,
+          loggedUser,
         });
       }
       next(error);
@@ -4177,7 +4263,6 @@ import colors from "colors/safe";
 import "winston-mongodb";
 
 const isWinstonEnabled = env.ENABLE_WINSTON === "1";
-const isLogsEnabled = env.ENABLE_LOGS === "1";
 const logsDirectory = env.LOGS_DIRECTORY;
 const logsType = env.LOGS_TYPE;
 const timeZone = env.TZ;
@@ -4254,7 +4339,7 @@ const createDailyRotateTransport = (level: string) =>
     maxFiles: logsFileDuration,
     format: format.combine(
       // eslint-disable-next-line no-extra-parens
-      format((info) => (info.level === level ? info : false))(), // eslint-disable multiline-ternary
+      format((info) => (info.level === level ? info : false))(),
       fileFormat,
     ),
   });
@@ -4299,41 +4384,33 @@ export const winstonLogger: Logger = createLogger({
 });
 
 // Export logger functions with fallback to console logs if disabled
-export const logger = isWinstonEnabled
-  ? {
-      // eslint-disable-next-line no-confusing-arrow
-      info: (message: string, metadata?: Record<string, unknown>) =>
-        isLogsEnabled ? winstonLogger.info(message, metadata) : null, // eslint-disable-line multiline-ternary
-      // eslint-disable-next-line no-confusing-arrow
-      debug: (message: string, metadata?: Record<string, unknown>) =>
-        isLogsEnabled ? winstonLogger.debug(message, metadata) : null, // eslint-disable-line multiline-ternary
-
-      warn: (message: string, metadata?: Record<string, unknown>) =>
-        winstonLogger.warn(message, metadata),
-      // eslint-disable-next-line no-confusing-arrow
-      http: (message: string, metadata?: Record<string, unknown>) =>
-        isLogsEnabled ? winstonLogger.http(message, metadata) : null, // eslint-disable-line multiline-ternary
-
-      error: (message: string, metadata?: Record<string, unknown>) =>
-        winstonLogger.error(message, metadata),
-    }
-  : {
-      // eslint-disable-next-line no-confusing-arrow
-      info: (message: string, metadata?: Record<string, unknown>) =>
-        isLogsEnabled ? console.log(colors.green(message), metadata ?? "") : null, // eslint-disable-line multiline-ternary
-      // eslint-disable-next-line no-confusing-arrow
-      debug: (message: string, metadata?: Record<string, unknown>) =>
-        isLogsEnabled ? console.log(colors.magenta(message), metadata ?? "") : null, // eslint-disable-line multiline-ternary
-
-      warn: (message: string, metadata?: Record<string, unknown>) =>
-        console.log(colors.yellow(message), metadata ?? ""),
-      // eslint-disable-next-line no-confusing-arrow
-      http: (message: string, metadata?: Record<string, unknown>) =>
-        isLogsEnabled ? console.log(colors.blue(message), metadata ?? "") : null, // eslint-disable-line multiline-ternary
-
-      error: (message: string, metadata?: Record<string, unknown>) =>
-        console.log(colors.red(message), formatConsoleMetaData(metadata) ?? ""),
-    };
+export const logger = {
+  // eslint-disable-next-line no-extra-parens
+  info: (message: string, metadata?: Record<string, unknown>) =>
+    isWinstonEnabled
+      ? winstonLogger.info(message, metadata)
+      : console.log(colors.green(message), metadata ?? ""),
+  // eslint-disable-next-line no-extra-parens
+  debug: (message: string, metadata?: Record<string, unknown>) =>
+    isWinstonEnabled
+      ? winstonLogger.debug(message, metadata)
+      : console.log(colors.magenta(message), metadata ?? ""),
+  // eslint-disable-next-line no-extra-parens
+  warn: (message: string, metadata?: Record<string, unknown>) =>
+    isWinstonEnabled
+      ? winstonLogger.warn(message, metadata)
+      : console.log(colors.yellow(message), metadata ?? ""),
+  // eslint-disable-next-line no-extra-parens
+  http: (message: string, metadata?: Record<string, unknown>) =>
+    isWinstonEnabled
+      ? winstonLogger.http(message, metadata)
+      : console.log(colors.blue(message), metadata ?? ""),
+  // eslint-disable-next-line no-extra-parens
+  error: (message: string, metadata?: Record<string, unknown>) =>
+    isWinstonEnabled
+      ? winstonLogger.error(message, metadata)
+      : console.log(colors.red(message), formatConsoleMetaData(metadata) ?? ""),
+};
 
 export const morganStream = {
   write: (message: string) => {
@@ -4352,16 +4429,436 @@ File: src/routes/routes.ts
 Content of src/routes/routes.ts:
 import { Router } from "express";
 import authRouter from "@/entities/auth/auth.route";
-import usersRouter from "@/entities/users/users.route";
-import filesRouter from "@/entities/files/files.route";
+import userRouter from "@/entities/user/user.route";
+import fileRouter from "@/entities/file/file.route";
 import healthRouter from "@/entities/health/health.route";
 
 export const apiRoutes = Router();
 
 apiRoutes.use("/health", healthRouter);
 apiRoutes.use("/auth", authRouter);
-apiRoutes.use("/users", usersRouter);
-apiRoutes.use("/files", filesRouter);
+apiRoutes.use("/user", userRouter);
+apiRoutes.use("/file", fileRouter);
+
+
+File: src/entities/file/file.service.ts
+--------------------------------------------------
+Content of src/entities/file/file.service.ts:
+import createHttpError from "http-errors";
+import { logger } from "@/common/winston/winston";
+import { BaseService } from "@/common/base/base.services";
+import { UpdateFileDto, UploadFileDto } from "./file.dto";
+import { file as File } from "@prisma/client";
+
+export class FileService extends BaseService<File, UploadFileDto, UpdateFileDto> {
+  private collectionNameService: string;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  constructor(model: any, collectionName: string, ignoreFields?: Record<string, boolean>) {
+    super(model, collectionName, ignoreFields);
+    this.collectionNameService = collectionName;
+  }
+
+  /**
+   * Fetches a entity by their userId.
+   * @param userId - entity's userId
+   * @returns entity data or false if not found
+   */
+  getByUser = async (userId: string): Promise<File | File[] | false> => {
+    try {
+      logger.info(
+        `[${this.collectionNameService} Service] Fetching ${this.collectionNameService} with userId: ${userId}`,
+      );
+      const data = await this.baseRepository.getByUser(userId);
+
+      if (!data) {
+        logger.warn(
+          `[${this.collectionNameService} Service] ${this.collectionNameService} with userId ${userId} not found`,
+        );
+        return false;
+      }
+
+      return data;
+    } catch (error) {
+      if (createHttpError.isHttpError(error)) {
+        throw error;
+      }
+      if (error instanceof Error) {
+        logger.warn(
+          `[${this.collectionNameService} Service] Error fetching ${this.collectionNameService} by userId`,
+          {
+            userId,
+            error: error.message,
+          },
+        );
+        throw new Error(`Error fetching ${this.collectionNameService} by email: ${error.message}`);
+      }
+      logger.warn(
+        `[${this.collectionNameService} Service] Unknown error occurred while fetching ${this.collectionNameService} by email`,
+      );
+      throw new Error(
+        `Unknown error occurred while fetching ${this.collectionNameService} by email`,
+      );
+    }
+  };
+}
+
+
+File: src/entities/file/file.dto.ts
+--------------------------------------------------
+Content of src/entities/file/file.dto.ts:
+import { fileSchema } from "@/generated/zod";
+import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
+import { z } from "zod";
+
+extendZodWithOpenApi(z);
+
+const fileUploadSchema = {
+  file: z
+    .any()
+    .openapi({
+      type: "string",
+      format: "binary",
+    })
+    .describe("The file to upload")
+    .optional(),
+  views: z
+    .string()
+    .refine((data) => !Number.isNaN(Number(data)), "ID must be a numeric value")
+    .transform(Number)
+    .refine((num) => num > 0, "ID must be a positive number"),
+};
+
+export const uploadFileSchema = fileSchema
+  .omit({
+    id: true,
+    path: true,
+    text: true,
+    views: true,
+    createdAt: true,
+    updatedAt: true,
+  })
+  .extend(fileUploadSchema)
+  .partial();
+
+export const updateFileSchema = fileSchema
+  .omit({
+    id: true,
+    path: true,
+    text: true,
+    views: true,
+    createdAt: true,
+    updatedAt: true,
+  })
+  .extend(fileUploadSchema)
+  .partial();
+
+export type UploadFileDto = z.infer<typeof uploadFileSchema>;
+export type UpdateFileDto = z.infer<typeof updateFileSchema>;
+
+
+File: src/entities/file/file.route.ts
+--------------------------------------------------
+Content of src/entities/file/file.route.ts:
+import { Router } from "express";
+import { uploadMiddleware } from "@/common/multer/multer";
+import { FileController } from "@/entities/file/file.controller";
+import { OpenAPIRegistry } from "@asteasolutions/zod-to-openapi";
+import { updateFileSchema, uploadFileSchema } from "@/entities/file/file.dto";
+import { createApiResponse } from "@/common/swagger/swagger-response-builder";
+import { z } from "zod";
+import { authMiddleware, zodValidation } from "@/middlewares";
+import { findByQuerySchema } from "@/schemas/find-by-query";
+import { fileSchema } from "@/generated/zod";
+
+const fileRouter = Router();
+fileRouter.use(authMiddleware);
+
+const TAG = "File";
+const ROUTE = `/${TAG.toLowerCase()}`;
+
+export const fileRegistry = new OpenAPIRegistry();
+const fileController = new FileController();
+
+fileRegistry.register(TAG, fileSchema);
+
+fileRegistry.registerPath({
+  method: "get",
+  path: ROUTE,
+  summary: `Get all ${TAG}`,
+  tags: [TAG],
+  responses: createApiResponse(z.array(fileSchema), "Success"),
+});
+fileRouter.get("/", fileController.getAll);
+
+//====================================================================================================
+
+fileRegistry.registerPath({
+  method: "get",
+  path: `${ROUTE}/{id}`,
+  tags: [TAG],
+  summary: `Get ${TAG} by id`,
+  request: {
+    params: z.object({ id: z.string() }),
+  },
+  responses: createApiResponse(fileSchema, "Success"),
+});
+fileRouter.get("/:id", fileController.getById);
+
+//====================================================================================================
+
+fileRegistry.registerPath({
+  method: "get",
+  path: `${ROUTE}/user/{userId}`,
+  tags: [TAG],
+  summary: `Get ${TAG} by userId`,
+  request: {
+    params: z.object({ userId: z.string() }),
+  },
+  responses: createApiResponse(fileSchema, "Success"),
+});
+fileRouter.get("/user/:userId", fileController.getByUser);
+
+//====================================================================================================
+
+fileRegistry.registerPath({
+  method: "post",
+  path: `${ROUTE}/find`,
+  tags: [TAG],
+  summary: `Find ${TAG} by query`,
+  request: {
+    body: {
+      content: { "application/json": { schema: findByQuerySchema } },
+    },
+  },
+  responses: createApiResponse(z.array(findByQuerySchema), "Success"),
+});
+fileRouter.post("/find", zodValidation(findByQuerySchema), fileController.findByQuery);
+
+//====================================================================================================
+
+fileRegistry.registerPath({
+  method: "post",
+  path: `${ROUTE}/upload`,
+  tags: [TAG],
+  summary: `Upload ${TAG}`,
+  request: {
+    body: {
+      content: { "multipart/form-data": { schema: uploadFileSchema } },
+    },
+  },
+  responses: createApiResponse(uploadFileSchema, "File uploaded Successfully"),
+});
+fileRouter.post(
+  "/upload",
+  uploadMiddleware,
+  zodValidation(uploadFileSchema),
+  fileController.upload,
+);
+
+//====================================================================================================
+
+fileRegistry.registerPath({
+  method: "put",
+  path: `${ROUTE}/{id}`,
+  tags: [TAG],
+  request: {
+    params: z.object({ id: z.string() }),
+    body: {
+      content: { "multipart/form-data": { schema: updateFileSchema } },
+    },
+  },
+  responses: createApiResponse(updateFileSchema, "File updated Successfully"),
+});
+fileRouter.put("/:id", uploadMiddleware, zodValidation(updateFileSchema), fileController.update);
+
+//====================================================================================================
+
+fileRegistry.registerPath({
+  method: "delete",
+  path: `${ROUTE}/{id}`,
+  tags: [TAG],
+  summary: `Delete ${TAG}`,
+  request: {
+    params: z.object({ id: z.string() }),
+  },
+  responses: createApiResponse(z.null(), `${TAG} Deleted Successfully`),
+});
+fileRouter.delete("/:id", fileController.delete);
+
+export default fileRouter;
+
+
+File: src/entities/file/file.controller.ts
+--------------------------------------------------
+Content of src/entities/file/file.controller.ts:
+import { NextFunction, Response } from "express";
+import { UpdateFileDto, UploadFileDto } from "@/entities/file/file.dto";
+import { logger } from "@/common/winston/winston";
+import { CustomRequest } from "@/types/request";
+import { saveFileToDisk } from "@/common/multer/save-file-to-disk";
+import { updateImageToDisk } from "@/common/multer/update-file-to-disk";
+import { deleteFileFromDisk } from "@/common/multer/delete-file-from-disk";
+import { BaseController } from "@/common/base/base.controller";
+import { createResponse } from "@/utils/create-response";
+import { StatusCodes } from "http-status-codes";
+import { FileService } from "@/entities/file/file.service";
+import { PrismaClient, file as File } from "@prisma/client";
+import _ from "lodash";
+
+const prisma = new PrismaClient();
+const IGNORE_FIELDS = {};
+
+export class FileController extends BaseController<File, UploadFileDto, UpdateFileDto> {
+  public collectionName: string;
+  public fileService: FileService;
+
+  constructor() {
+    super(prisma.file, "File", IGNORE_FIELDS);
+    this.collectionName = "File";
+    this.fileService = new FileService(prisma.file, this.collectionName, IGNORE_FIELDS);
+  }
+
+  /**
+   * Get entity by ID
+   * @param req - CustomRequest object
+   * @param res - Response object
+   * @param next - Next middleware function
+   * @returns JSON entity object
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getByUser = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
+    const { userId } = req.params;
+    const { loggedUser } = req;
+    try {
+      logger.info(`[${this.collectionName} Controller] Fetching ${this.collectionName} by userId`, {
+        loggedUser,
+        userId,
+      });
+      const data = await this.fileService.getByUser(userId);
+
+      return res.json(createResponse({ data }));
+    } catch (error) {
+      if (error instanceof Error) {
+        logger.warn(
+          `[${this.collectionName} Controller] Error fetching ${this.collectionName} by userId`,
+          {
+            error: error.message,
+            loggedUser,
+            userId,
+          },
+        );
+      }
+      next(error);
+    }
+  };
+
+  /**
+   * Upload an entity
+   * @param req - CustomRequest object
+   * @param res - Response object
+   * @param next - Next middleware function
+   * @returns JSON updated entity
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  upload = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
+    const { loggedUser } = req;
+    try {
+      const { tags, userId, name, views } = req.body;
+
+      const { path } = await saveFileToDisk(req.file);
+      logger.info(`[${this.collectionName} Controller] Creating new ${this.collectionName}`, {
+        loggedUser,
+        tags,
+        name,
+        path,
+      });
+
+      const fileUpload = {
+        name,
+        path,
+        userId,
+        tags,
+        views: views ?? 0,
+      };
+      const created = await this.baseService.create(fileUpload);
+
+      return res.json(createResponse({ data: created, status: StatusCodes.CREATED }));
+    } catch (error) {
+      if (error instanceof Error) {
+        logger.warn("Error uploading file", { error: error.message, loggedUser });
+      }
+      next(error);
+    }
+  };
+
+  /**
+   * Update an existing entity
+   * @param req - CustomRequest object
+   * @param res - Response object
+   * @param next - Next middleware function
+   * @returns JSON updated entity
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  update = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
+    const { loggedUser } = req;
+    const { id } = req.params;
+    try {
+      const updateData = req.body;
+      const existFile = await this.baseService.getById(id);
+      if (!existFile) {
+        throw new Error("File not found");
+      }
+      const fileName = existFile.path!.split("/").pop();
+      if (req.file) {
+        await updateImageToDisk(fileName!, req.file);
+      }
+      const fileData = {
+        name: _.isEmpty(updateData.name) ? existFile.name : updateData.name,
+        userId: _.isEmpty(updateData.userId) ? existFile.userId : updateData.userId,
+        tags: _.isEmpty(updateData.tags) ? existFile.tags : updateData.tags,
+        views: _.isEmpty(updateData.views) ? existFile.views : updateData.views,
+      };
+      const updated = await this.baseService.update(id, fileData);
+
+      return res.json(createResponse({ data: updated, status: StatusCodes.CREATED }));
+    } catch (error) {
+      if (error instanceof Error) {
+        logger.warn("Error updating file", { error: error.message, loggedUser, id });
+      }
+      next(error);
+    }
+  };
+
+  /**
+   * Delete an existing entity
+   * @param req - CustomRequest object
+   * @param res - Response object
+   * @param next - Next middleware function
+   * @returns JSON updated entity
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  delete = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
+    const { loggedUser } = req;
+    const { id } = req.params;
+    try {
+      const existFile = await this.baseService.getById(id);
+      if (!existFile) {
+        throw new Error("File not found");
+      }
+      const fileName = existFile.path!.split("/").pop();
+      await deleteFileFromDisk(fileName!);
+      const deleted = await this.baseService.delete(id);
+
+      return res.json(createResponse({ data: deleted, status: StatusCodes.CREATED }));
+    } catch (error) {
+      if (error instanceof Error) {
+        logger.warn("Error deleting file", { error: error.message, loggedUser, id });
+      }
+      next(error);
+    }
+  };
+}
 
 
 File: src/entities/auth/auth.controller.ts
@@ -4863,24 +5360,24 @@ import { AuthDto, RegisterDto, ResetPasswordDto } from "@/entities/auth/auth.dto
 import { generateToken, verifyToken } from "@/common/jwt/jwt";
 import createHttpError from "http-errors";
 import { StatusCodes } from "http-status-codes";
-import { UsersService } from "@/entities/users/users.service";
+import { UserService } from "@/entities/user/user.service";
 import { sendMail } from "@/common/mail-sender/mail-sender";
 import { BaseRepository } from "@/common/base/base.repository";
-import { CreateUsersDto, UpdateUsersDto } from "../users/users.dto";
+import { CreateUserDto, UpdateUserDto } from "@/entities/user/user.dto";
 import { env } from "@/config/env";
 import { createTemplate } from "@/template/create-template";
 import { user as User } from "@prisma/client";
 
 export class AuthService {
   private collectionName: string;
-  private usersService: UsersService;
-  private usersRepository: BaseRepository<User, UpdateUsersDto, CreateUsersDto>;
+  private userService: UserService;
+  private userRepository: BaseRepository<User, UpdateUserDto, CreateUserDto>;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor(model: any, collectionName: string) {
     this.collectionName = collectionName;
-    this.usersService = new UsersService(model, "Users");
-    this.usersRepository = new BaseRepository(model, "Users");
+    this.userService = new UserService(model, "User");
+    this.userRepository = new BaseRepository(model, "User");
   }
 
   /**
@@ -4895,7 +5392,7 @@ export class AuthService {
     });
 
     try {
-      const user = await this.usersService.getByEmail(authData.email);
+      const user = await this.userService.getByEmail(authData.email);
 
       if (!user) {
         logger.warn(
@@ -4959,7 +5456,7 @@ export class AuthService {
     });
 
     try {
-      await this.usersService.create(registerDto);
+      await this.userService.create(registerDto);
 
       const login = await this.login(registerDto);
 
@@ -5056,7 +5553,7 @@ export class AuthService {
     logger.info(`[${this.collectionName} Service] Forgot password service invoked`, { email });
 
     try {
-      const user = await this.usersService.getByEmail(email);
+      const user = await this.userService.getByEmail(email);
 
       if (!user) {
         logger.warn(`[${this.collectionName} Service] ${this.collectionName} does not exists!`, {
@@ -5073,7 +5570,7 @@ export class AuthService {
         email: user.email,
       });
 
-      await this.usersService.update(user.id as string, {
+      await this.userService.update(user.id as string, {
         resetToken,
         name: user.name!,
         email: user.email,
@@ -5135,7 +5632,7 @@ export class AuthService {
 
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const user: any = await this.usersRepository.getByField(
+      const user: any = await this.userRepository.getByField(
         "resetToken",
         resetPasswordDto.resetToken,
       );
@@ -5155,7 +5652,7 @@ export class AuthService {
 
       const hashedPassword = await hash(resetPasswordDto.password, env.HASH!);
 
-      await this.usersService.update(user[0].id, {
+      await this.userService.update(user[0].id, {
         password: hashedPassword,
         resetToken: null,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -5418,36 +5915,131 @@ healthRouter.get("/clear-logs", healthController.clearLogFiles);
 export default healthRouter;
 
 
-File: src/entities/users/users.dto.ts
+File: src/entities/user/user.dto.ts
 --------------------------------------------------
-Content of src/entities/users/users.dto.ts:
+Content of src/entities/user/user.dto.ts:
 import { userSchema } from "@/generated/zod";
 import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
 import { z } from "zod";
 
 extendZodWithOpenApi(z);
 
-export const createUsersSchema = userSchema.omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-}).partial();
+export const createUserSchema = userSchema
+  .omit({
+    id: true,
+    createdAt: true,
+    updatedAt: true,
+  })
+  .partial();
 
-export const updateUsersSchema = userSchema.omit({
-  id: true,
-  password: true,
-  createdAt: true,
-}).partial();
+export const updateUserSchema = userSchema
+  .omit({
+    id: true,
+    password: true,
+    createdAt: true,
+  })
+  .partial();
 
-export type UsersDto = z.infer<typeof userSchema>;
-export type CreateUsersDto = z.infer<typeof createUsersSchema>;
-export type UpdateUsersDto = z.infer<typeof updateUsersSchema>;
+export type UserDto = z.infer<typeof userSchema>;
+export type CreateUserDto = z.infer<typeof createUserSchema>;
+export type UpdateUserDto = z.infer<typeof updateUserSchema>;
 
 
-File: src/entities/users/users.service.ts
+File: src/entities/user/user.controller.ts
 --------------------------------------------------
-Content of src/entities/users/users.service.ts:
-import { UpdateUsersDto, CreateUsersDto } from "@/entities/users/users.dto";
+Content of src/entities/user/user.controller.ts:
+import { NextFunction, Response } from "express";
+import { UserService } from "@/entities/user/user.service";
+import { StatusCodes } from "http-status-codes";
+import { logger } from "@/common/winston/winston";
+import { CustomRequest } from "@/types/request";
+import { createResponse } from "@/utils/create-response";
+import { BaseController } from "@/common/base/base.controller";
+import { CreateUserDto, UpdateUserDto } from "@/entities/user/user.dto";
+import { PrismaClient, user as User } from "@prisma/client";
+
+const prisma = new PrismaClient();
+const IGNORE_FIELDS = { password: true };
+
+export class UserController extends BaseController<User, CreateUserDto, UpdateUserDto> {
+  public collectionName: string;
+  public userService: UserService;
+
+  constructor() {
+    super(prisma.user, "User", IGNORE_FIELDS);
+    this.collectionName = "User";
+    this.userService = new UserService(prisma.user, this.collectionName, IGNORE_FIELDS);
+  }
+
+  /**
+   * Create a new entity
+   * @param req - CustomRequest object
+   * @param res - Response object
+   * @param next - Next middleware function
+   * @returns JSON created entity
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  create = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
+    const createDto = req.body;
+    const { loggedUser } = req;
+    try {
+      logger.info(`[${this.collectionName} Controller] Creating new ${this.collectionName}`, {
+        loggedUser,
+        createDto,
+      });
+      const created = await this.userService.create(createDto);
+      return res.json(createResponse({ data: created, status: StatusCodes.CREATED }));
+    } catch (error) {
+      if (error instanceof Error) {
+        logger.warn(`[${this.collectionName} Controller] Error creating ${this.collectionName}`, {
+          error: error.message,
+          loggedUser,
+          createDto,
+        });
+      }
+      next(error);
+    }
+  };
+
+  /**
+   * Update an existing entity
+   * @param req - CustomRequest object
+   * @param res - Response object
+   * @param next - Next middleware function
+   * @returns JSON updated entity
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  update = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
+    const { id } = req.params;
+    const updateDto = req.body;
+    const { loggedUser } = req;
+    try {
+      logger.info(`[${this.collectionName} Controller] Updating ${this.collectionName}`, {
+        loggedUser,
+        id,
+        updateDto,
+      });
+      const updatedData = await this.userService.update(id, updateDto);
+      return res.json(createResponse({ data: updatedData, status: StatusCodes.CREATED }));
+    } catch (error) {
+      if (error instanceof Error) {
+        logger.warn(`[${this.collectionName} Controller] Error updating ${this.collectionName}`, {
+          error: error.message,
+          loggedUser,
+          id,
+          updateDto,
+        });
+      }
+      next(error);
+    }
+  };
+}
+
+
+File: src/entities/user/user.service.ts
+--------------------------------------------------
+Content of src/entities/user/user.service.ts:
+import { UpdateUserDto, CreateUserDto } from "@/entities/user/user.dto";
 import { env } from "@/config/env";
 import { hash } from "bcrypt";
 import createHttpError from "http-errors";
@@ -5456,7 +6048,7 @@ import { logger } from "@/common/winston/winston";
 import { BaseService } from "@/common/base/base.services";
 import { user as User } from "@prisma/client";
 
-export class UsersService extends BaseService<User, CreateUsersDto, UpdateUsersDto> {
+export class UserService extends BaseService<User, CreateUserDto, UpdateUserDto> {
   private collectionNameService: string;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -5470,7 +6062,7 @@ export class UsersService extends BaseService<User, CreateUsersDto, UpdateUsersD
    * @param createDto - Data for creating a new entity
    * @returns Created entity data
    */
-  create = async (createDto: CreateUsersDto): Promise<User | null> => {
+  create = async (createDto: CreateUserDto): Promise<User | null> => {
     try {
       logger.info(
         `[${this.collectionNameService} Service] Creating ${this.collectionNameService} with email: ${createDto.email}`,
@@ -5527,7 +6119,7 @@ export class UsersService extends BaseService<User, CreateUsersDto, UpdateUsersD
    * @param updateDto - Data to update the entity with
    * @returns Updated entity data
    */
-  update = async (id: string, updateDto: UpdateUsersDto): Promise<User | null> => {
+  update = async (id: string, updateDto: UpdateUserDto): Promise<User | null> => {
     try {
       logger.info(
         `[${this.collectionNameService} Service] Updating ${this.collectionNameService} with id: ${id}`,
@@ -5591,103 +6183,12 @@ export class UsersService extends BaseService<User, CreateUsersDto, UpdateUsersD
 }
 
 
-File: src/entities/users/users.controller.ts
+File: src/entities/user/user.route.ts
 --------------------------------------------------
-Content of src/entities/users/users.controller.ts:
-import { NextFunction, Response } from "express";
-import { UsersService } from "@/entities/users/users.service";
-import { StatusCodes } from "http-status-codes";
-import { logger } from "@/common/winston/winston";
-import { CustomRequest } from "@/types/request";
-import { createResponse } from "@/utils/create-response";
-import { BaseController } from "@/common/base/base.controller";
-import { CreateUsersDto, UpdateUsersDto } from "./users.dto";
-import { PrismaClient, user as User } from "@prisma/client";
-
-const prisma = new PrismaClient();
-const IGNORE_FIELDS = { password: true };
-
-export class UsersController extends BaseController<User, CreateUsersDto, UpdateUsersDto> {
-  public collectionName: string;
-  public usersService: UsersService;
-
-  constructor() {
-    super(prisma.user, "Users", IGNORE_FIELDS);
-    this.collectionName = "Users";
-    this.usersService = new UsersService(prisma.user, this.collectionName, IGNORE_FIELDS);
-  }
-
-  /**
-   * Create a new entity
-   * @param req - CustomRequest object
-   * @param res - Response object
-   * @param next - Next middleware function
-   * @returns JSON created entity
-   */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  create = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
-    const createDto = req.body;
-    const { loggedUser } = req;
-    try {
-      logger.info(`[${this.collectionName} Controller] Creating new ${this.collectionName}`, {
-        loggedUser,
-        createDto,
-      });
-      const created = await this.usersService.create(createDto);
-      return res.json(createResponse({ data: created, status: StatusCodes.CREATED }));
-    } catch (error) {
-      if (error instanceof Error) {
-        logger.warn(`[${this.collectionName} Controller] Error creating ${this.collectionName}`, {
-          error: error.message,
-          loggedUser,
-          createDto,
-        });
-      }
-      next(error);
-    }
-  };
-
-  /**
-   * Update an existing entity
-   * @param req - CustomRequest object
-   * @param res - Response object
-   * @param next - Next middleware function
-   * @returns JSON updated entity
-   */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  update = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
-    const { id } = req.params;
-    const updateDto = req.body;
-    const { loggedUser } = req;
-    try {
-      logger.info(`[${this.collectionName} Controller] Updating ${this.collectionName}`, {
-        loggedUser,
-        id,
-        updateDto,
-      });
-      const updatedData = await this.usersService.update(id, updateDto);
-      return res.json(createResponse({ data: updatedData, status: StatusCodes.CREATED }));
-    } catch (error) {
-      if (error instanceof Error) {
-        logger.warn(`[${this.collectionName} Controller] Error updating ${this.collectionName}`, {
-          error: error.message,
-          loggedUser,
-          id,
-          updateDto,
-        });
-      }
-      next(error);
-    }
-  };
-}
-
-
-File: src/entities/users/users.route.ts
---------------------------------------------------
-Content of src/entities/users/users.route.ts:
-import { updateUsersSchema } from "@/entities/users/users.dto";
+Content of src/entities/user/user.route.ts:
+import { createUserSchema, updateUserSchema } from "@/entities/user/user.dto";
 import { OpenAPIRegistry } from "@asteasolutions/zod-to-openapi";
-import { UsersController } from "@/entities/users/users.controller";
+import { UserController } from "@/entities/user/user.controller";
 import { authMiddleware } from "@/middlewares";
 import { createApiResponse } from "@/common/swagger/swagger-response-builder";
 import { zodValidation } from "@/middlewares/zod-validation";
@@ -5698,29 +6199,29 @@ import { importFileSchema } from "@/schemas/import-file";
 import { uploadImportMiddleware } from "@/common/multer/multer";
 import { userSchema } from "@/generated/zod";
 
-const usersRouter = Router();
-usersRouter.use(authMiddleware);
+const userRouter = Router();
+userRouter.use(authMiddleware);
 
-const TAG = "Users";
+const TAG = "User";
 const ROUTE = `/${TAG.toLowerCase()}`;
 
-export const usersRegistry = new OpenAPIRegistry();
-const usersController = new UsersController();
+export const userRegistry = new OpenAPIRegistry();
+const userController = new UserController();
 
-usersRegistry.register(TAG, userSchema);
+userRegistry.register(TAG, userSchema);
 
-usersRegistry.registerPath({
+userRegistry.registerPath({
   method: "get",
   path: ROUTE,
   summary: `Get all ${TAG}`,
   tags: [TAG],
   responses: createApiResponse(z.array(userSchema), "Success"),
 });
-usersRouter.get("/", usersController.getAll);
+userRouter.get("/", userController.getAll);
 
 //====================================================================================================
 
-usersRegistry.registerPath({
+userRegistry.registerPath({
   method: "post",
   path: `${ROUTE}/import`,
   tags: [TAG],
@@ -5732,22 +6233,22 @@ usersRegistry.registerPath({
   },
   responses: createApiResponse(z.null(), `${TAG}s Imported Successfully`),
 });
-usersRouter.post("/import", uploadImportMiddleware, usersController.import);
+userRouter.post("/import", uploadImportMiddleware, userController.import);
 
 //====================================================================================================
 
-usersRegistry.registerPath({
+userRegistry.registerPath({
   method: "get",
   path: `${ROUTE}/export`,
   summary: `Export ${TAG}`,
   tags: [TAG],
   responses: createApiResponse(z.null(), `${TAG}s Exported Successfully`),
 });
-usersRouter.get("/export", usersController.export);
+userRouter.get("/export", userController.export);
 
 //====================================================================================================
 
-usersRegistry.registerPath({
+userRegistry.registerPath({
   method: "get",
   path: `${ROUTE}/{id}`,
   tags: [TAG],
@@ -5757,11 +6258,11 @@ usersRegistry.registerPath({
   },
   responses: createApiResponse(userSchema, "Success"),
 });
-usersRouter.get("/:id", usersController.getById);
+userRouter.get("/:id", userController.getById);
 
 //====================================================================================================
 
-usersRegistry.registerPath({
+userRegistry.registerPath({
   method: "get",
   path: `${ROUTE}/email/{email}`,
   tags: [TAG],
@@ -5771,11 +6272,11 @@ usersRegistry.registerPath({
   },
   responses: createApiResponse(userSchema, "Success"),
 });
-usersRouter.get("/email/:email", usersController.getByEmail);
+userRouter.get("/email/:email", userController.getByEmail);
 
 //====================================================================================================
 
-usersRegistry.registerPath({
+userRegistry.registerPath({
   method: "post",
   path: `${ROUTE}/find`,
   tags: [TAG],
@@ -5787,27 +6288,27 @@ usersRegistry.registerPath({
   },
   responses: createApiResponse(z.array(findByQuerySchema), "Success"),
 });
-usersRouter.post("/find", zodValidation(findByQuerySchema), usersController.findByQuery);
+userRouter.post("/find", zodValidation(findByQuerySchema), userController.findByQuery);
 
 //====================================================================================================
 
-usersRegistry.registerPath({
+userRegistry.registerPath({
   method: "post",
   path: ROUTE,
   tags: [TAG],
   summary: `Create ${TAG}`,
   request: {
     body: {
-      content: { "application/json": { schema: userSchema } },
+      content: { "application/json": { schema: createUserSchema } },
     },
   },
-  responses: createApiResponse(userSchema, `${TAG} Created Successfully`),
+  responses: createApiResponse(createUserSchema, `${TAG} Created Successfully`),
 });
-usersRouter.post("/", zodValidation(userSchema), usersController.create);
+userRouter.post("/", zodValidation(createUserSchema), userController.create);
 
 //====================================================================================================
 
-usersRegistry.registerPath({
+userRegistry.registerPath({
   method: "put",
   path: `${ROUTE}/{id}`,
   tags: [TAG],
@@ -5815,16 +6316,16 @@ usersRegistry.registerPath({
   request: {
     params: z.object({ id: z.string() }),
     body: {
-      content: { "application/json": { schema: updateUsersSchema } },
+      content: { "application/json": { schema: updateUserSchema } },
     },
   },
-  responses: createApiResponse(updateUsersSchema, `${TAG} Updated Successfully`),
+  responses: createApiResponse(updateUserSchema, `${TAG} Updated Successfully`),
 });
-usersRouter.put("/:id", zodValidation(updateUsersSchema), usersController.update);
+userRouter.put("/:id", zodValidation(updateUserSchema), userController.update);
 
 //====================================================================================================
 
-usersRegistry.registerPath({
+userRegistry.registerPath({
   method: "delete",
   path: `${ROUTE}/bulk`,
   tags: [TAG],
@@ -5836,15 +6337,15 @@ usersRegistry.registerPath({
   },
   responses: createApiResponse(z.null(), `${TAG}s Deleted Successfully`),
 });
-usersRouter.delete(
+userRouter.delete(
   "/bulk",
   zodValidation(z.object({ ids: z.array(z.string()) })),
-  usersController.deleteMany,
+  userController.deleteMany,
 );
 
 //====================================================================================================
 
-usersRegistry.registerPath({
+userRegistry.registerPath({
   method: "delete",
   path: `${ROUTE}/{id}`,
   tags: [TAG],
@@ -5854,397 +6355,8 @@ usersRegistry.registerPath({
   },
   responses: createApiResponse(z.null(), `${TAG} Deleted Successfully`),
 });
-usersRouter.delete("/:id", usersController.delete);
+userRouter.delete("/:id", userController.delete);
 
-export default usersRouter;
-
-
-File: src/entities/files/files.service.ts
---------------------------------------------------
-Content of src/entities/files/files.service.ts:
-import createHttpError from "http-errors";
-import { logger } from "@/common/winston/winston";
-import { BaseService } from "@/common/base/base.services";
-import { UpdateFilesDto, UploadFilesDto } from "./files.dto";
-import { file as File } from "@prisma/client";
-
-export class FilesService extends BaseService<File, UploadFilesDto, UpdateFilesDto> {
-  private collectionNameService: string;
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  constructor(model: any, collectionName: string, ignoreFields?: Record<string, boolean>) {
-    super(model, collectionName, ignoreFields);
-    this.collectionNameService = collectionName;
-  }
-
-  /**
-   * Fetches a entity by their userId.
-   * @param userId - entity's userId
-   * @returns entity data or false if not found
-   */
-  getByUser = async (userId: string): Promise<File | File[] | false> => {
-    try {
-      logger.info(
-        `[${this.collectionNameService} Service] Fetching ${this.collectionNameService} with userId: ${userId}`,
-      );
-      const data = await this.baseRepository.getByUser(userId);
-
-      if (!data) {
-        logger.warn(
-          `[${this.collectionNameService} Service] ${this.collectionNameService} with userId ${userId} not found`,
-        );
-        return false;
-      }
-
-      return data;
-    } catch (error) {
-      if (createHttpError.isHttpError(error)) {
-        throw error;
-      }
-      if (error instanceof Error) {
-        logger.warn(
-          `[${this.collectionNameService} Service] Error fetching ${this.collectionNameService} by userId`,
-          {
-            userId,
-            error: error.message,
-          },
-        );
-        throw new Error(`Error fetching ${this.collectionNameService} by email: ${error.message}`);
-      }
-      logger.warn(
-        `[${this.collectionNameService} Service] Unknown error occurred while fetching ${this.collectionNameService} by email`,
-      );
-      throw new Error(
-        `Unknown error occurred while fetching ${this.collectionNameService} by email`,
-      );
-    }
-  };
-}
-
-
-File: src/entities/files/files.controller.ts
---------------------------------------------------
-Content of src/entities/files/files.controller.ts:
-import { NextFunction, Response } from "express";
-import { UpdateFilesDto, UploadFilesDto } from "@/entities/files/files.dto";
-import { logger } from "@/common/winston/winston";
-import { CustomRequest } from "@/types/request";
-import { saveFileToDisk } from "@/common/multer/save-file-to-disk";
-import { updateImageToDisk } from "@/common/multer/update-file-to-disk";
-import { deleteFileFromDisk } from "@/common/multer/delete-file-from-disk";
-import { BaseController } from "@/common/base/base.controller";
-import { createResponse } from "@/utils/create-response";
-import { StatusCodes } from "http-status-codes";
-import { FilesService } from "./files.service";
-import { PrismaClient, file as File } from "@prisma/client";
-
-const prisma = new PrismaClient();
-const IGNORE_FIELDS = { v: true };
-
-export class FilesController extends BaseController<File, UploadFilesDto, UpdateFilesDto> {
-  public collectionName: string;
-  public filesService: FilesService;
-
-  constructor() {
-    super(prisma.file, "Files", IGNORE_FIELDS);
-    this.collectionName = "Files";
-    this.filesService = new FilesService(prisma.file, this.collectionName, IGNORE_FIELDS);
-  }
-
-  /**
-   * Get entity by ID
-   * @param req - CustomRequest object
-   * @param res - Response object
-   * @param next - Next middleware function
-   * @returns JSON entity object
-   */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getByUser = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
-    const { userId } = req.params;
-    const { loggedUser } = req;
-    try {
-      logger.info(`[${this.collectionName} Controller] Fetching ${this.collectionName} by userId`, {
-        loggedUser,
-        userId,
-      });
-      const data = await this.filesService.getByUser(userId);
-
-      return res.json(createResponse({ data }));
-    } catch (error) {
-      if (error instanceof Error) {
-        logger.warn(
-          `[${this.collectionName} Controller] Error fetching ${this.collectionName} by userId`,
-          {
-            error: error.message,
-            loggedUser,
-            userId,
-          },
-        );
-      }
-      next(error);
-    }
-  };
-
-  /**
-   * Upload an entity
-   * @param req - CustomRequest object
-   * @param res - Response object
-   * @param next - Next middleware function
-   * @returns JSON updated entity
-   */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  upload = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
-    const { loggedUser } = req;
-    try {
-      const { buffer, mimetype } = req.file!;
-      const { tags, views, userRef } = req.body;
-
-      const { name, path } = await saveFileToDisk(req.file);
-      logger.info(`[${this.collectionName} Controller] Creating new ${this.collectionName}`, {
-        loggedUser,
-        tags,
-        name,
-        path,
-      });
-      const text = `data:${mimetype};base64,${buffer.toString("base64")}`;
-
-      const fileUpload = {
-        name,
-        text,
-        path,
-        userId: userRef,
-        tags,
-        views: views ?? "0",
-      };
-      const created = await this.baseService.create(fileUpload);
-
-      return res.json(createResponse({ data: created, status: StatusCodes.CREATED }));
-    } catch (error) {
-      if (error instanceof Error) {
-        logger.warn("Error uploading file", { error: error.message, loggedUser });
-      }
-      next(error);
-    }
-  };
-
-  /**
-   * Update an existing entity
-   * @param req - CustomRequest object
-   * @param res - Response object
-   * @param next - Next middleware function
-   * @returns JSON updated entity
-   */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  update = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
-    const { loggedUser } = req;
-    const { id } = req.params;
-    try {
-      const { buffer, mimetype } = req.file!;
-      const updateData = req.body;
-      const existFile = await this.baseService.getById(id);
-      if (!existFile) {
-        throw new Error("File not found");
-      }
-      await updateImageToDisk(existFile.name!, req.file);
-      const fileText = `data:${mimetype};base64,${buffer.toString("base64")}`;
-      const fileData: UpdateFilesDto = {
-        fileText,
-        ...updateData,
-      };
-      const updated = await this.baseService.update(id, fileData);
-
-      return res.json(createResponse({ data: updated, status: StatusCodes.CREATED }));
-    } catch (error) {
-      if (error instanceof Error) {
-        logger.warn("Error updating file", { error: error.message, loggedUser, id });
-      }
-      next(error);
-    }
-  };
-
-  /**
-   * Delete an existing entity
-   * @param req - CustomRequest object
-   * @param res - Response object
-   * @param next - Next middleware function
-   * @returns JSON updated entity
-   */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  delete = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
-    const { loggedUser } = req;
-    const { id } = req.params;
-    try {
-      const existFile = await this.baseService.getById(id);
-      if (!existFile) {
-        throw new Error("File not found");
-      }
-      await deleteFileFromDisk(existFile.name!);
-      const deleted = await this.baseService.delete(id);
-
-      return res.json(createResponse({ data: deleted, status: StatusCodes.CREATED }));
-    } catch (error) {
-      if (error instanceof Error) {
-        logger.warn("Error deleting file", { error: error.message, loggedUser, id });
-      }
-      next(error);
-    }
-  };
-}
-
-
-File: src/entities/files/files.dto.ts
---------------------------------------------------
-Content of src/entities/files/files.dto.ts:
-import { fileSchema } from "@/generated/zod";
-import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
-import { z } from "zod";
-
-extendZodWithOpenApi(z);
-
-export const uploadFilesSchema = fileSchema.omit({
-  id: true,
-}).partial();
-
-export const updateFilesSchema = fileSchema.partial();
-
-export type UploadFilesDto = z.infer<typeof uploadFilesSchema>;
-export type UpdateFilesDto = z.infer<typeof updateFilesSchema>;
-
-
-File: src/entities/files/files.route.ts
---------------------------------------------------
-Content of src/entities/files/files.route.ts:
-import { Router } from "express";
-import { uploadMiddleware } from "@/common/multer/multer";
-import { FilesController } from "@/entities/files/files.controller";
-import { OpenAPIRegistry } from "@asteasolutions/zod-to-openapi";
-import { updateFilesSchema, uploadFilesSchema } from "@/entities/files/files.dto";
-import { createApiResponse } from "@/common/swagger/swagger-response-builder";
-import { z } from "zod";
-import { authMiddleware, zodValidation } from "@/middlewares";
-import { findByQuerySchema } from "@/schemas/find-by-query";
-import { fileSchema } from "@/generated/zod";
-
-const filesRouter = Router();
-filesRouter.use(authMiddleware);
-
-const TAG = "Files";
-const ROUTE = `/${TAG.toLowerCase()}`;
-
-export const filesRegistry = new OpenAPIRegistry();
-const filesController = new FilesController();
-
-filesRegistry.register(TAG, fileSchema);
-
-filesRegistry.registerPath({
-  method: "get",
-  path: ROUTE,
-  summary: `Get all ${TAG}`,
-  tags: [TAG],
-  responses: createApiResponse(z.array(fileSchema), "Success"),
-});
-filesRouter.get("/", filesController.getAll);
-
-//====================================================================================================
-
-filesRegistry.registerPath({
-  method: "get",
-  path: `${ROUTE}/{id}`,
-  tags: [TAG],
-  summary: `Get ${TAG} by id`,
-  request: {
-    params: z.object({ id: z.string() }),
-  },
-  responses: createApiResponse(fileSchema, "Success"),
-});
-filesRouter.get("/:id", filesController.getById);
-
-//====================================================================================================
-
-filesRegistry.registerPath({
-  method: "get",
-  path: `${ROUTE}/user/{userId}`,
-  tags: [TAG],
-  summary: `Get ${TAG} by userId`,
-  request: {
-    params: z.object({ userId: z.string() }),
-  },
-  responses: createApiResponse(fileSchema, "Success"),
-});
-filesRouter.get("/user/:userId", filesController.getByUser);
-
-//====================================================================================================
-
-filesRegistry.registerPath({
-  method: "post",
-  path: `${ROUTE}/find`,
-  tags: [TAG],
-  summary: `Find ${TAG} by query`,
-  request: {
-    body: {
-      content: { "application/json": { schema: findByQuerySchema } },
-    },
-  },
-  responses: createApiResponse(z.array(findByQuerySchema), "Success"),
-});
-filesRouter.post("/find", zodValidation(findByQuerySchema), filesController.findByQuery);
-
-//====================================================================================================
-
-filesRegistry.registerPath({
-  method: "post",
-  path: `${ROUTE}/upload`,
-  tags: [TAG],
-  summary: `Upload ${TAG}`,
-  request: {
-    body: {
-      content: { "multipart/form-data": { schema: uploadFilesSchema } },
-    },
-  },
-  responses: createApiResponse(uploadFilesSchema, "File uploaded Successfully"),
-});
-filesRouter.post(
-  "/upload",
-  uploadMiddleware,
-  zodValidation(uploadFilesSchema),
-  filesController.upload,
-);
-
-//====================================================================================================
-
-filesRegistry.registerPath({
-  method: "put",
-  path: `${ROUTE}/{id}`,
-  tags: [TAG],
-  request: {
-    params: z.object({ id: z.string() }),
-    body: {
-      content: { "multipart/form-data": { schema: updateFilesSchema } },
-    },
-  },
-  responses: createApiResponse(updateFilesSchema, "File updated Successfully"),
-});
-filesRouter.put(
-  "/:id",
-  uploadMiddleware,
-  zodValidation(updateFilesSchema),
-  filesController.update,
-);
-
-//====================================================================================================
-
-filesRegistry.registerPath({
-  method: "delete",
-  path: `${ROUTE}/{id}`,
-  tags: [TAG],
-  summary: `Delete ${TAG}`,
-  request: {
-    params: z.object({ id: z.string() }),
-  },
-  responses: createApiResponse(z.null(), `${TAG} Deleted Successfully`),
-});
-filesRouter.delete("/:id", filesController.delete);
-
-export default filesRouter;
+export default userRouter;
 
 

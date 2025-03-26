@@ -1,5 +1,5 @@
 import { NextFunction, Response } from "express";
-import { UpdateFilesDto, UploadFilesDto } from "@/entities/files/files.dto";
+import { UpdateFileDto, UploadFileDto } from "@/entities/file/file.dto";
 import { logger } from "@/common/winston/winston";
 import { CustomRequest } from "@/types/request";
 import { saveFileToDisk } from "@/common/multer/save-file-to-disk";
@@ -8,21 +8,21 @@ import { deleteFileFromDisk } from "@/common/multer/delete-file-from-disk";
 import { BaseController } from "@/common/base/base.controller";
 import { createResponse } from "@/utils/create-response";
 import { StatusCodes } from "http-status-codes";
-import { FilesService } from "./files.service";
+import { FileService } from "@/entities/file/file.service";
 import { PrismaClient, file as File } from "@prisma/client";
 import _ from "lodash";
 
 const prisma = new PrismaClient();
 const IGNORE_FIELDS = {};
 
-export class FilesController extends BaseController<File, UploadFilesDto, UpdateFilesDto> {
+export class FileController extends BaseController<File, UploadFileDto, UpdateFileDto> {
   public collectionName: string;
-  public filesService: FilesService;
+  public fileService: FileService;
 
   constructor() {
-    super(prisma.file, "Files", IGNORE_FIELDS);
-    this.collectionName = "Files";
-    this.filesService = new FilesService(prisma.file, this.collectionName, IGNORE_FIELDS);
+    super(prisma.file, "File", IGNORE_FIELDS);
+    this.collectionName = "File";
+    this.fileService = new FileService(prisma.file, this.collectionName, IGNORE_FIELDS);
   }
 
   /**
@@ -41,7 +41,7 @@ export class FilesController extends BaseController<File, UploadFilesDto, Update
         loggedUser,
         userId,
       });
-      const data = await this.filesService.getByUser(userId);
+      const data = await this.fileService.getByUser(userId);
 
       return res.json(createResponse({ data }));
     } catch (error) {
@@ -70,7 +70,7 @@ export class FilesController extends BaseController<File, UploadFilesDto, Update
   upload = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
     const { loggedUser } = req;
     try {
-      const { tags, userId, name, fileViews } = req.body;
+      const { tags, userId, name, views } = req.body;
 
       const { path } = await saveFileToDisk(req.file);
       logger.info(`[${this.collectionName} Controller] Creating new ${this.collectionName}`, {
@@ -85,7 +85,7 @@ export class FilesController extends BaseController<File, UploadFilesDto, Update
         path,
         userId,
         tags,
-        views: fileViews ? Number(fileViews) : 0,
+        views: views ?? 0,
       };
       const created = await this.baseService.create(fileUpload);
 
@@ -123,7 +123,7 @@ export class FilesController extends BaseController<File, UploadFilesDto, Update
         name: _.isEmpty(updateData.name) ? existFile.name : updateData.name,
         userId: _.isEmpty(updateData.userId) ? existFile.userId : updateData.userId,
         tags: _.isEmpty(updateData.tags) ? existFile.tags : updateData.tags,
-        views: _.isEmpty(updateData.fileViews) ? existFile.views : Number(updateData.fileViews),
+        views: _.isEmpty(updateData.views) ? existFile.views : updateData.views,
       };
       const updated = await this.baseService.update(id, fileData);
 

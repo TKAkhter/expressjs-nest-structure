@@ -1,6 +1,6 @@
 import { BaseRepository } from "@/common/base/base.repository";
 import { FindByQueryDto, FindByQueryResult, ImportResult } from "@/schemas/find-by-query";
-import { logger } from "../winston/winston";
+import { logger } from "@/common/winston/winston";
 import createHttpError from "http-errors";
 import { StatusCodes } from "http-status-codes";
 import { parseAsync } from "json2csv";

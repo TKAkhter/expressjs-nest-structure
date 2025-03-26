@@ -4,24 +4,24 @@ import { AuthDto, RegisterDto, ResetPasswordDto } from "@/entities/auth/auth.dto
 import { generateToken, verifyToken } from "@/common/jwt/jwt";
 import createHttpError from "http-errors";
 import { StatusCodes } from "http-status-codes";
-import { UsersService } from "@/entities/users/users.service";
+import { UserService } from "@/entities/user/user.service";
 import { sendMail } from "@/common/mail-sender/mail-sender";
 import { BaseRepository } from "@/common/base/base.repository";
-import { CreateUsersDto, UpdateUsersDto } from "@/entities/users/users.dto";
+import { CreateUserDto, UpdateUserDto } from "@/entities/user/user.dto";
 import { env } from "@/config/env";
 import { createTemplate } from "@/template/create-template";
 import { user as User } from "@prisma/client";
 
 export class AuthService {
   private collectionName: string;
-  private usersService: UsersService;
-  private usersRepository: BaseRepository<User, UpdateUsersDto, CreateUsersDto>;
+  private userService: UserService;
+  private userRepository: BaseRepository<User, UpdateUserDto, CreateUserDto>;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor(model: any, collectionName: string) {
     this.collectionName = collectionName;
-    this.usersService = new UsersService(model, "Users");
-    this.usersRepository = new BaseRepository(model, "Users");
+    this.userService = new UserService(model, "User");
+    this.userRepository = new BaseRepository(model, "User");
   }
 
   /**
@@ -36,7 +36,7 @@ export class AuthService {
     });
 
     try {
-      const user = await this.usersService.getByEmail(authData.email);
+      const user = await this.userService.getByEmail(authData.email);
 
       if (!user) {
         logger.warn(
@@ -100,7 +100,7 @@ export class AuthService {
     });
 
     try {
-      await this.usersService.create(registerDto);
+      await this.userService.create(registerDto);
 
       const login = await this.login(registerDto);
 
@@ -197,7 +197,7 @@ export class AuthService {
     logger.info(`[${this.collectionName} Service] Forgot password service invoked`, { email });
 
     try {
-      const user = await this.usersService.getByEmail(email);
+      const user = await this.userService.getByEmail(email);
 
       if (!user) {
         logger.warn(`[${this.collectionName} Service] ${this.collectionName} does not exists!`, {
@@ -214,7 +214,7 @@ export class AuthService {
         email: user.email,
       });
 
-      await this.usersService.update(user.id as string, {
+      await this.userService.update(user.id as string, {
         resetToken,
         name: user.name!,
         email: user.email,
@@ -276,7 +276,7 @@ export class AuthService {
 
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const user: any = await this.usersRepository.getByField(
+      const user: any = await this.userRepository.getByField(
         "resetToken",
         resetPasswordDto.resetToken,
       );
@@ -296,7 +296,7 @@ export class AuthService {
 
       const hashedPassword = await hash(resetPasswordDto.password, env.HASH!);
 
-      await this.usersService.update(user[0].id, {
+      await this.userService.update(user[0].id, {
         password: hashedPassword,
         resetToken: null,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

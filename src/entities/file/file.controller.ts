@@ -1,5 +1,5 @@
 import { NextFunction, Response } from "express";
-import { UpdateFilesDto, UploadFilesDto } from "@/entities/files/files.dto";
+import { UpdateFileDto, UploadFileDto } from "@/entities/file/file.dto";
 import { logger } from "@/common/winston/winston";
 import { CustomRequest } from "@/types/request";
 import { saveFileToDisk } from "@/common/multer/save-file-to-disk";
@@ -8,21 +8,21 @@ import { deleteFileFromDisk } from "@/common/multer/delete-file-from-disk";
 import { BaseController } from "@/common/base/base.controller";
 import { createResponse } from "@/utils/create-response";
 import { StatusCodes } from "http-status-codes";
-import { FilesService } from "@/entities/files/files.service";
+import { FileService } from "@/entities/file/file.service";
 import { PrismaClient, file as File } from "@prisma/client";
 import _ from "lodash";
 
 const prisma = new PrismaClient();
 const IGNORE_FIELDS = {};
 
-export class FilesController extends BaseController<File, UploadFilesDto, UpdateFilesDto> {
+export class FileController extends BaseController<File, UploadFileDto, UpdateFileDto> {
   public collectionName: string;
-  public filesService: FilesService;
+  public fileService: FileService;
 
   constructor() {
-    super(prisma.file, "Files", IGNORE_FIELDS);
-    this.collectionName = "Files";
-    this.filesService = new FilesService(prisma.file, this.collectionName, IGNORE_FIELDS);
+    super(prisma.file, "File", IGNORE_FIELDS);
+    this.collectionName = "File";
+    this.fileService = new FileService(prisma.file, this.collectionName, IGNORE_FIELDS);
   }
 
   /**
@@ -41,7 +41,7 @@ export class FilesController extends BaseController<File, UploadFilesDto, Update
         loggedUser,
         userId,
       });
-      const data = await this.filesService.getByUser(userId);
+      const data = await this.fileService.getByUser(userId);
 
       return res.json(createResponse({ data }));
     } catch (error) {

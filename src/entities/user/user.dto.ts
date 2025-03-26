@@ -4,7 +4,7 @@ import { z } from "zod";
 
 extendZodWithOpenApi(z);
 
-export const createUsersSchema = userSchema
+export const createUserSchema = userSchema
   .omit({
     id: true,
     createdAt: true,
@@ -12,7 +12,7 @@ export const createUsersSchema = userSchema
   })
   .partial();
 
-export const updateUsersSchema = userSchema
+export const updateUserSchema = userSchema
   .omit({
     id: true,
     password: true,
@@ -20,6 +20,6 @@ export const updateUsersSchema = userSchema
   })
   .partial();
 
-export type UsersDto = z.infer<typeof userSchema>;
-export type CreateUsersDto = z.infer<typeof createUsersSchema>;
-export type UpdateUsersDto = z.infer<typeof updateUsersSchema>;
+export type UserDto = z.infer<typeof userSchema>;
+export type CreateUserDto = z.infer<typeof createUserSchema>;
+export type UpdateUserDto = z.infer<typeof updateUserSchema>;

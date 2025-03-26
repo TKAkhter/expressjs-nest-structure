@@ -20,7 +20,7 @@ const fileUploadSchema = {
     .refine((num) => num > 0, "ID must be a positive number"),
 };
 
-export const uploadFilesSchema = fileSchema
+export const uploadFileSchema = fileSchema
   .omit({
     id: true,
     path: true,
@@ -32,7 +32,7 @@ export const uploadFilesSchema = fileSchema
   .extend(fileUploadSchema)
   .partial();
 
-export const updateFilesSchema = fileSchema
+export const updateFileSchema = fileSchema
   .omit({
     id: true,
     path: true,
@@ -44,5 +44,5 @@ export const updateFilesSchema = fileSchema
   .extend(fileUploadSchema)
   .partial();
 
-export type UploadFilesDto = z.infer<typeof uploadFilesSchema>;
-export type UpdateFilesDto = z.infer<typeof updateFilesSchema>;
+export type UploadFileDto = z.infer<typeof uploadFileSchema>;
+export type UpdateFileDto = z.infer<typeof updateFileSchema>;

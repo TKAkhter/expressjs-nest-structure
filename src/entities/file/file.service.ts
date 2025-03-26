@@ -1,10 +1,10 @@
 import createHttpError from "http-errors";
 import { logger } from "@/common/winston/winston";
 import { BaseService } from "@/common/base/base.services";
-import { UpdateFilesDto, UploadFilesDto } from "./files.dto";
+import { UpdateFileDto, UploadFileDto } from "./file.dto";
 import { file as File } from "@prisma/client";
 
-export class FilesService extends BaseService<File, UploadFilesDto, UpdateFilesDto> {
+export class FileService extends BaseService<File, UploadFileDto, UpdateFileDto> {
   private collectionNameService: string;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

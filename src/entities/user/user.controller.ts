@@ -1,24 +1,24 @@
 import { NextFunction, Response } from "express";
-import { UsersService } from "@/entities/users/users.service";
+import { UserService } from "@/entities/user/user.service";
 import { StatusCodes } from "http-status-codes";
 import { logger } from "@/common/winston/winston";
 import { CustomRequest } from "@/types/request";
 import { createResponse } from "@/utils/create-response";
 import { BaseController } from "@/common/base/base.controller";
-import { CreateUsersDto, UpdateUsersDto } from "./users.dto";
+import { CreateUserDto, UpdateUserDto } from "@/entities/user/user.dto";
 import { PrismaClient, user as User } from "@prisma/client";
 
 const prisma = new PrismaClient();
 const IGNORE_FIELDS = { password: true };
 
-export class UsersController extends BaseController<User, CreateUsersDto, UpdateUsersDto> {
+export class UserController extends BaseController<User, CreateUserDto, UpdateUserDto> {
   public collectionName: string;
-  public usersService: UsersService;
+  public userService: UserService;
 
   constructor() {
-    super(prisma.user, "Users", IGNORE_FIELDS);
-    this.collectionName = "Users";
-    this.usersService = new UsersService(prisma.user, this.collectionName, IGNORE_FIELDS);
+    super(prisma.user, "User", IGNORE_FIELDS);
+    this.collectionName = "User";
+    this.userService = new UserService(prisma.user, this.collectionName, IGNORE_FIELDS);
   }
 
   /**
@@ -37,7 +37,7 @@ export class UsersController extends BaseController<User, CreateUsersDto, Update
         loggedUser,
         createDto,
       });
-      const created = await this.usersService.create(createDto);
+      const created = await this.userService.create(createDto);
       return res.json(createResponse({ data: created, status: StatusCodes.CREATED }));
     } catch (error) {
       if (error instanceof Error) {
@@ -69,7 +69,7 @@ export class UsersController extends BaseController<User, CreateUsersDto, Update
         id,
         updateDto,
       });
-      const updatedData = await this.usersService.update(id, updateDto);
+      const updatedData = await this.userService.update(id, updateDto);
       return res.json(createResponse({ data: updatedData, status: StatusCodes.CREATED }));
     } catch (error) {
       if (error instanceof Error) {

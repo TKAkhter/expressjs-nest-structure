@@ -1,37 +1,37 @@
 import { Router } from "express";
 import { uploadMiddleware } from "@/common/multer/multer";
-import { FilesController } from "@/entities/files/files.controller";
+import { FileController } from "@/entities/file/file.controller";
 import { OpenAPIRegistry } from "@asteasolutions/zod-to-openapi";
-import { updateFilesSchema, uploadFilesSchema } from "@/entities/files/files.dto";
+import { updateFileSchema, uploadFileSchema } from "@/entities/file/file.dto";
 import { createApiResponse } from "@/common/swagger/swagger-response-builder";
 import { z } from "zod";
 import { authMiddleware, zodValidation } from "@/middlewares";
 import { findByQuerySchema } from "@/schemas/find-by-query";
 import { fileSchema } from "@/generated/zod";
 
-const filesRouter = Router();
-filesRouter.use(authMiddleware);
+const fileRouter = Router();
+fileRouter.use(authMiddleware);
 
-const TAG = "Files";
+const TAG = "File";
 const ROUTE = `/${TAG.toLowerCase()}`;
 
-export const filesRegistry = new OpenAPIRegistry();
-const filesController = new FilesController();
+export const fileRegistry = new OpenAPIRegistry();
+const fileController = new FileController();
 
-filesRegistry.register(TAG, fileSchema);
+fileRegistry.register(TAG, fileSchema);
 
-filesRegistry.registerPath({
+fileRegistry.registerPath({
   method: "get",
   path: ROUTE,
   summary: `Get all ${TAG}`,
   tags: [TAG],
   responses: createApiResponse(z.array(fileSchema), "Success"),
 });
-filesRouter.get("/", filesController.getAll);
+fileRouter.get("/", fileController.getAll);
 
 //====================================================================================================
 
-filesRegistry.registerPath({
+fileRegistry.registerPath({
   method: "get",
   path: `${ROUTE}/{id}`,
   tags: [TAG],
@@ -41,11 +41,11 @@ filesRegistry.registerPath({
   },
   responses: createApiResponse(fileSchema, "Success"),
 });
-filesRouter.get("/:id", filesController.getById);
+fileRouter.get("/:id", fileController.getById);
 
 //====================================================================================================
 
-filesRegistry.registerPath({
+fileRegistry.registerPath({
   method: "get",
   path: `${ROUTE}/user/{userId}`,
   tags: [TAG],
@@ -55,11 +55,11 @@ filesRegistry.registerPath({
   },
   responses: createApiResponse(fileSchema, "Success"),
 });
-filesRouter.get("/user/:userId", filesController.getByUser);
+fileRouter.get("/user/:userId", fileController.getByUser);
 
 //====================================================================================================
 
-filesRegistry.registerPath({
+fileRegistry.registerPath({
   method: "post",
   path: `${ROUTE}/find`,
   tags: [TAG],
@@ -71,48 +71,48 @@ filesRegistry.registerPath({
   },
   responses: createApiResponse(z.array(findByQuerySchema), "Success"),
 });
-filesRouter.post("/find", zodValidation(findByQuerySchema), filesController.findByQuery);
+fileRouter.post("/find", zodValidation(findByQuerySchema), fileController.findByQuery);
 
 //====================================================================================================
 
-filesRegistry.registerPath({
+fileRegistry.registerPath({
   method: "post",
   path: `${ROUTE}/upload`,
   tags: [TAG],
   summary: `Upload ${TAG}`,
   request: {
     body: {
-      content: { "multipart/form-data": { schema: uploadFilesSchema } },
+      content: { "multipart/form-data": { schema: uploadFileSchema } },
     },
   },
-  responses: createApiResponse(uploadFilesSchema, "File uploaded Successfully"),
+  responses: createApiResponse(uploadFileSchema, "File uploaded Successfully"),
 });
-filesRouter.post(
+fileRouter.post(
   "/upload",
   uploadMiddleware,
-  zodValidation(uploadFilesSchema),
-  filesController.upload,
+  zodValidation(uploadFileSchema),
+  fileController.upload,
 );
 
 //====================================================================================================
 
-filesRegistry.registerPath({
+fileRegistry.registerPath({
   method: "put",
   path: `${ROUTE}/{id}`,
   tags: [TAG],
   request: {
     params: z.object({ id: z.string() }),
     body: {
-      content: { "multipart/form-data": { schema: updateFilesSchema } },
+      content: { "multipart/form-data": { schema: updateFileSchema } },
     },
   },
-  responses: createApiResponse(updateFilesSchema, "File updated Successfully"),
+  responses: createApiResponse(updateFileSchema, "File updated Successfully"),
 });
-filesRouter.put("/:id", uploadMiddleware, zodValidation(updateFilesSchema), filesController.update);
+fileRouter.put("/:id", uploadMiddleware, zodValidation(updateFileSchema), fileController.update);
 
 //====================================================================================================
 
-filesRegistry.registerPath({
+fileRegistry.registerPath({
   method: "delete",
   path: `${ROUTE}/{id}`,
   tags: [TAG],
@@ -122,6 +122,6 @@ filesRegistry.registerPath({
   },
   responses: createApiResponse(z.null(), `${TAG} Deleted Successfully`),
 });
-filesRouter.delete("/:id", filesController.delete);
+fileRouter.delete("/:id", fileController.delete);
 
-export default filesRouter;
+export default fileRouter;

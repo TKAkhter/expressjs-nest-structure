@@ -1,6 +1,6 @@
-import { createUsersSchema, updateUsersSchema } from "@/entities/users/users.dto";
+import { createUserSchema, updateUserSchema } from "@/entities/user/user.dto";
 import { OpenAPIRegistry } from "@asteasolutions/zod-to-openapi";
-import { UsersController } from "@/entities/users/users.controller";
+import { UserController } from "@/entities/user/user.controller";
 import { authMiddleware } from "@/middlewares";
 import { createApiResponse } from "@/common/swagger/swagger-response-builder";
 import { zodValidation } from "@/middlewares/zod-validation";
@@ -11,29 +11,29 @@ import { importFileSchema } from "@/schemas/import-file";
 import { uploadImportMiddleware } from "@/common/multer/multer";
 import { userSchema } from "@/generated/zod";
 
-const usersRouter = Router();
-usersRouter.use(authMiddleware);
+const userRouter = Router();
+userRouter.use(authMiddleware);
 
-const TAG = "Users";
+const TAG = "User";
 const ROUTE = `/${TAG.toLowerCase()}`;
 
-export const usersRegistry = new OpenAPIRegistry();
-const usersController = new UsersController();
+export const userRegistry = new OpenAPIRegistry();
+const userController = new UserController();
 
-usersRegistry.register(TAG, userSchema);
+userRegistry.register(TAG, userSchema);
 
-usersRegistry.registerPath({
+userRegistry.registerPath({
   method: "get",
   path: ROUTE,
   summary: `Get all ${TAG}`,
   tags: [TAG],
   responses: createApiResponse(z.array(userSchema), "Success"),
 });
-usersRouter.get("/", usersController.getAll);
+userRouter.get("/", userController.getAll);
 
 //====================================================================================================
 
-usersRegistry.registerPath({
+userRegistry.registerPath({
   method: "post",
   path: `${ROUTE}/import`,
   tags: [TAG],
@@ -45,22 +45,22 @@ usersRegistry.registerPath({
   },
   responses: createApiResponse(z.null(), `${TAG}s Imported Successfully`),
 });
-usersRouter.post("/import", uploadImportMiddleware, usersController.import);
+userRouter.post("/import", uploadImportMiddleware, userController.import);
 
 //====================================================================================================
 
-usersRegistry.registerPath({
+userRegistry.registerPath({
   method: "get",
   path: `${ROUTE}/export`,
   summary: `Export ${TAG}`,
   tags: [TAG],
   responses: createApiResponse(z.null(), `${TAG}s Exported Successfully`),
 });
-usersRouter.get("/export", usersController.export);
+userRouter.get("/export", userController.export);
 
 //====================================================================================================
 
-usersRegistry.registerPath({
+userRegistry.registerPath({
   method: "get",
   path: `${ROUTE}/{id}`,
   tags: [TAG],
@@ -70,11 +70,11 @@ usersRegistry.registerPath({
   },
   responses: createApiResponse(userSchema, "Success"),
 });
-usersRouter.get("/:id", usersController.getById);
+userRouter.get("/:id", userController.getById);
 
 //====================================================================================================
 
-usersRegistry.registerPath({
+userRegistry.registerPath({
   method: "get",
   path: `${ROUTE}/email/{email}`,
   tags: [TAG],
@@ -84,11 +84,11 @@ usersRegistry.registerPath({
   },
   responses: createApiResponse(userSchema, "Success"),
 });
-usersRouter.get("/email/:email", usersController.getByEmail);
+userRouter.get("/email/:email", userController.getByEmail);
 
 //====================================================================================================
 
-usersRegistry.registerPath({
+userRegistry.registerPath({
   method: "post",
   path: `${ROUTE}/find`,
   tags: [TAG],
@@ -100,27 +100,27 @@ usersRegistry.registerPath({
   },
   responses: createApiResponse(z.array(findByQuerySchema), "Success"),
 });
-usersRouter.post("/find", zodValidation(findByQuerySchema), usersController.findByQuery);
+userRouter.post("/find", zodValidation(findByQuerySchema), userController.findByQuery);
 
 //====================================================================================================
 
-usersRegistry.registerPath({
+userRegistry.registerPath({
   method: "post",
   path: ROUTE,
   tags: [TAG],
   summary: `Create ${TAG}`,
   request: {
     body: {
-      content: { "application/json": { schema: createUsersSchema } },
+      content: { "application/json": { schema: createUserSchema } },
     },
   },
-  responses: createApiResponse(createUsersSchema, `${TAG} Created Successfully`),
+  responses: createApiResponse(createUserSchema, `${TAG} Created Successfully`),
 });
-usersRouter.post("/", zodValidation(createUsersSchema), usersController.create);
+userRouter.post("/", zodValidation(createUserSchema), userController.create);
 
 //====================================================================================================
 
-usersRegistry.registerPath({
+userRegistry.registerPath({
   method: "put",
   path: `${ROUTE}/{id}`,
   tags: [TAG],
@@ -128,16 +128,16 @@ usersRegistry.registerPath({
   request: {
     params: z.object({ id: z.string() }),
     body: {
-      content: { "application/json": { schema: updateUsersSchema } },
+      content: { "application/json": { schema: updateUserSchema } },
     },
   },
-  responses: createApiResponse(updateUsersSchema, `${TAG} Updated Successfully`),
+  responses: createApiResponse(updateUserSchema, `${TAG} Updated Successfully`),
 });
-usersRouter.put("/:id", zodValidation(updateUsersSchema), usersController.update);
+userRouter.put("/:id", zodValidation(updateUserSchema), userController.update);
 
 //====================================================================================================
 
-usersRegistry.registerPath({
+userRegistry.registerPath({
   method: "delete",
   path: `${ROUTE}/bulk`,
   tags: [TAG],
@@ -149,15 +149,15 @@ usersRegistry.registerPath({
   },
   responses: createApiResponse(z.null(), `${TAG}s Deleted Successfully`),
 });
-usersRouter.delete(
+userRouter.delete(
   "/bulk",
   zodValidation(z.object({ ids: z.array(z.string()) })),
-  usersController.deleteMany,
+  userController.deleteMany,
 );
 
 //====================================================================================================
 
-usersRegistry.registerPath({
+userRegistry.registerPath({
   method: "delete",
   path: `${ROUTE}/{id}`,
   tags: [TAG],
@@ -167,6 +167,6 @@ usersRegistry.registerPath({
   },
   responses: createApiResponse(z.null(), `${TAG} Deleted Successfully`),
 });
-usersRouter.delete("/:id", usersController.delete);
+userRouter.delete("/:id", userController.delete);
 
-export default usersRouter;
+export default userRouter;

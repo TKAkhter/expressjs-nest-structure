@@ -1,4 +1,4 @@
-import { UpdateUsersDto, CreateUsersDto } from "@/entities/users/users.dto";
+import { UpdateUserDto, CreateUserDto } from "@/entities/user/user.dto";
 import { env } from "@/config/env";
 import { hash } from "bcrypt";
 import createHttpError from "http-errors";
@@ -7,7 +7,7 @@ import { logger } from "@/common/winston/winston";
 import { BaseService } from "@/common/base/base.services";
 import { user as User } from "@prisma/client";
 
-export class UsersService extends BaseService<User, CreateUsersDto, UpdateUsersDto> {
+export class UserService extends BaseService<User, CreateUserDto, UpdateUserDto> {
   private collectionNameService: string;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -21,7 +21,7 @@ export class UsersService extends BaseService<User, CreateUsersDto, UpdateUsersD
    * @param createDto - Data for creating a new entity
    * @returns Created entity data
    */
-  create = async (createDto: CreateUsersDto): Promise<User | null> => {
+  create = async (createDto: CreateUserDto): Promise<User | null> => {
     try {
       logger.info(
         `[${this.collectionNameService} Service] Creating ${this.collectionNameService} with email: ${createDto.email}`,
@@ -78,7 +78,7 @@ export class UsersService extends BaseService<User, CreateUsersDto, UpdateUsersD
    * @param updateDto - Data to update the entity with
    * @returns Updated entity data
    */
-  update = async (id: string, updateDto: UpdateUsersDto): Promise<User | null> => {
+  update = async (id: string, updateDto: UpdateUserDto): Promise<User | null> => {
     try {
       logger.info(
         `[${this.collectionNameService} Service] Updating ${this.collectionNameService} with id: ${id}`,

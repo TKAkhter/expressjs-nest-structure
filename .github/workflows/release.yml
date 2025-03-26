@@ -57,9 +57,17 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Ensure we are on the latest main branch
+          git fetch origin main
+          git checkout main
+          git pull origin main --rebase --autostash
+
+          # Stage and commit changes
           git add package.json package-lock.json || echo "No changes to commit"
           git commit -m "chore(release): bump version to ${{ env.NEW_VERSION }}" || echo "Nothing to commit"
-          git pull origin main --rebase
+
+          # Push changes
           git push https://${GITHUB_PAT}@github.com/${{ github.repository }}.git HEAD:main
 
       - name: Create GitHub Release and Tag

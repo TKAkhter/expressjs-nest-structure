@@ -18,7 +18,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
 
       - name: Install dependencies
         run: npm install
@@ -53,10 +53,11 @@ jobs:
 
       - name: Commit and push new version
         env:
-          GITHUB_PAT: ${{ secrets.GH_PAT }} # Use personal access token (PAT)
+          GITHUB_PAT: ${{ secrets.GH_PAT }}
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin https://x-access-token:${GITHUB_PAT}@github.com/${{ github.repository }}.git
 
           # Ensure up-to-date main branch
           git fetch origin main
@@ -66,9 +67,8 @@ jobs:
           # Stage and commit changes
           git add package.json package-lock.json src/generated/zod/index.ts || echo "No changes to commit"
           git commit -m "chore(release): bump version to ${{ env.NEW_VERSION }}" || echo "Nothing to commit"
-
-          # Push changes using PAT
-          git push https://${GITHUB_PAT}@github.com/${{ github.repository }}.git HEAD:main
+          git pull origin main --rebase
+          git push origin HEAD:main
 
       - name: Create GitHub Release and Tag
         uses: softprops/action-gh-release@v2

@@ -15,7 +15,7 @@ export const authMiddleware = (req: CustomRequest, _: Response, next: NextFuncti
   }
 
   const verify = verifyToken(token);
-  req.loggedUser = verify.email || verify.username || verify.type;
-  winstonLogger.defaultMeta = { loggedUser: verify.email || verify.username || verify.type };
+  req.loggedUser = verify.email || verify.type;
+  winstonLogger.defaultMeta = { loggedUser: verify.email || verify.type };
   next();
 };

@@ -3,7 +3,7 @@ import { env } from "@/config/env";
 import { StatusCodes } from "http-status-codes";
 import createHttpError from "http-errors";
 
-export const generateToken = (payload: object) => {
+export const generateToken = (payload: object): string => {
   // @ts-expect-error - The payload is an object
   return sign(payload, env.JWT_SECRET, { expiresIn: env.JWT_SECRET_EXPIRATION });
 };

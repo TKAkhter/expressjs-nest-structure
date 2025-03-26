@@ -5,16 +5,20 @@ import { logger } from "../winston/winston";
 import { StatusCodes } from "http-status-codes";
 import createHttpError from "http-errors";
 import { csvBufferToJson, csvToJson } from "@/utils/csv-to-json";
-import { Model } from "mongoose";
 import { createResponse } from "@/utils/create-response";
 
 export class BaseController<T, TCreateDto, TUpdateDto> {
   public collectionName: string;
   protected baseService: BaseService<T, TCreateDto, TUpdateDto>;
 
-  constructor(model: Model<T>, collectionName: string) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  constructor(model: any, collectionName: string, ignoreFields?: Record<string, boolean>) {
     this.collectionName = collectionName;
-    this.baseService = new BaseService<T, TCreateDto, TUpdateDto>(model, collectionName);
+    this.baseService = new BaseService<T, TCreateDto, TUpdateDto>(
+      model,
+      collectionName,
+      ignoreFields,
+    );
   }
 
   /**
@@ -25,14 +29,12 @@ export class BaseController<T, TCreateDto, TUpdateDto> {
    * @returns JSON list of entities
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getAll = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
+  getAll = async (_req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
     try {
       logger.info(`[${this.collectionName} Controller] Fetching all ${this.collectionName}`);
       const data = await this.baseService.getAll();
 
-      return res.json(
-        createResponse(req, data, `${this.collectionName} fetched successfully`, StatusCodes.OK),
-      );
+      return res.json(createResponse({ data }));
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(
@@ -64,9 +66,7 @@ export class BaseController<T, TCreateDto, TUpdateDto> {
       });
       const data = await this.baseService.getById(id);
 
-      return res.json(
-        createResponse(req, data, `${this.collectionName} fetched successfully`, StatusCodes.OK),
-      );
+      return res.json(createResponse({ data }));
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(
@@ -75,42 +75,6 @@ export class BaseController<T, TCreateDto, TUpdateDto> {
             error: error.message,
             loggedUser,
             id,
-          },
-        );
-      }
-      next(error);
-    }
-  };
-
-  /**
-   * Get entity by ID
-   * @param req - CustomRequest object
-   * @param res - Response object
-   * @param next - Next middleware function
-   * @returns JSON entity object
-   */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getByUuid = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
-    const { uuid } = req.params;
-    const { loggedUser } = req;
-    try {
-      logger.info(`[${this.collectionName} Controller] Fetching ${this.collectionName} by uuid`, {
-        loggedUser,
-        uuid,
-      });
-      const data = await this.baseService.getByUuid(uuid);
-
-      return res.json(
-        createResponse(req, data, `${this.collectionName} fetched successfully`, StatusCodes.OK),
-      );
-    } catch (error) {
-      if (error instanceof Error) {
-        logger.warn(
-          `[${this.collectionName} Controller] Error fetching ${this.collectionName} by uuid`,
-          {
-            error: error.message,
-            loggedUser,
-            uuid,
           },
         );
       }
@@ -136,9 +100,7 @@ export class BaseController<T, TCreateDto, TUpdateDto> {
       });
       const data = await this.baseService.getByEmail(email);
 
-      return res.json(
-        createResponse(req, data, `${this.collectionName} fetched successfully`, StatusCodes.OK),
-      );
+      return res.json(createResponse({ data }));
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(
@@ -172,9 +134,7 @@ export class BaseController<T, TCreateDto, TUpdateDto> {
 
       const data = await this.baseService.findByQuery(queryOptions);
 
-      return res.json(
-        createResponse(req, data, `${this.collectionName} fetched successfully`, StatusCodes.OK),
-      );
+      return res.json(createResponse({ data }));
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(
@@ -205,14 +165,7 @@ export class BaseController<T, TCreateDto, TUpdateDto> {
         createDto,
       });
       const created = await this.baseService.create(createDto);
-      return res.json(
-        createResponse(
-          req,
-          created,
-          `${this.collectionName} created successfully`,
-          StatusCodes.CREATED,
-        ),
-      );
+      return res.json(createResponse({ data: created, status: StatusCodes.CREATED }));
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(`[${this.collectionName} Controller] Error creating ${this.collectionName}`, {
@@ -234,30 +187,23 @@ export class BaseController<T, TCreateDto, TUpdateDto> {
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   update = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
-    const { uuid } = req.params;
+    const { id } = req.params;
     const updateDto = req.body;
     const { loggedUser } = req;
     try {
       logger.info(`[${this.collectionName} Controller] Updating ${this.collectionName}`, {
         loggedUser,
-        uuid,
+        id,
         updateDto,
       });
-      const updatedData = await this.baseService.update(uuid, updateDto);
-      return res.json(
-        createResponse(
-          req,
-          updatedData,
-          `${this.collectionName} updated successfully`,
-          StatusCodes.OK,
-        ),
-      );
+      const updated = await this.baseService.update(id, updateDto);
+      return res.json(createResponse({ data: updated }));
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(`[${this.collectionName} Controller] Error updating ${this.collectionName}`, {
           error: error.message,
           loggedUser,
-          uuid,
+          id,
           updateDto,
         });
       }
@@ -274,24 +220,22 @@ export class BaseController<T, TCreateDto, TUpdateDto> {
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   delete = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
-    const { uuid } = req.params;
+    const { id } = req.params;
     const { loggedUser } = req;
     try {
-      logger.info(`[${this.collectionName} Controller] Deleting ${this.collectionName} by uuid`, {
+      logger.info(`[${this.collectionName} Controller] Deleting ${this.collectionName} by id`, {
         loggedUser,
-        uuid,
+        id,
       });
-      const data = await this.baseService.delete(uuid);
+      const data = await this.baseService.delete(id);
 
-      return res.json(
-        createResponse(req, data, `${this.collectionName} deleted successfully`, StatusCodes.OK),
-      );
+      return res.json(createResponse({ data }));
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(`[${this.collectionName} Controller] Error deleting ${this.collectionName}`, {
           error: error.message,
           loggedUser,
-          uuid,
+          id,
         });
       }
       next(error);
@@ -306,36 +250,29 @@ export class BaseController<T, TCreateDto, TUpdateDto> {
    * @returns JSON success message
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  deleteAll = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
-    const { uuids } = req.body;
+  deleteMany = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
+    const { ids } = req.body;
     const { loggedUser } = req;
     try {
-      if (!Array.isArray(uuids) || uuids.length === 0) {
-        throw createHttpError(StatusCodes.BAD_REQUEST, "Invalid or empty array of uuids", {
+      if (!Array.isArray(ids) || ids.length === 0) {
+        throw createHttpError(StatusCodes.BAD_REQUEST, "Invalid or empty array of ids", {
           resource: this.collectionName,
         });
       }
 
       logger.info(`[${this.collectionName} Controller] Deleting multiple ${this.collectionName}`, {
         loggedUser,
-        uuids,
+        ids,
       });
-      const data = await this.baseService.deleteAll(uuids);
+      const data = await this.baseService.deleteMany(ids);
 
-      return res.json(
-        createResponse(
-          req,
-          data,
-          `${data.deletedCount} ${this.collectionName} deleted successfully`,
-          StatusCodes.OK,
-        ),
-      );
+      return res.json(createResponse({ data }));
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(`[${this.collectionName} Controller] Error deleting ${this.collectionName}`, {
           error: error.message,
           loggedUser,
-          uuids,
+          ids,
         });
       }
       next(error);
@@ -369,14 +306,7 @@ export class BaseController<T, TCreateDto, TUpdateDto> {
 
       const imported = await this.baseService.import(importEntries);
 
-      return res.json(
-        createResponse(
-          req,
-          imported.createdEntities,
-          `${imported.createdCount} completed, ${imported.skippedCount} skipped`,
-          StatusCodes.OK,
-        ),
-      );
+      return res.json(createResponse({ data: imported }));
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(`[${this.collectionName} Controller] Error creating ${this.collectionName}`, {

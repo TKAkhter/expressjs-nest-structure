@@ -5,16 +5,20 @@ import { logger } from "@/common/winston/winston";
 import { CustomRequest } from "@/types/request";
 import { createResponse } from "@/utils/create-response";
 import { BaseController } from "@/common/base/base.controller";
-import { CreateUsersDto, UpdateUsersDto, UsersDto, UsersModel } from "./users.dto";
+import { CreateUsersDto, UpdateUsersDto } from "./users.dto";
+import { PrismaClient, user as User } from "@prisma/client";
 
-export class UsersController extends BaseController<UsersDto, CreateUsersDto, UpdateUsersDto> {
+const prisma = new PrismaClient();
+const IGNORE_FIELDS = { password: true };
+
+export class UsersController extends BaseController<User, CreateUsersDto, UpdateUsersDto> {
   public collectionName: string;
   public usersService: UsersService;
 
   constructor() {
-    super(UsersModel, "Users");
+    super(prisma.user, "Users", IGNORE_FIELDS);
     this.collectionName = "Users";
-    this.usersService = new UsersService(UsersModel, this.collectionName);
+    this.usersService = new UsersService(prisma.user, this.collectionName, IGNORE_FIELDS);
   }
 
   /**
@@ -34,14 +38,7 @@ export class UsersController extends BaseController<UsersDto, CreateUsersDto, Up
         createDto,
       });
       const created = await this.usersService.create(createDto);
-      return res.json(
-        createResponse(
-          req,
-          created,
-          `${this.collectionName} created successfully`,
-          StatusCodes.CREATED,
-        ),
-      );
+      return res.json(createResponse({ data: created, status: StatusCodes.CREATED }));
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(`[${this.collectionName} Controller] Error creating ${this.collectionName}`, {
@@ -63,25 +60,23 @@ export class UsersController extends BaseController<UsersDto, CreateUsersDto, Up
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   update = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
-    const { uuid } = req.params;
+    const { id } = req.params;
     const updateDto = req.body;
     const { loggedUser } = req;
     try {
       logger.info(`[${this.collectionName} Controller] Updating ${this.collectionName}`, {
         loggedUser,
-        uuid,
+        id,
         updateDto,
       });
-      const updatedData = await this.usersService.update(uuid, updateDto);
-      return res.json(
-        createResponse(req, updatedData, `${this.collectionName} updated successfully`),
-      );
+      const updatedData = await this.usersService.update(id, updateDto);
+      return res.json(createResponse({ data: updatedData, status: StatusCodes.CREATED }));
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(`[${this.collectionName} Controller] Error updating ${this.collectionName}`, {
           error: error.message,
           loggedUser,
-          uuid,
+          id,
           updateDto,
         });
       }

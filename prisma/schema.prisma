@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+generator zod {
+  provider                         = "zod-prisma-types"
+  output                           = "../src/generated/zod"
+  useMultipleFiles                 = false
+  writeBarrelFiles                 = false
+  createInputTypes                 = false
+  createModelTypes                 = true
+  addInputTypeValidation           = false
+  addIncludeType                   = false
+  addSelectType                    = false
+  validateWhereUniqueInput         = false
+  createOptionalDefaultValuesTypes = false
+  createRelationValuesTypes        = false
+  createPartialTypes               = false
+  useDefaultValidators             = false
+  coerceDate                       = false
+  writeNullishInModelTypes         = false
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("MONGODB_URI")
+}
+
+model user {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  name        String?
+  email       String
+  password    String?
+  resetToken  String?
+  createdAt   DateTime? @default(now())
+  updatedAt   DateTime? @updatedAt
+  phoneNumber String?
+  bio         String?
+  file        file[]
+}
+
+model file {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  user      user?     @relation(fields: [userId], references: [id])
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt
+  name      String?
+  path      String?
+  text      String?
+  tags      String?
+  views     Int?
+  userId    String?   @db.ObjectId
+}
+
+model errorLogs {
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  status     String?
+  message    String?
+  method     String?
+  url        String?
+  loggedUser String?
+  name       String?
+  stack      String?
+  details    Json?
+  createdAt  DateTime? @default(now())
+  updatedAt  DateTime? @updatedAt
+}

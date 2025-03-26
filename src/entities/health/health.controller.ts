@@ -2,16 +2,15 @@ import { NextFunction, Response } from "express";
 import { logger } from "@/common/winston/winston";
 import { CustomRequest } from "@/types/request";
 import {
-  checkMongoDB,
   checkRedis,
   createHealthCheckResponse,
   formatMemoryUsage,
 } from "@/entities/health/health.helper";
 import { StatusCodes } from "http-status-codes";
-import redis from "@/config/redis/redis";
 import fs from "fs";
 import { env } from "@/config/env";
 import path from "path";
+import { RedisClient } from "@/config/redis/redis";
 
 export class HealthController {
   private logFileName: string;
@@ -29,7 +28,6 @@ export class HealthController {
   health = async (_: CustomRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const healthCheck = {
-        mongo: await checkMongoDB(),
         redis: await checkRedis(),
         server: {
           status: "healthy",
@@ -67,6 +65,7 @@ export class HealthController {
    */
   clearCache = async (_: CustomRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
+      const redis = RedisClient.getInstance();
       const stream = redis.scanStream({
         match: "apiResponseCache*", // Pattern to match keys
         count: 100, // Process 100 keys per iteration

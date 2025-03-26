@@ -5,6 +5,9 @@ import { logger } from "@/common/winston/winston";
 import { CustomRequest } from "@/types/request";
 import { StatusCodes } from "http-status-codes";
 import { createResponse } from "@/utils/create-response";
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
 
 export class AuthController {
   private collectionName: string;
@@ -12,7 +15,7 @@ export class AuthController {
 
   constructor() {
     this.collectionName = "User";
-    this.authService = new AuthService("User");
+    this.authService = new AuthService(prisma.user, "User");
   }
 
   /**
@@ -37,9 +40,7 @@ export class AuthController {
         loggedUser,
       });
 
-      return res.json(
-        createResponse(req, data, `${this.collectionName} login successfully`, StatusCodes.CREATED),
-      );
+      return res.json(createResponse({ data, status: StatusCodes.CREATED }));
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(`[${this.collectionName} Controller] login API error`, {
@@ -78,14 +79,7 @@ export class AuthController {
         loggedUser,
       });
 
-      return res.json(
-        createResponse(
-          req,
-          data,
-          `${this.collectionName} registered successfully`,
-          StatusCodes.CREATED,
-        ),
-      );
+      return res.json(createResponse({ data, status: StatusCodes.CREATED }));
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(`[${this.collectionName} Controller] Register API error`, {
@@ -124,14 +118,7 @@ export class AuthController {
         loggedUser,
       });
 
-      return res.json(
-        createResponse(
-          req,
-          data,
-          `${this.collectionName} logout successfully`,
-          StatusCodes.CREATED,
-        ),
-      );
+      return res.json(createResponse({ data, status: StatusCodes.CREATED }));
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(`[${this.collectionName} Controller] Logout API error`, {
@@ -170,14 +157,7 @@ export class AuthController {
         data,
         loggedUser,
       });
-      return res.json(
-        createResponse(
-          req,
-          data,
-          `${this.collectionName} extend token successfully`,
-          StatusCodes.CREATED,
-        ),
-      );
+      return res.json(createResponse({ data, status: StatusCodes.CREATED }));
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(`[${this.collectionName} Controller] ExtendToken API error`, {
@@ -218,14 +198,7 @@ export class AuthController {
         email,
         loggedUser,
       });
-      return res.json(
-        createResponse(
-          req,
-          data,
-          `${this.collectionName} forgot password successfully`,
-          StatusCodes.CREATED,
-        ),
-      );
+      return res.json(createResponse({ data, status: StatusCodes.CREATED }));
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(`[${this.collectionName} Controller] Forgot password API error`, {
@@ -261,9 +234,9 @@ export class AuthController {
     });
 
     const resetPasswordDto: ResetPasswordDto = {
-      password: password as string,
-      confirmPassword: confirmPassword as string,
-      resetToken: resetToken as string,
+      password,
+      confirmPassword,
+      resetToken,
     };
     try {
       const data = await this.authService.resetPassword(resetPasswordDto);
@@ -271,14 +244,7 @@ export class AuthController {
         resetToken,
         loggedUser,
       });
-      return res.json(
-        createResponse(
-          req,
-          data,
-          `${this.collectionName} reset password successfully`,
-          StatusCodes.CREATED,
-        ),
-      );
+      return res.json(createResponse({ data, status: StatusCodes.CREATED }));
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(`[${this.collectionName} Controller] Reset password API error`, {

@@ -3,12 +3,12 @@ import { authMiddleware, zodValidation } from "@/middlewares";
 import { OpenAPIRegistry } from "@asteasolutions/zod-to-openapi";
 import { createApiResponse } from "@/common/swagger/swagger-response-builder";
 import {
-  AuthSchema,
-  ExtendTokenSchema,
-  ForgotPasswordSchema,
-  LogoutSchema,
-  RegisterSchema,
-  ResetPasswordSchema,
+  loginSchema,
+  extendTokenSchema,
+  forgotPasswordSchema,
+  logoutSchema,
+  registerSchema,
+  resetPasswordSchema,
 } from "@/entities/auth/auth.dto";
 import { AuthController } from "@/entities/auth/auth.controller";
 
@@ -20,7 +20,7 @@ const ROUTE = `/${TAG.toLowerCase()}`;
 export const authRegistry = new OpenAPIRegistry();
 const authController = new AuthController();
 
-authRegistry.register(TAG, AuthSchema);
+authRegistry.register(TAG, loginSchema);
 
 authRegistry.registerPath({
   method: "post",
@@ -29,12 +29,12 @@ authRegistry.registerPath({
   summary: "Login",
   request: {
     body: {
-      content: { "application/json": { schema: AuthSchema } },
+      content: { "application/json": { schema: loginSchema } },
     },
   },
-  responses: createApiResponse(AuthSchema, "Login Successfully"),
+  responses: createApiResponse(loginSchema, "Login Successfully"),
 });
-authRouter.post("/login", zodValidation(AuthSchema), authController.login);
+authRouter.post("/login", zodValidation(loginSchema), authController.login);
 
 //====================================================================================================
 
@@ -45,12 +45,12 @@ authRegistry.registerPath({
   summary: "Register",
   request: {
     body: {
-      content: { "application/json": { schema: RegisterSchema } },
+      content: { "application/json": { schema: registerSchema } },
     },
   },
-  responses: createApiResponse(RegisterSchema, "Register Successfully"),
+  responses: createApiResponse(registerSchema, "Register Successfully"),
 });
-authRouter.post("/register", zodValidation(RegisterSchema), authController.register);
+authRouter.post("/register", zodValidation(registerSchema), authController.register);
 
 //====================================================================================================
 
@@ -61,15 +61,15 @@ authRegistry.registerPath({
   summary: "Extend Token",
   request: {
     body: {
-      content: { "application/json": { schema: ExtendTokenSchema } },
+      content: { "application/json": { schema: extendTokenSchema } },
     },
   },
-  responses: createApiResponse(ExtendTokenSchema, "Token Extended Successfully"),
+  responses: createApiResponse(extendTokenSchema, "Token Extended Successfully"),
 });
 authRouter.post(
   "/extend-token",
   authMiddleware,
-  zodValidation(ExtendTokenSchema),
+  zodValidation(extendTokenSchema),
   authController.extendToken,
 );
 
@@ -80,7 +80,7 @@ authRegistry.registerPath({
   path: `${ROUTE}/logout`,
   tags: [TAG],
   summary: "Logout",
-  responses: createApiResponse(LogoutSchema, "Logout Successfully"),
+  responses: createApiResponse(logoutSchema, "Logout Successfully"),
 });
 authRouter.get("/logout", authMiddleware, authController.logout);
 
@@ -93,14 +93,14 @@ authRegistry.registerPath({
   summary: "Forgot Password",
   request: {
     body: {
-      content: { "application/json": { schema: ForgotPasswordSchema } },
+      content: { "application/json": { schema: forgotPasswordSchema } },
     },
   },
-  responses: createApiResponse(ForgotPasswordSchema, "Reset link sent. Check you email"),
+  responses: createApiResponse(forgotPasswordSchema, "Reset link sent. Check you email"),
 });
 authRouter.post(
   "/forgot-password",
-  zodValidation(ForgotPasswordSchema),
+  zodValidation(forgotPasswordSchema),
   authController.forgotPassword,
 );
 
@@ -113,14 +113,14 @@ authRegistry.registerPath({
   summary: "Reset Password",
   request: {
     body: {
-      content: { "application/json": { schema: ResetPasswordSchema } },
+      content: { "application/json": { schema: resetPasswordSchema } },
     },
   },
-  responses: createApiResponse(ResetPasswordSchema, "Password reset successful"),
+  responses: createApiResponse(resetPasswordSchema, "Password reset successful"),
 });
 authRouter.post(
   "/reset-password",
-  zodValidation(ResetPasswordSchema),
+  zodValidation(resetPasswordSchema),
   authController.resetPassword,
 );
 

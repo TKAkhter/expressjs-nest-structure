@@ -7,19 +7,21 @@ import { StatusCodes } from "http-status-codes";
 import { UsersService } from "@/entities/users/users.service";
 import { sendMail } from "@/common/mail-sender/mail-sender";
 import { BaseRepository } from "@/common/base/base.repository";
-import { CreateUsersDto, UpdateUsersDto, UsersDto, UsersModel } from "../users/users.dto";
+import { CreateUsersDto, UpdateUsersDto } from "../users/users.dto";
 import { env } from "@/config/env";
 import { createTemplate } from "@/template/create-template";
+import { user as User } from "@prisma/client";
 
 export class AuthService {
   private collectionName: string;
   private usersService: UsersService;
-  private usersRepository: BaseRepository<UsersDto, UpdateUsersDto, CreateUsersDto>;
+  private usersRepository: BaseRepository<User, UpdateUsersDto, CreateUsersDto>;
 
-  constructor(collectionName: string) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  constructor(model: any, collectionName: string) {
     this.collectionName = collectionName;
-    this.usersService = new UsersService(UsersModel, "Users");
-    this.usersRepository = new BaseRepository(UsersModel, "Users");
+    this.usersService = new UsersService(model, "Users");
+    this.usersRepository = new BaseRepository(model, "Users");
   }
 
   /**
@@ -58,8 +60,7 @@ export class AuthService {
       }
 
       const token = generateToken({
-        id: user.uuid,
-        username: user.username,
+        id: user.id,
         name: user.name,
         email: user.email,
       });
@@ -142,7 +143,6 @@ export class AuthService {
       const payload = verifyToken(token);
       const newToken = generateToken({
         id: payload.id,
-        username: payload.username,
         name: payload.name,
         email: payload.email,
       });
@@ -209,13 +209,17 @@ export class AuthService {
       }
 
       const resetToken = generateToken({
-        id: user.uuid,
-        username: user.username,
+        id: user.id,
         name: user.name,
         email: user.email,
       });
 
-      await this.usersService.update(user.uuid, { resetToken });
+      await this.usersService.update(user.id as string, {
+        resetToken,
+        name: user.name!,
+        email: user.email,
+        updatedAt: new Date(),
+      });
 
       // Send email
       try {
@@ -271,9 +275,13 @@ export class AuthService {
     });
 
     try {
-      const user = await this.usersRepository.getByField("resetToken", resetPasswordDto.resetToken);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const user: any = await this.usersRepository.getByField(
+        "resetToken",
+        resetPasswordDto.resetToken,
+      );
 
-      if (!user) {
+      if (user.length === 0) {
         logger.warn(`[${this.collectionName} Service] ${this.collectionName} does not exists!`, {
           resetToken: resetPasswordDto.resetToken,
         });
@@ -282,15 +290,15 @@ export class AuthService {
         });
       }
 
-      if (!user.resetToken || resetPasswordDto.resetToken !== user.resetToken) {
+      if (!user[0].resetToken || resetPasswordDto.resetToken !== user[0].resetToken) {
         throw createHttpError(StatusCodes.BAD_REQUEST, "Invalid or expired reset token.");
       }
 
       const hashedPassword = await hash(resetPasswordDto.password, env.HASH!);
 
-      await this.usersRepository.update(user.uuid, {
+      await this.usersService.update(user[0].id, {
         password: hashedPassword,
-        resetToken: undefined,
+        resetToken: null,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 

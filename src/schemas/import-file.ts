@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const ImportFileSchema = z.object({
+export const importFileSchema = z.object({
   file: z
     .any()
     .openapi({

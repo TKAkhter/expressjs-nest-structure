@@ -3,6 +3,10 @@ Directory Structure:
 /
 ├── .husky/
 │   └── pre-commit
+├── .vscode/
+│   └── launch.json
+├── prisma/
+│   └── schema.prisma
 ├── src/
 │   ├── common/
 │   │   ├── base/
@@ -26,8 +30,8 @@ Directory Structure:
 │   │   └── winston/
 │   │       └── winston.ts
 │   ├── config/
-│   │   ├── mongodb/
-│   │   │   └── mongodb.ts
+│   │   ├── prisma/
+│   │   │   └── prisma.ts
 │   │   ├── redis/
 │   │   │   └── redis.ts
 │   │   └── env.ts
@@ -40,7 +44,6 @@ Directory Structure:
 │   │   ├── files/
 │   │   │   ├── files.controller.ts
 │   │   │   ├── files.dto.ts
-│   │   │   ├── files.repository.ts
 │   │   │   ├── files.route.ts
 │   │   │   └── files.service.ts
 │   │   ├── health/
@@ -52,14 +55,15 @@ Directory Structure:
 │   │       ├── users.dto.ts
 │   │       ├── users.route.ts
 │   │       └── users.service.ts
+│   ├── generated/
+│   │   └── zod/
+│   │       └── index.ts
 │   ├── middlewares/
 │   │   ├── auth-middleware.ts
 │   │   ├── cors.ts
 │   │   ├── error-middleware.ts
 │   │   ├── index.ts
 │   │   └── zod-validation.ts
-│   ├── models/
-│   │   └── error-logs.ts
 │   ├── routes/
 │   │   └── routes.ts
 │   ├── schemas/
@@ -75,17 +79,15 @@ Directory Structure:
 │   ├── utils/
 │   │   ├── create-response.ts
 │   │   ├── csv-to-json.ts
-│   │   ├── mongodb-apply-filter.ts
 │   │   └── utils.ts
 │   ├── .DS_Store
 │   ├── app.ts
 │   └── server.ts
 ├── tests/
-│   └── auth.validation.test.ts
+│   ├── auth.validation.test.ts
+│   ├── files.test.ts
+│   └── test.helper.ts
 ├── uploads/
-│   ├── file-1732863659479-858448142.png
-│   ├── file-1732864787666-267731371.png
-│   └── file-1733207824665-322188582.png
 ├── .DS_Store
 ├── .env
 ├── .env.example
@@ -93,24 +95,16 @@ Directory Structure:
 ├── .prettierignore
 ├── .prettierrc
 ├── code-structure.txt
+├── code.txt
 ├── eslint.config.mjs
 ├── jest.config.ts
+├── jest.setup.ts
 ├── nodemon.json
 ├── package.json
 ├── README.md
+├── test-data.example.json
+├── test-data.json
 └── tsconfig.json
-
-File Contents:
---------------
-File: ./nodemon.json
---------------------------------------------------
-Content of ./nodemon.json:
-{
-  "watch": ["src"],
-  "ignore": [".git", "node_modules", "build"],
-  "ext": "ts",
-  "exec": "ts-node -r tsconfig-paths/register src/server.ts"
-}
 
 File: ./.prettierignore
 --------------------------------------------------
@@ -125,6 +119,18 @@ File: ./README.md
 --------------------------------------------------
 Content of ./README.md:
 # epressjs-nest-structure
+
+File: ./jest.setup.ts
+--------------------------------------------------
+Content of ./jest.setup.ts:
+afterAll(async () => {
+  // eslint-disable-next-line no-underscore-dangle
+  const app = (global as any).__APP__; // eslint-disable-line @typescript-eslint/no-explicit-any
+  if (app && app.close) {
+    await app.close(); // Gracefully shutdown app instance if applicable
+  }
+});
+
 
 File: ./.gitignore
 --------------------------------------------------
@@ -179,13 +185,14 @@ coverage/
 jest/
 
 uploads/
+test-data.json
 
 File: ./package.json
 --------------------------------------------------
 Content of ./package.json:
 {
-  "name": "epressjs-nest-structure",
-  "version": "2.0.0",
+  "name": "expressjs-nest-structure",
+  "version": "3.0.0",
   "description": "",
   "main": "build/src/server.js",
   "scripts": {
@@ -196,6 +203,10 @@ Content of ./package.json:
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
+    "prisma:pull": "prisma db pull --force",
+    "prisma:push": "prisma db push",
+    "prisma:gen": "prisma generate",
+    "prisma:validate": "prisma validate",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
     "prettier": "prettier --write src/**",
@@ -221,9 +232,9 @@ Content of ./package.json:
   "license": "ISC",
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "^7.2.0",
+    "@prisma/client": "^6.3.1",
     "@typescript-eslint/eslint-plugin": "^8.15.0",
     "@typescript-eslint/parser": "^8.15.0",
-    "@zodyac/zod-mongoose": "^3.0.0",
     "axios": "^1.7.7",
     "bcrypt": "^5.1.1",
     "colors": "^1.4.0",
@@ -252,15 +263,16 @@ Content of ./package.json:
     "multer": "^1.4.5-lts.1",
     "nocache": "^4.0.0",
     "nodemon": "^3.1.7",
+    "prisma-zod-generator": "^0.8.13",
     "redis": "^4.7.0",
     "reflect-metadata": "^0.2.2",
     "response-time": "^2.3.3",
     "swagger-ui-express": "^5.0.1",
-    "uuid": "^11.0.3",
     "winston": "^3.17.0",
     "winston-daily-rotate-file": "^5.0.0",
     "winston-mongodb": "^6.0.0",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "zod-prisma-types": "^3.2.4"
   },
   "devDependencies": {
     "@eslint/js": "^9.15.0",
@@ -288,6 +300,7 @@ Content of ./package.json:
     "jest": "^29.7.0",
     "lint-staged": "^15.2.10",
     "prettier": "^3.3.3",
+    "prisma": "^6.3.1",
     "supertest": "^7.0.0",
     "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
@@ -297,7 +310,6 @@ Content of ./package.json:
     "typescript-eslint": "^8.14.0"
   }
 }
-
 
 File: ./.prettierrc
 --------------------------------------------------
@@ -314,6 +326,28 @@ Content of ./.prettierrc:
   "printWidth": 100,
   "arrowParens": "always",
   "embeddedLanguageFormatting": "auto"
+}
+
+
+File: ./test-data.example.json
+--------------------------------------------------
+Content of ./test-data.example.json:
+{
+  "register": {
+    "name": "name",
+    "email": "email",
+    "password": "password",
+    "confirmPassword": "confirmPassword"
+  },
+  "login": {
+    "email": "email",
+    "password": "password"
+  },
+  "newPassword": "newPassword",
+  "invalidLogin": {
+    "email": "email",
+    "password": "password"
+  }
 }
 
 
@@ -707,7 +741,7 @@ const jestConfig: JestConfigWithTsJest = {
   // CacheDirectory: "/private/var/folders/b9/m478lz_d2632k8g9wfsm5lj00000gn/T/jest_dx",
 
   // Automatically clear mock calls, instances, contexts and results before every test
-  // ClearMocks: false,
+  clearMocks: true,
 
   // Indicates whether the coverage information should be collected while executing the test
   // CollectCoverage: false,
@@ -797,7 +831,7 @@ const jestConfig: JestConfigWithTsJest = {
   // Projects: undefined,
 
   // Use this configuration option to add custom reporters to Jest
-  // Reporters: undefined,
+  reporters: ["default"],
 
   // Automatically reset mock state before every test
   // ResetMocks: false,
@@ -826,7 +860,7 @@ const jestConfig: JestConfigWithTsJest = {
   // SetupFiles: [],
 
   // A list of paths to modules that run some code to configure or set up the testing framework before each test
-  // SetupFilesAfterEnv: [],
+  setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
 
   // The number of seconds after which a test is considered as slow and reported as such in the results.
   // SlowTestThreshold: 5,
@@ -835,7 +869,7 @@ const jestConfig: JestConfigWithTsJest = {
   // SnapshotSerializers: [],
 
   // The test environment that will be used for testing
-  // TestEnvironment: "jest-environment-node",
+  testEnvironment: "node",
 
   // Options that will be passed to the testEnvironment
   // TestEnvironmentOptions: {},
@@ -883,6 +917,10 @@ const jestConfig: JestConfigWithTsJest = {
 
   // Whether to use watchman for file crawling
   // Watchman: true,
+  testTimeout: 30000,
+  // Silent: true,
+  detectOpenHandles: true,
+  forceExit: true,
 };
 
 export default jestConfig;
@@ -1023,89 +1061,352 @@ Content of .husky/_/pre-commit:
 #!/usr/bin/env sh
 . "$(dirname "$0")/h"
 
+File: prisma/schema.prisma
+--------------------------------------------------
+Content of prisma/schema.prisma:
+generator client {
+  provider = "prisma-client-js"
+}
+
+generator zod {
+  provider                         = "zod-prisma-types"
+  output                           = "../src/generated/zod"
+  useMultipleFiles                 = false
+  writeBarrelFiles                 = false
+  createInputTypes                 = false
+  createModelTypes                 = true
+  addInputTypeValidation           = false
+  addIncludeType                   = false
+  addSelectType                    = false
+  validateWhereUniqueInput         = false
+  createOptionalDefaultValuesTypes = false
+  createRelationValuesTypes        = false
+  createPartialTypes               = false
+  useDefaultValidators             = false
+  coerceDate                       = false
+  writeNullishInModelTypes         = false
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("MONGODB_URI")
+}
+
+model user {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  name        String?
+  email       String    @unique
+  password    String
+  resetToken  String?
+  createdAt   DateTime? @default(now())
+  updatedAt   DateTime? @updatedAt
+  phoneNumber String?
+  bio         String?
+  file        file[]
+}
+
+model file {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  user      user?     @relation(fields: [userId], references: [id])
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt
+  name      String?
+  path      String?
+  text      String?
+  tags      String?
+  views     Int?
+  userId    String?   @db.ObjectId
+}
+
+model errorLogs {
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  status     String?
+  message    String?
+  method     String?
+  url        String?
+  loggedUser String?
+  name       String?
+  stack      String?
+  details    Json?
+  createdAt  DateTime? @default(now())
+  updatedAt  DateTime? @updatedAt
+}
+
+
 File: tests/auth.validation.test.ts
 --------------------------------------------------
 Content of tests/auth.validation.test.ts:
-import { AuthSchema, RegisterSchema } from "@/entities/auth/auth.dto";
+import request from "supertest";
+import app from "../src/app";
+import { RedisClient } from "../src/config/redis/redis";
+import { logger } from "../src/common/winston/winston";
+import { loadTestData } from "./test.helper";
+import { user as User } from "@prisma/client";
 
-describe("Auth Validation", () => {
-  describe("Login Schema", () => {
-    it("should pass with valid email and password", async () => {
-      const validData = { email: "test@example.com", password: "Password123!" };
-      await expect(AuthSchema.parseAsync(validData)).resolves.toEqual(validData);
+const ROUTE = "/api/auth";
+
+// eslint-disable-next-line no-empty-function
+jest.spyOn(logger, "info").mockImplementation(() => {});
+// eslint-disable-next-line no-empty-function
+jest.spyOn(logger, "warn").mockImplementation(() => {});
+// eslint-disable-next-line no-empty-function
+jest.spyOn(logger, "error").mockImplementation(() => {});
+
+describe("Auth API Tests", () => {
+  let authToken: string;
+  let testUser: User;
+
+  afterAll(async () => {
+    await RedisClient.disconnect();
+  });
+
+  test("User Registration - Success", async () => {
+    const { register } = loadTestData();
+
+    const res = await request(app).post(`${ROUTE}/register`).send(register);
+    if (res.error) {
+      console.log("User Login - Success", JSON.parse(res.text));
+    }
+    if (res.status >= 200) {
+      authToken = res.body.data.token;
+      testUser = res.body.data.user;
+    }
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveProperty("message", "User registered successfully");
+  });
+
+  test("User Login - Success", async () => {
+    const { login } = loadTestData();
+
+    const res = await request(app).post(`${ROUTE}/login`).send(login);
+
+    if (res.error) {
+      console.log("User Login - Success", JSON.parse(res.text));
+    }
+
+    expect(res.status).toBe(200);
+    expect(res.body.data).toHaveProperty("token");
+    authToken = res.body.data.token;
+    testUser = res.body.data.user;
+  });
+
+  test("Login with Invalid Credentials - Failure", async () => {
+    const { invalidLogin } = loadTestData();
+
+    const res = await request(app).post(`${ROUTE}/login`).send(invalidLogin);
+
+    expect(res.status).toBe(400);
+  });
+
+  test("Register with Existing Email - Failure", async () => {
+    const { register } = loadTestData();
+
+    const res = await request(app).post(`${ROUTE}/register`).send(register);
+
+    expect(res.status).toBe(400);
+  });
+
+  test("Password Reset Request - Success", async () => {
+    const res = await request(app).post(`${ROUTE}/forgot-password`).send({
+      email: testUser.email,
     });
 
-    it("should fail with missing email", async () => {
-      const invalidData = { password: "Password123!" };
-      try {
-        await AuthSchema.parseAsync(invalidData);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (err: any) {
-        expect(err.errors).toEqual([
-          {
-            code: "invalid_type",
-            expected: "string",
-            received: "undefined",
-            path: ["email"],
-            message: "Required",
-          },
-        ]);
-      }
+    if (res.error) {
+      console.log("Password Reset Request - Success", JSON.parse(res.text));
+    }
+
+    expect(res.status).toBe(200);
+  });
+
+  test("Password Reset with Valid Token - Success", async () => {
+    const { login, newPassword } = loadTestData();
+
+    const loginRes = await request(app).post(`${ROUTE}/login`).send(login);
+
+    const res = await request(app).post(`${ROUTE}/reset-password`).send({
+      resetToken: loginRes.body.data.user.resetToken,
+      password: newPassword,
+      confirmPassword: newPassword,
     });
 
-    it("should fail with invalid email format", async () => {
-      const invalidData = { email: "not-an-email", password: "Password123!" };
-      try {
-        await AuthSchema.parseAsync(invalidData);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (err: any) {
-        expect(err.errors).toEqual([
-          {
-            code: "invalid_string",
-            validation: "email",
-            path: ["email"],
-            message: "Invalid email",
-          },
-        ]);
-      }
+    if (res.error) {
+      console.log("Password Reset with Valid Token - Failure", JSON.parse(res.text));
+    }
+
+    expect(res.status).toBe(200);
+  });
+
+  test("Password Reset with Invalid Token - Success", async () => {
+    const { newPassword } = loadTestData();
+
+    const res = await request(app).post(`${ROUTE}/reset-password`).send({
+      resetToken: "invalidToken",
+      password: newPassword,
+      confirmPassword: newPassword,
     });
 
-    describe("Register Schema", () => {
-      it("should pass with valid email, password, and confirmPassword", async () => {
-        const validData = {
-          email: "test@example.com",
-          name: "Test User",
-          username: "testuser",
-          password: "Password123!",
-          confirmPassword: "Password123!",
-        };
-        await expect(RegisterSchema.parseAsync(validData)).resolves.toEqual(validData);
-      });
+    expect(res.status).toBe(400);
+  });
 
-      it("should fail when passwords do not match", async () => {
-        const invalidData = {
-          email: "test@example.com",
-          name: "Test User",
-          username: "testuser",
-          password: "Password123!",
-          confirmPassword: "DifferentPassword!",
-        };
-        try {
-          await RegisterSchema.parseAsync(invalidData);
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch (err: any) {
-          expect(err.errors).toEqual([
-            {
-              code: "custom",
-              path: ["confirmPassword"],
-              message: "Passwords don't match",
-            },
-          ]);
-        }
-      });
-    });
+  test("Access Protected Route Without Token - Failure", async () => {
+    const res = await request(app).get("/api/users");
+    expect(res.status).toBe(401);
+  });
+
+  test("Access Protected Route With Valid Token - Failure", async () => {
+    const res = await request(app).get("/api/users").set("Authorization", `Bearer ${authToken}`);
+    expect(res.status).toBe(200);
+  });
+
+  // Test("Invalid Email Format in Registration - Failure", async () => {
+  //   Const res = await request(app).post(`${ROUTE}/register`).send({
+  //     Email: "invalid-email",
+  //     Password: "Test@123",
+  //     Name: "Test User"
+  //   });
+  //   Expect(res.status).toBe(400);
+  // });
+
+  // Test("Short Password in Registration - Failure", async () => {
+  //   Const res = await request(app).post(`${ROUTE}/register`).send({
+  //     Email: "valid@email.com",
+  //     Password: "123",
+  //     Name: "User"
+  //   });
+  //   Expect(res.status).toBe(400);
+  // });
+});
+
+
+File: tests/test.helper.ts
+--------------------------------------------------
+Content of tests/test.helper.ts:
+import fs from "fs";
+
+const filePath = "./test-data.json";
+
+// Export const saveTestData = (newData: object) => {
+//     Let existingData = {};
+
+//     If (fs.existsSync(filePath)) {
+//         ExistingData = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+//     }
+
+//     Const updatedData = { ...existingData, ...newData };
+//     Fs.writeFileSync(filePath, JSON.stringify(updatedData, null, 2));
+
+// };
+
+export const loadTestData = () => {
+  if (fs.existsSync(filePath)) {
+    return JSON.parse(fs.readFileSync(filePath, "utf-8"));
+  }
+  return {};
+};
+
+
+File: tests/files.test.ts
+--------------------------------------------------
+Content of tests/files.test.ts:
+import request from "supertest";
+import path from "path";
+import app from "../src/app";
+import { RedisClient } from "../src/config/redis/redis";
+import { logger } from "../src/common/winston/winston";
+import { loadTestData } from "./test.helper";
+import { user as User, file as File } from "@prisma/client";
+
+const ROUTE = "/api/files";
+
+// eslint-disable-next-line no-empty-function
+jest.spyOn(logger, "info").mockImplementation(() => {});
+// eslint-disable-next-line no-empty-function
+jest.spyOn(logger, "warn").mockImplementation(() => {});
+// eslint-disable-next-line no-empty-function
+jest.spyOn(logger, "error").mockImplementation(() => {});
+
+afterAll(async () => {
+  await RedisClient.disconnect();
+});
+
+describe("Files API Tests", () => {
+  let authToken: string;
+  let testUser: User;
+  let testFile: File;
+
+  beforeAll(async () => {
+    const { login } = loadTestData();
+    // Authenticate user and get token
+    const loginResponse = await request(app).post("/api/auth/login").send(login);
+
+    authToken = loginResponse.body.data.token;
+    testUser = loginResponse.body.data.user;
+  });
+
+  // Should successfully upload a file
+  it("should successfully upload a file", async () => {
+    const response = await request(app)
+      .post(`${ROUTE}/upload`)
+      .set("Authorization", `Bearer ${authToken}`)
+      .field({
+        tags: "test, file",
+        userRef: testUser.id,
+      })
+      .attach("file", path.join(__dirname, "test-file.png"));
+
+    testFile = response.body.data;
+
+    expect(response.status).toBe(200);
+    expect(response.body.data).toHaveProperty("filePath");
+  });
+
+  it("should fetch uploaded files", async () => {
+    const response = await request(app).get(ROUTE).set("Authorization", `Bearer ${authToken}`);
+
+    expect(response.status).toBe(200);
+    expect(Array.isArray(response.body.data)).toBe(true);
+  });
+
+  it("should fetch uploaded files by id", async () => {
+    const response = await request(app)
+      .get(`${ROUTE}/id/${testFile.id}`)
+      .set("Authorization", `Bearer ${authToken}`);
+
+    expect(response.status).toBe(200);
+  });
+
+  it("should fetch uploaded files by user id", async () => {
+    const response = await request(app)
+      .get(`${ROUTE}/user/${testFile.userId}`)
+      .set("Authorization", `Bearer ${authToken}`);
+
+    expect(response.status).toBe(200);
   });
 });
+
+File: .vscode/launch.json
+--------------------------------------------------
+Content of .vscode/launch.json:
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch Program",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}/src/app.ts",
+            "outFiles": [
+                "${workspaceFolder}/**/*.js"
+            ]
+        }
+    ]
+}
 
 File: src/app.ts
 --------------------------------------------------
@@ -1245,8 +1546,9 @@ Content of src/server.ts:
 import app from "@/app";
 import { env } from "@/config/env";
 import { logger } from "@/common/winston/winston";
-import { connectMongoDB } from "@/config/mongodb/mongodb";
-import { checkMongoDB, checkRedis } from "@/entities/health/health.helper";
+import { checkRedis } from "@/entities/health/health.helper";
+import { connectPrisma } from "./config/prisma/prisma";
+import { RedisClient } from "./config/redis/redis";
 
 const { PORT, NODE_ENV, BASE_URL, ALLOW_ORIGIN } = env;
 
@@ -1259,9 +1561,8 @@ async function checkConnections() {
     logger.info("Checking database connections...");
     await checkRedis();
     logger.info("Redis connections verified successfully.");
-    await connectMongoDB();
-    await checkMongoDB();
-    logger.info("MongoDB connections verified successfully.");
+    await connectPrisma();
+    logger.info("Prisma connections verified successfully.");
   } catch (error) {
     if (error instanceof Error) {
       logger.warn("MongoDB, or Redis connection failed", { error: error.message });
@@ -1285,8 +1586,28 @@ checkConnections().then(() => {
     ),
   );
 
-  const onCloseSignal = () => {
+  // Graceful shutdown logic
+  const onCloseSignal = async () => {
     logger.info("SIGTERM signal received. Closing server...");
+    const redis = RedisClient.getInstance();
+
+    // Close Prisma connection
+    try {
+      await redis.disconnect();
+      logger.info("Prisma disconnected successfully.");
+    } catch (err) {
+      logger.error("Error disconnecting Prisma:", { err });
+    }
+
+    // Close Redis connection
+    try {
+      await redis.quit();
+      logger.info("Redis disconnected successfully.");
+    } catch (err) {
+      logger.error("Error disconnecting Redis:", { err });
+    }
+
+    // Close Express server
     server.close(() => {
       logger.info("HTTP server closed.");
       // eslint-disable-next-line no-process-exit
@@ -1297,6 +1618,135 @@ checkConnections().then(() => {
   process.on("SIGINT", onCloseSignal); // Gracefully handle SIGINT (Ctrl+C or control+C)
   process.on("SIGTERM", onCloseSignal); // Gracefully handle SIGTERM (from Docker, etc.)
 });
+
+
+File: src/generated/zod/index.ts
+--------------------------------------------------
+Content of src/generated/zod/index.ts:
+import { z } from 'zod';
+import { Prisma } from '@prisma/client';
+
+/////////////////////////////////////////
+// HELPER FUNCTIONS
+/////////////////////////////////////////
+
+// JSON
+//------------------------------------------------------
+
+export type NullableJsonInput = Prisma.JsonValue | null | 'JsonNull' | 'DbNull' | Prisma.NullTypes.DbNull | Prisma.NullTypes.JsonNull;
+
+export const transformJsonNull = (v?: NullableJsonInput) => {
+  if (!v || v === 'DbNull') return Prisma.DbNull;
+  if (v === 'JsonNull') return Prisma.JsonNull;
+  return v;
+};
+
+export const JsonValueSchema: z.ZodType<Prisma.JsonValue> = z.lazy(() =>
+  z.union([
+    z.string(),
+    z.number(),
+    z.boolean(),
+    z.literal(null),
+    z.record(z.lazy(() => JsonValueSchema.optional())),
+    z.array(z.lazy(() => JsonValueSchema)),
+  ])
+);
+
+export type JsonValueType = z.infer<typeof JsonValueSchema>;
+
+export const NullableJsonValue = z
+  .union([JsonValueSchema, z.literal('DbNull'), z.literal('JsonNull')])
+  .nullable()
+  .transform((v) => transformJsonNull(v));
+
+export type NullableJsonValueType = z.infer<typeof NullableJsonValue>;
+
+export const InputJsonValueSchema: z.ZodType<Prisma.InputJsonValue> = z.lazy(() =>
+  z.union([
+    z.string(),
+    z.number(),
+    z.boolean(),
+    z.object({ toJSON: z.function(z.tuple([]), z.any()) }),
+    z.record(z.lazy(() => z.union([InputJsonValueSchema, z.literal(null)]))),
+    z.array(z.lazy(() => z.union([InputJsonValueSchema, z.literal(null)]))),
+  ])
+);
+
+export type InputJsonValueType = z.infer<typeof InputJsonValueSchema>;
+
+
+/////////////////////////////////////////
+// ENUMS
+/////////////////////////////////////////
+
+export const UserScalarFieldEnumSchema = z.enum(['id','name','email','password','resetToken','createdAt','updatedAt','phoneNumber','bio']);
+
+export const FileScalarFieldEnumSchema = z.enum(['id','createdAt','updatedAt','name','path','text','tags','views','userId']);
+
+export const ErrorLogsScalarFieldEnumSchema = z.enum(['id','status','message','method','url','loggedUser','name','stack','details','createdAt','updatedAt']);
+
+export const SortOrderSchema = z.enum(['asc','desc']);
+
+export const QueryModeSchema = z.enum(['default','insensitive']);
+/////////////////////////////////////////
+// MODELS
+/////////////////////////////////////////
+
+/////////////////////////////////////////
+// USER SCHEMA
+/////////////////////////////////////////
+
+export const userSchema = z.object({
+  id: z.string(),
+  name: z.string().nullable(),
+  email: z.string(),
+  password: z.string(),
+  resetToken: z.string().nullable(),
+  createdAt: z.date().nullable(),
+  updatedAt: z.date().nullable(),
+  phoneNumber: z.string().nullable(),
+  bio: z.string().nullable(),
+})
+
+export type user = z.infer<typeof userSchema>
+
+/////////////////////////////////////////
+// FILE SCHEMA
+/////////////////////////////////////////
+
+export const fileSchema = z.object({
+  id: z.string(),
+  createdAt: z.date().nullable(),
+  updatedAt: z.date().nullable(),
+  name: z.string().nullable(),
+  path: z.string().nullable(),
+  text: z.string().nullable(),
+  tags: z.string().nullable(),
+  views: z.number().nullable(),
+  userId: z.string().nullable(),
+})
+
+export type file = z.infer<typeof fileSchema>
+
+/////////////////////////////////////////
+// ERROR LOGS SCHEMA
+/////////////////////////////////////////
+
+export const errorLogsSchema = z.object({
+  id: z.string(),
+  status: z.string().nullable(),
+  message: z.string().nullable(),
+  method: z.string().nullable(),
+  url: z.string().nullable(),
+  loggedUser: z.string().nullable(),
+  name: z.string().nullable(),
+  stack: z.string().nullable(),
+  details: JsonValueSchema.nullable(),
+  createdAt: z.date().nullable(),
+  updatedAt: z.date().nullable(),
+})
+
+export type errorLogs = z.infer<typeof errorLogsSchema>
 
 
 File: src/types/pagination.ts
@@ -1407,52 +1857,46 @@ File: src/config/redis/redis.ts
 Content of src/config/redis/redis.ts:
 import Redis from "ioredis";
 import { env } from "@/config/env";
-const redis = new Redis(env.REDIS_URL);
-
-export default redis;
-
-
-File: src/config/mongodb/mongodb.ts
---------------------------------------------------
-Content of src/config/mongodb/mongodb.ts:
-import mongoose from "mongoose";
-import { env } from "@/config/env";
 import { logger } from "@/common/winston/winston";
-import ErrorLogs from "@/models/error-logs";
 
-export const connectMongoDB = async () =>
-  mongoose.connect(env.MONGODB_URI, {
-    dbName: env.NODE_ENV,
-  });
+class RedisClient {
+  private static instance: Redis;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const checkMemoryAndLog = async (logData: any) => {
+  static getInstance(): Redis {
+    if (!RedisClient.instance) {
+      RedisClient.instance = new Redis(env.REDIS_URL);
+      RedisClient.instance.on("connect", () => logger.info("Redis connected"));
+      RedisClient.instance.on("end", () => logger.info("Redis disconnected"));
+    }
+    return RedisClient.instance;
+  }
+
+  static async disconnect(): Promise<void> {
+    if (RedisClient.instance) {
+      await RedisClient.instance.quit();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      RedisClient.instance = undefined as any;
+    }
+  }
+}
+
+export { RedisClient };
+
+
+File: src/config/prisma/prisma.ts
+--------------------------------------------------
+Content of src/config/prisma/prisma.ts:
+import { logger } from "@/common/winston/winston";
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
+
+export const connectPrisma = async () => {
   try {
-    if (!mongoose.connection.readyState) {
-      await mongoose.connect(env.MONGODB_URI, {
-        dbName: env.NODE_ENV,
-      });
-    }
-
-    const stats = await mongoose.connection.db!.stats();
-    const dbUsage = stats.dataSize / (1024 * 1024);
-    const dbLimit = Number(env.MONGODB_MEMORY_LIMIT);
-
-    logger.info(`Database usage: ${dbUsage.toFixed(2)} MB of ${dbLimit} MB`);
-
-    if (dbUsage < dbLimit / 2) {
-      const log = new ErrorLogs(env.MONGODB_ERROR_COLLECTION_NAME, logData);
-      await log.save();
-    } else {
-      logger.warn(`Database usage: ${dbUsage.toFixed(2)} MB of ${dbLimit} MB`);
-    }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (error: any) {
-    logger.warn("MongoDB Error:", error);
-  } finally {
-    if (mongoose.connection.readyState) {
-      await mongoose.disconnect();
-    }
+    await prisma.$connect();
+  } catch (error) {
+    logger.error("Error connecting to Prisma:", { error });
+    throw new Error("Error connecting to Prisma");
   }
 };
 
@@ -1554,8 +1998,8 @@ export const authMiddleware = (req: CustomRequest, _: Response, next: NextFuncti
   }
 
   const verify = verifyToken(token);
-  req.loggedUser = verify.email || verify.username || verify.type;
-  winstonLogger.defaultMeta = { loggedUser: verify.email || verify.username || verify.type };
+  req.loggedUser = verify.email || verify.type;
+  winstonLogger.defaultMeta = { loggedUser: verify.email || verify.type };
   next();
 };
 
@@ -1569,26 +2013,9 @@ import { StatusCodes } from "http-status-codes";
 import { env } from "@/config/env";
 import { logger } from "@/common/winston/winston";
 import { CustomRequest } from "@/types/request";
-import { checkMemoryAndLog } from "@/config/mongodb/mongodb";
+import { PrismaClient } from "@prisma/client";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const transformMetaData = (metadata: any) => {
-  if (!metadata) {
-    return "";
-  }
-
-  // Extract common properties
-  const { code, meta, name, response } = metadata;
-
-  return {
-    code,
-    meta: { ...meta },
-    data: { ...response?.data },
-    status: response?.status,
-    statusText: response?.statusText,
-    name,
-  };
-};
+const prisma = new PrismaClient();
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const findDeep = (obj: any, keys: string[]): any => {
@@ -1636,19 +2063,32 @@ export const errorMiddleware = (
     ? err.status || StatusCodes.INTERNAL_SERVER_ERROR
     : StatusCodes.INTERNAL_SERVER_ERROR;
 
-  const name = isHttpError ? err.name : "AppError";
+  const appName = isHttpError ? err.name : "AppError";
 
   const loggedUser = req.loggedUser || "Unknown User";
   const { method } = req;
   const url = req.originalUrl;
 
-  const { stack } = err;
+  const stack = err.stack || "";
 
   // Extract email or id using the helper function
   const email = findDeep(req.body, ["email"]);
   const id = findDeep(req.body, ["id"]);
 
-  const transformDetails = { ...transformMetaData(details), email, id };
+  // Extract common properties
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { code, meta, name, response }: any = details;
+
+  const transformDetails = {
+    code,
+    meta: { ...meta },
+    data: { ...response?.data },
+    status: response?.status,
+    statusText: response?.statusText,
+    name,
+    email,
+    id,
+  };
 
   const errorPayload = {
     status: statusCode,
@@ -1656,7 +2096,7 @@ export const errorMiddleware = (
     method,
     url,
     loggedUser,
-    name,
+    name: appName,
     details: transformDetails,
     stack,
   };
@@ -1667,16 +2107,15 @@ export const errorMiddleware = (
     const errorLogs = {
       level: "error",
       message,
-      timestamp: new Date().toISOString(),
       metadata: errorPayload,
     };
 
-    checkMemoryAndLog(errorLogs)
-      // eslint-disable-next-line no-empty-function
-      .then(() => {})
-      .catch((error) => {
-        logger.error("Error saving error logs", error);
-      });
+    prisma.errorLogs
+      .create({
+        data: errorLogs,
+      })
+      .then(() => logger.info("Error logs saved successfully"))
+      .catch((error) => logger.error("Error saving error logs", error));
   }
 
   const responsePayload = {
@@ -1777,7 +2216,14 @@ export const zodValidation =
       logger.warn("Zod Validation Error", error);
       return res
         .status(StatusCodes.BAD_REQUEST)
-        .json(createResponse(req, error, "Zod Validation Error", StatusCodes.BAD_REQUEST));
+        .json(
+          createResponse({
+            req,
+            data: error,
+            message: "Zod Validation Error",
+            status: StatusCodes.BAD_REQUEST,
+          }),
+        );
     }
   };
 
@@ -1788,18 +2234,34 @@ Content of src/utils/create-response.ts:
 import { Request } from "express";
 import { StatusCodes, ReasonPhrases } from "http-status-codes";
 
-export const createResponse = (
-  req: Request,
+export const createResponse = ({
+  req,
+  data,
+  message = ReasonPhrases.OK,
+  status = StatusCodes.OK,
+  success = true,
+}: {
+  req?: Request;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data: any,
-  message: string = ReasonPhrases.OK,
-  status: number = StatusCodes.OK,
-) => {
+  data: any;
+  message?: string;
+  status?: number;
+  success?: boolean;
+}) => {
+  if (req) {
+    return {
+      success,
+      statusCode: status,
+      message,
+      method: req.method,
+      url: req.originalUrl,
+      data,
+    };
+  }
   return {
-    status,
+    success,
+    statusCode: status,
     message,
-    method: req.method,
-    url: req.originalUrl,
     data,
   };
 };
@@ -1847,7 +2309,6 @@ Content of src/utils/csv-to-json.ts:
 import * as fs from "fs";
 import csv from "csv-parser";
 import { Readable } from "stream";
-import { v4 as uuidv4 } from "uuid";
 import _ from "lodash";
 import { hash } from "bcrypt";
 import { env } from "@/config/env";
@@ -1904,9 +2365,7 @@ export const csvToJson = (filePath: string): Promise<any[]> => {
               return acc;
             },
             {
-              uuid: uuidv4(),
-              createdAt: new Date(),
-              updatedAt: new Date(),
+              // Add default fields here
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } as Record<string, any>,
           ),
@@ -1959,9 +2418,7 @@ export const csvBufferToJson = (buffer: string): Promise<any[]> => {
               return acc;
             },
             {
-              uuid: uuidv4(),
-              createdAt: new Date(),
-              updatedAt: new Date(),
+              // Add default fields here
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } as Record<string, any>,
           ),
@@ -1989,109 +2446,6 @@ export const csvBufferToJson = (buffer: string): Promise<any[]> => {
       .on("error", (err) => reject(err));
   });
 };
-
-
-File: src/utils/mongodb-apply-filter.ts
---------------------------------------------------
-Content of src/utils/mongodb-apply-filter.ts:
-import { FilterQuery } from "mongoose";
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const mongoDbApplyFilter = (filter: Record<string, any>): FilterQuery<any> => {
-  if (!filter) {
-    return {};
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const transformOperators = (key: string, value: any) => {
-    const operatorMap: Record<string, string> = {
-      $eq: "$eq",
-      $regex: "$regex",
-      $between: "$gte",
-      $gte: "$gte",
-      $lte: "$lte",
-      $isNull: "$exists",
-      $isNotNull: "$exists",
-    };
-
-    if (key === "$between") {
-      return {
-        $gte: value[0],
-        $lte: value[1],
-      };
-    }
-
-    if (key === "$isNull") {
-      return { $exists: false };
-    }
-
-    if (key === "$isNotNull") {
-      return { $exists: true };
-    }
-
-    return { [operatorMap[key]]: value };
-  };
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const buildLogic = (logic: Record<string, any>) => {
-    const logicKeys = Object.keys(logic);
-    return logicKeys.map((key) => {
-      const condition = logic[key];
-      if (Array.isArray(condition)) {
-        return { [key]: condition.map(mongoDbApplyFilter) };
-      }
-      return { [key]: transformOperators(key, condition) };
-    });
-  };
-
-  if (filter.$or || filter.$and) {
-    const logicKey = filter.$or ? "$or" : "$and";
-    return {
-      [logicKey]: buildLogic(filter[logicKey]),
-    };
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const transformedFilter: Record<string, any> = {};
-  Object.entries(filter).forEach(([key, value]) => {
-    if (typeof value === "object" && !Array.isArray(value)) {
-      transformedFilter[key] = transformOperators(Object.keys(value)[0], Object.values(value)[0]);
-    } else {
-      transformedFilter[key] = value;
-    }
-  });
-
-  return transformedFilter;
-};
-
-
-File: src/models/error-logs.ts
---------------------------------------------------
-Content of src/models/error-logs.ts:
-import { env } from "@/config/env";
-import mongoose, { Document, Schema } from "mongoose";
-
-export interface ErrorLogs extends Document {
-  level: string;
-  message: string;
-  timestamp: Date;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  metadata: any;
-}
-
-const ErrorLogsSchema: Schema = new Schema(
-  {
-    level: { type: String },
-    message: { type: String },
-    timestamp: { type: Date },
-    metadata: { type: Schema.Types.Mixed },
-  },
-  {
-    strict: false,
-  },
-);
-
-export default mongoose.model<ErrorLogs>(env.NODE_ENV, ErrorLogsSchema);
 
 
 File: src/schemas/query-examples.txt
@@ -2306,23 +2660,37 @@ extendZodWithOpenApi(z);
 
 // See query examples in query-examples.txt
 
-const OrderBySchema = z.object({
+const orderBySchema = z.object({
   sort: z.string(),
   order: z.enum(["asc", "desc"]),
 });
 
-const PaginateSchema = z.object({
+const paginateSchema = z.object({
   page: z.number().min(1).default(1),
   perPage: z.number().min(1).default(10),
 });
 
-export const FindByQuerySchema = z.object({
-  filter: z.any(),
-  paginate: PaginateSchema.optional(),
-  orderBy: z.array(OrderBySchema).optional(),
+export const findByQuerySchema = z.object({
+  filter: z.object({}),
+  paginate: paginateSchema.optional(),
+  orderBy: z.array(orderBySchema).optional(),
 });
 
-export type FindByQueryDto = z.infer<typeof FindByQuerySchema>;
+export interface FindByQueryResult<T> {
+  data: T[];
+  total: number;
+  page: number;
+  perPage: number;
+  totalPages: number;
+}
+
+export interface ImportResult<T> {
+  createdEntities: T[];
+  createdCount: number;
+  skippedCount: number;
+}
+
+export type FindByQueryDto = z.infer<typeof findByQuerySchema>;
 
 
 File: src/schemas/import-file.ts
@@ -2330,7 +2698,7 @@ File: src/schemas/import-file.ts
 Content of src/schemas/import-file.ts:
 import { z } from "zod";
 
-export const ImportFileSchema = z.object({
+export const importFileSchema = z.object({
   file: z
     .any()
     .openapi({
@@ -2349,7 +2717,7 @@ import { env } from "@/config/env";
 import { StatusCodes } from "http-status-codes";
 import createHttpError from "http-errors";
 
-export const generateToken = (payload: object) => {
+export const generateToken = (payload: object): string => {
   // @ts-expect-error - The payload is an object
   return sign(payload, env.JWT_SECRET, { expiresIn: env.JWT_SECRET_EXPIRATION });
 };
@@ -2446,37 +2814,33 @@ import { z } from "zod";
 export class ServiceResponse<T = null> {
   readonly success: boolean;
   readonly message: string;
-  readonly responseObject: T;
+  readonly data: T;
   readonly statusCode: number;
 
-  private constructor(success: boolean, message: string, responseObject: T, statusCode: number) {
+  private constructor(success: boolean, message: string, data: T, statusCode: number) {
     this.success = success;
     this.message = message;
-    this.responseObject = responseObject;
+    this.data = data;
     this.statusCode = statusCode;
   }
 
   // eslint-disable-next-line no-shadow
-  static success<T>(message: string, responseObject: T, statusCode: number = StatusCodes.OK) {
-    return new ServiceResponse(true, message, responseObject, statusCode);
+  static success<T>(message: string, data: T, statusCode: number = StatusCodes.OK) {
+    return new ServiceResponse(true, message, data, statusCode);
   }
 
   // eslint-disable-next-line no-shadow
-  static failure<T>(
-    message: string,
-    responseObject: T,
-    statusCode: number = StatusCodes.BAD_REQUEST,
-  ) {
-    return new ServiceResponse(false, message, responseObject, statusCode);
+  static failure<T>(message: string, data: T, statusCode: number = StatusCodes.BAD_REQUEST) {
+    return new ServiceResponse(false, message, data, statusCode);
   }
 }
 
 export const ServiceResponseSchema = <T extends z.ZodTypeAny>(dataSchema: T) =>
   z.object({
     success: z.boolean(),
-    message: z.string(),
-    responseObject: dataSchema.optional(),
     statusCode: z.number(),
+    message: z.string(),
+    data: dataSchema.optional(),
   });
 
 
@@ -2643,7 +3007,7 @@ export const saveFileToDisk = async (file: any) => {
 
       logger.info(`File saved to: ${filePath}`);
     });
-    return { fileName, filePath };
+    return { name: fileName, path: filePath };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     logger.warn("Error saving file:", error);
@@ -2711,7 +3075,7 @@ import fs from "fs";
 import path from "path";
 import { logger } from "@/common/winston/winston";
 
-export const deleteFileFromDisk = (fileName: string) => {
+export const deleteFileFromDisk = async (fileName: string) => {
   try {
     const uploadDir = "./uploads";
     const filePath = path.join(uploadDir, fileName);
@@ -2769,20 +3133,20 @@ export const sendMail = async (mail: any) => {
 File: src/common/base/base.repository.ts
 --------------------------------------------------
 Content of src/common/base/base.repository.ts:
-import { Model, UpdateQuery, SortOrder, RootFilterQuery } from "mongoose";
-import { FindByQueryDto } from "@/schemas/find-by-query";
+import { FindByQueryDto, FindByQueryResult, ImportResult } from "@/schemas/find-by-query";
 import { logger } from "@/common/winston/winston";
-import { mongoDbApplyFilter } from "@/utils/mongodb-apply-filter";
-
-const IGNORE_FIELDS = { password: 0 };
 
 export class BaseRepository<T, TCreateDto, TUpdateDto> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private model: any;
   private collectionName: string;
-  private model: Model<T>;
+  private ignoreFields: Record<string, boolean>;
 
-  constructor(model: Model<T>, collectionName: string) {
-    this.collectionName = collectionName;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  constructor(model: any, collectionName: string, ignoreFields: Record<string, boolean> = {}) {
     this.model = model;
+    this.collectionName = collectionName;
+    this.ignoreFields = ignoreFields;
   }
 
   /**
@@ -2791,13 +3155,17 @@ export class BaseRepository<T, TCreateDto, TUpdateDto> {
    */
   getAll = async (): Promise<T[]> => {
     try {
-      logger.info(`[${this.collectionName} Repository] Fetching all from ${this.model.modelName}`);
-      return await this.model.find({}, IGNORE_FIELDS);
+      logger.info(`[${this.collectionName} Repository] Fetching all from ${this.collectionName}`);
+      const getAll = await this.model.findMany({ omit: this.ignoreFields });
+      return getAll;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      logger.warn(`[${this.collectionName} Repository] Error fetching all from ${this.model.modelName}`, {
-        error: error.message,
-      });
+      logger.warn(
+        `[${this.collectionName} Repository] Error fetching all from ${this.collectionName}`,
+        {
+          error: error.message,
+        },
+      );
       throw new Error(error);
     }
   };
@@ -2809,33 +3177,43 @@ export class BaseRepository<T, TCreateDto, TUpdateDto> {
    */
   getById = async (id: string): Promise<T | null> => {
     try {
-      logger.info(`[${this.collectionName} Repository] Fetching ${this.model.modelName} with id: ${id}`);
-      return await this.model.findById(id, IGNORE_FIELDS);
+      logger.info(
+        `[${this.collectionName} Repository] Fetching ${this.collectionName} with id: ${id}`,
+      );
+      return await this.model.findUnique({ where: { id }, omit: this.ignoreFields });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      logger.warn(`[${this.collectionName} Repository] Error fetching ${this.model.modelName} by id`, {
-        id,
-        error: error.message,
-      });
+      logger.warn(
+        `[${this.collectionName} Repository] Error fetching ${this.collectionName} by id`,
+        {
+          id,
+          error: error.message,
+        },
+      );
       throw new Error(error);
     }
   };
 
   /**
-   * Fetches a entity by their id.
-   * @param uuid - entity's unique identifier
+   * Fetches a entity or entities by their userId.
+   * @param id - entity's unique identifier
    * @returns entity data or null if not found
    */
-  getByUuid = async (uuid: string): Promise<T | null> => {
+  getByUser = async (userId: string): Promise<T | T[] | null> => {
     try {
-      logger.info(`[${this.collectionName} Repository] Fetching ${this.model.modelName} with uuid: ${uuid}`);
-      return await this.model.findOne({ uuid }, IGNORE_FIELDS);
+      logger.info(
+        `[${this.collectionName} Repository] Fetching ${this.collectionName} with userId: ${userId}`,
+      );
+      return await this.model.findMany({ where: { userRef: userId }, omit: this.ignoreFields });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      logger.warn(`[${this.collectionName} Repository] Error fetching ${this.model.modelName} by uuid`, {
-        uuid,
-        error: error.message,
-      });
+      logger.warn(
+        `[${this.collectionName} Repository] Error fetching ${this.collectionName} by userId`,
+        {
+          userId,
+          error: error.message,
+        },
+      );
       throw new Error(error);
     }
   };
@@ -2847,35 +3225,19 @@ export class BaseRepository<T, TCreateDto, TUpdateDto> {
    */
   getByEmail = async (email: string): Promise<T | null> => {
     try {
-      logger.info(`[${this.collectionName} Repository] Fetching ${this.model.modelName} with email: ${email}`);
-      return await this.model.findOne({ email }, IGNORE_FIELDS);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      logger.warn(`[${this.collectionName} Repository] Error fetching ${this.model.modelName} by email`, {
-        email,
-        error: error.message,
-      });
-      throw new Error(error);
-    }
-  };
-
-  /**
-   * Fetches a entity by their username.
-   * @param username - entity's username
-   * @returns entity data or null if not found
-   */
-  getByUsername = async (username: string): Promise<T | null> => {
-    try {
       logger.info(
-        `[${this.collectionName} Repository] Fetching ${this.model.modelName} with username: ${username}`,
+        `[${this.collectionName} Repository] Fetching ${this.collectionName} with email: ${email}`,
       );
-      return await this.model.findOne({ username }, IGNORE_FIELDS);
+      return await this.model.findUnique({ where: { email } });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      logger.warn(`[${this.collectionName} Repository] Error fetching ${this.model.modelName} by username`, {
-        username,
-        error: error.message,
-      });
+      logger.warn(
+        `[${this.collectionName} Repository] Error fetching ${this.collectionName} by email`,
+        {
+          email,
+          error: error.message,
+        },
+      );
       throw new Error(error);
     }
   };
@@ -2888,16 +3250,20 @@ export class BaseRepository<T, TCreateDto, TUpdateDto> {
    */
   getByField = async (field: string, value: string | number): Promise<T | null> => {
     try {
-      logger.info(`[${this.collectionName} Repository] Fetching ${this.model.modelName} where ${field}: ${value}`);
-      const query = { [field]: value };
-      return await this.model.findOne(query as RootFilterQuery<T>, IGNORE_FIELDS);
+      logger.info(
+        `[${this.collectionName} Repository] Fetching ${this.collectionName} where ${field}: ${value}`,
+      );
+      return await this.model.findMany({ where: { [field]: value }, omit: this.ignoreFields });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      logger.warn(`[${this.collectionName} Repository] Error fetching ${this.model.modelName} by ${field}`, {
-        field,
-        value,
-        error: error.message,
-      });
+      logger.warn(
+        `[${this.collectionName} Repository] Error fetching ${this.collectionName} by ${field}`,
+        {
+          field,
+          value,
+          error: error.message,
+        },
+      );
       throw new Error(error);
     }
   };
@@ -2907,45 +3273,34 @@ export class BaseRepository<T, TCreateDto, TUpdateDto> {
    * @param options - Query options
    * @returns Paginated data
    */
-  findByQuery = async (options: FindByQueryDto) => {
+  findByQuery = async (options: FindByQueryDto): Promise<FindByQueryResult<T>> => {
     const { filter = {}, paginate = { page: 1, perPage: 10 }, orderBy = [] } = options;
-
     const { page, perPage } = paginate;
 
     try {
-      // Build the sort object for MongoDB
       const sortOptions = orderBy.reduce(
         (acc, { sort, order }) => {
           acc[sort] = order;
           return acc;
         },
-        {} as Record<string, SortOrder>,
+        {} as Record<string, "asc" | "desc">,
       );
 
-      // Convert the filter for MongoDB
-      const mongoFilter = mongoDbApplyFilter(filter);
-
-      // Query the collection
       const [data, total] = await Promise.all([
-        this.model
-          .find(mongoFilter, IGNORE_FIELDS)
-          .sort(sortOptions)
-          .skip((page - 1) * perPage)
-          .limit(perPage)
-          .exec(),
-        this.model.countDocuments(mongoFilter),
+        this.model.findMany({
+          where: filter,
+          orderBy: sortOptions,
+          skip: (page - 1) * perPage,
+          take: perPage,
+          omit: this.ignoreFields,
+        }),
+        this.model.count({ where: filter }),
       ]);
 
-      return {
-        data,
-        total,
-        page,
-        perPage,
-        totalPages: Math.ceil(total / perPage),
-      };
+      return { data, total, page, perPage, totalPages: Math.ceil(total / perPage) };
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      logger.warn(`[${this.collectionName} Repository] Error querying ${this.model.modelName}`, {
+      logger.warn(`[${this.collectionName} Repository] Error querying ${this.collectionName}`, {
         options,
         error: error.message,
       });
@@ -2958,40 +3313,42 @@ export class BaseRepository<T, TCreateDto, TUpdateDto> {
    * @param createDto - Data for creating a new entity
    * @returns Created entity data
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  create = async (createDto: TCreateDto): Promise<any> => {
+  create = async (createDto: TCreateDto): Promise<T | null> => {
     try {
-      logger.info(`[${this.collectionName} Repository] Creating document in ${this.model.modelName}`);
-      const created = new this.model(createDto);
-      await created.save();
-      return this.getById(created.id);
+      logger.info(
+        `[${this.collectionName} Repository] Creating document in ${this.collectionName}`,
+      );
+      const created = this.model.create({ data: createDto });
+      return created;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      logger.warn(`[${this.collectionName} Repository] Error creating entry in ${this.model.modelName}`, {
-        createDto,
-        error: error.message,
-      });
+      logger.warn(
+        `[${this.collectionName} Repository] Error creating entry in ${this.collectionName}`,
+        {
+          createDto,
+          error: error.message,
+        },
+      );
       throw new Error(error);
     }
   };
 
   /**
    * Updates an existing entity.
-   * @param uuid - Entity's unique identifier
+   * @param id - Entity's unique identifier
    * @param updateDto - Data to update the entity
    * @returns Updated entity data
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  update = async (uuid: string, updateDto: TUpdateDto): Promise<any> => {
+  update = async (id: string, updateDto: TUpdateDto): Promise<T | null> => {
     try {
-      logger.info(`[${this.collectionName} Repository] Updating ${this.model.modelName} with uuid: ${uuid}`);
-      return await this.model.findOneAndUpdate({ uuid }, updateDto as UpdateQuery<T>, {
-        new: true,
-      });
+      logger.info(
+        `[${this.collectionName} Repository] Updating ${this.collectionName} with id: ${id}`,
+      );
+      return await this.model.update({ where: { id }, data: updateDto });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      logger.warn(`[${this.collectionName} Repository] Error updating ${this.model.modelName}`, {
-        uuid,
+      logger.warn(`[${this.collectionName} Repository] Error updating ${this.collectionName}`, {
+        id,
         updateDto,
         error: error.message,
       });
@@ -3000,18 +3357,20 @@ export class BaseRepository<T, TCreateDto, TUpdateDto> {
   };
 
   /**
-   * Deletes an entity by uuid.
-   * @param uuid - Entity's unique identifier
+   * Deletes an entity by id.
+   * @param id - Entity's unique identifier
    * @returns Deleted entity data
    */
-  delete = async (uuid: string): Promise<T | null> => {
+  delete = async (id: string): Promise<T | null> => {
     try {
-      logger.info(`[${this.collectionName} Repository] Deleting ${this.model.modelName} with uuid: ${uuid}`);
-      return await this.model.findOneAndDelete({ uuid });
+      logger.info(
+        `[${this.collectionName} Repository] Deleting ${this.collectionName} with id: ${id}`,
+      );
+      return await this.model.delete({ where: { id } });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      logger.warn(`[${this.collectionName} Repository] Error deleting ${this.model.modelName}`, {
-        uuid,
+      logger.warn(`[${this.collectionName} Repository] Error deleting ${this.collectionName}`, {
+        id,
         error: error.message,
       });
       throw new Error(error);
@@ -3019,86 +3378,83 @@ export class BaseRepository<T, TCreateDto, TUpdateDto> {
   };
 
   /**
-   * Deletes multiple entities by their uuids.
-   * @param uuids - List of entity uuids to delete
+   * Deletes multiple entities by their ids.
+   * @param ids - List of entity ids to delete
    * @returns Deletion result
    */
-  async deleteAll(uuids: string[]): Promise<{ deletedCount: number }> {
+  async deleteMany(ids: string[]): Promise<{ deletedCount: number }> {
     try {
-      return await this.model.deleteMany({ uuid: { $in: uuids } });
+      const result = await this.model.deleteMany({ where: { id: { in: ids } } });
+      return { deletedCount: result.count };
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      logger.warn(`[${this.collectionName} Repository] Error deleting multiple ${this.model.modelName}`, {
-        uuids,
-        error: error.message,
-      });
+      logger.warn(
+        `[${this.collectionName} Repository] Error deleting multiple ${this.collectionName}`,
+        {
+          ids,
+          error: error.message,
+        },
+      );
       throw new Error(error);
     }
   }
 
   /**
    * Imports multiple entity objects into the database.
-   * Skips objects where email or username already exist in the database.
+   * Skips objects where email already exist in the database.
    * @param entities - Array of entity objects to be saved
    * @returns Object containing created entities, created count, and skipped count
    */
-  import = async (
-    entities: TCreateDto[],
-  ): Promise<{
-    createdEntities: T[];
-    createdCount: number;
-    skippedCount: number;
-  }> => {
+  import = async (entities: TCreateDto[]): Promise<ImportResult<T>> => {
     try {
       logger.info(
-        `[${this.collectionName} Repository] Importing ${entities.length} documents into ${this.model.modelName}`,
+        `[${this.collectionName} Repository] Importing ${entities.length} documents into ${this.collectionName}`,
       );
+
       const uniqueEntities = [];
       const skippedEntities = [];
 
       for (const entity of entities) {
         // eslint-disable-next-line no-await-in-loop
-        const exists = await this.model.exists({
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          $or: [{ email: (entity as any).email }, { username: (entity as any).username }],
+        const exists = await this.model.findFirst({
+          where: {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            OR: [{ email: (entity as any).email }],
+          },
         });
 
         if (exists) {
-          logger.info(
-            `[${this.collectionName} Repository] Email or username already exist in ${this.model.modelName}`,
-          );
           skippedEntities.push(entity);
         } else {
           uniqueEntities.push(entity);
         }
       }
 
-      // Insert unique entities into the database
-      const createdEntities = (await this.model.insertMany(uniqueEntities, {
-        ordered: true,
-      })) as unknown as T[];
-
-      const createdCount = createdEntities.length;
-      const skippedCount = skippedEntities.length;
+      const createdEntities = await this.model.createMany({
+        data: uniqueEntities,
+      });
 
       logger.info(`[${this.collectionName} Repository] Import Summary:`, {
-        createdCount,
-        skippedCount,
         createdEntities,
+        createdCount: createdEntities.length,
+        skippedCount: skippedEntities.length,
       });
 
       return {
         createdEntities,
-        createdCount,
-        skippedCount,
+        createdCount: createdEntities.length,
+        skippedCount: skippedEntities.length,
       };
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      logger.warn(`[${this.collectionName} Repository] Error importing into ${this.model.modelName}`, {
-        totalEntities: entities.length,
-        error: error.message,
-      });
+      logger.warn(
+        `[${this.collectionName} Repository] Error importing into ${this.collectionName}`,
+        {
+          totalEntities: entities.length,
+          error: error.message,
+        },
+      );
       throw new Error(error);
     }
   };
@@ -3109,20 +3465,24 @@ File: src/common/base/base.services.ts
 --------------------------------------------------
 Content of src/common/base/base.services.ts:
 import { BaseRepository } from "@/common/base/base.repository";
-import { FindByQueryDto } from "@/schemas/find-by-query";
+import { FindByQueryDto, FindByQueryResult, ImportResult } from "@/schemas/find-by-query";
 import { logger } from "../winston/winston";
 import createHttpError from "http-errors";
 import { StatusCodes } from "http-status-codes";
 import { parseAsync } from "json2csv";
-import { Model } from "mongoose";
 
 export class BaseService<T, TCreateDto, TUpdateDto> {
   private collectionName: string;
   protected baseRepository: BaseRepository<T, TCreateDto, TUpdateDto>;
 
-  constructor(model: Model<T>, collectionName: string) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  constructor(model: any, collectionName: string, ignoreFields?: Record<string, boolean>) {
     this.collectionName = collectionName;
-    this.baseRepository = new BaseRepository<T, TCreateDto, TUpdateDto>(model, collectionName);
+    this.baseRepository = new BaseRepository<T, TCreateDto, TUpdateDto>(
+      model,
+      collectionName,
+      ignoreFields,
+    );
   }
 
   /**
@@ -3155,11 +3515,15 @@ export class BaseService<T, TCreateDto, TUpdateDto> {
    */
   getById = async (id: string): Promise<T> => {
     try {
-      logger.info(`[${this.collectionName} Service] Fetching ${this.collectionName} with id: ${id}`);
+      logger.info(
+        `[${this.collectionName} Service] Fetching ${this.collectionName} with id: ${id}`,
+      );
       const data = await this.baseRepository.getById(id);
 
       if (!data) {
-        logger.warn(`[${this.collectionName} Service] ${this.collectionName} with id ${id} not found`);
+        logger.warn(
+          `[${this.collectionName} Service] ${this.collectionName} with id ${id} not found`,
+        );
         throw createHttpError(StatusCodes.BAD_REQUEST, `${this.collectionName} not found`, {
           resource: this.collectionName,
         });
@@ -3171,10 +3535,13 @@ export class BaseService<T, TCreateDto, TUpdateDto> {
         throw error;
       }
       if (error instanceof Error) {
-        logger.warn(`[${this.collectionName} Service] Error fetching ${this.collectionName} by id`, {
-          id,
-          error: error.message,
-        });
+        logger.warn(
+          `[${this.collectionName} Service] Error fetching ${this.collectionName} by id`,
+          {
+            id,
+            error: error.message,
+          },
+        );
         throw new Error(`Error fetching ${this.collectionName} by id: ${error.message}`);
       }
       logger.warn(
@@ -3185,53 +3552,21 @@ export class BaseService<T, TCreateDto, TUpdateDto> {
   };
 
   /**
-   * Fetches a entity by their UUID.
-   * @param uuid - entity's unique identifier
-   * @returns entity data
-   */
-  getByUuid = async (uuid: string): Promise<T> => {
-    try {
-      logger.info(`[${this.collectionName} Service] Fetching ${this.collectionName} with uuid: ${uuid}`);
-      const data = await this.baseRepository.getByUuid(uuid);
-
-      if (!data) {
-        logger.warn(`[${this.collectionName} Service] ${this.collectionName} with uuid ${uuid} not found`);
-        throw createHttpError(StatusCodes.BAD_REQUEST, `${this.collectionName} not found`, {
-          resource: this.collectionName,
-        });
-      }
-
-      return data;
-    } catch (error) {
-      if (createHttpError.isHttpError(error)) {
-        throw error;
-      }
-      if (error instanceof Error) {
-        logger.warn(`[${this.collectionName} Service] Error fetching ${this.collectionName} by uuid`, {
-          uuid,
-          error: error.message,
-        });
-        throw new Error(`Error fetching ${this.collectionName} by uuid: ${error.message}`);
-      }
-      logger.warn(
-        `[${this.collectionName} Service] Unknown error occurred while fetching ${this.collectionName} by uuid`,
-      );
-      throw new Error(`Unknown error occurred while fetching ${this.collectionName} by uuid`);
-    }
-  };
-
-  /**
    * Fetches a entity by their email.
    * @param email - entity's email
    * @returns entity data or false if not found
    */
   getByEmail = async (email: string): Promise<T | false> => {
     try {
-      logger.info(`[${this.collectionName} Service] Fetching ${this.collectionName} with email: ${email}`);
+      logger.info(
+        `[${this.collectionName} Service] Fetching ${this.collectionName} with email: ${email}`,
+      );
       const data = await this.baseRepository.getByEmail(email);
 
       if (!data) {
-        logger.warn(`[${this.collectionName} Service] ${this.collectionName} with email ${email} not found`);
+        logger.warn(
+          `[${this.collectionName} Service] ${this.collectionName} with email ${email} not found`,
+        );
         return false;
       }
 
@@ -3241,10 +3576,13 @@ export class BaseService<T, TCreateDto, TUpdateDto> {
         throw error;
       }
       if (error instanceof Error) {
-        logger.warn(`[${this.collectionName} Service] Error fetching ${this.collectionName} by email`, {
-          email,
-          error: error.message,
-        });
+        logger.warn(
+          `[${this.collectionName} Service] Error fetching ${this.collectionName} by email`,
+          {
+            email,
+            error: error.message,
+          },
+        );
         throw new Error(`Error fetching ${this.collectionName} by email: ${error.message}`);
       }
       logger.warn(
@@ -3259,8 +3597,7 @@ export class BaseService<T, TCreateDto, TUpdateDto> {
    * @param options - Query parameters like pagination, sorting, and filtering
    * @returns Paginated entity data
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  findByQuery = async (options: FindByQueryDto): Promise<any> => {
+  findByQuery = async (options: FindByQueryDto): Promise<FindByQueryResult<T>> => {
     try {
       logger.info(
         `[${this.collectionName} Service] Querying ${this.collectionName} with options: ${JSON.stringify(options)}`,
@@ -3280,11 +3617,9 @@ export class BaseService<T, TCreateDto, TUpdateDto> {
    * @param createDto - Data for creating a new entity
    * @returns Created entity data
    */
-  create = async (createDto: TCreateDto): Promise<T> => {
+  create = async (createDto: TCreateDto): Promise<T | null> => {
     try {
-      logger.info(
-        `[${this.collectionName} Service] Creating ${this.collectionName} ${createDto}`,
-      );
+      logger.info(`[${this.collectionName} Service] Creating ${this.collectionName} ${createDto}`);
       return await this.baseRepository.create(createDto);
     } catch (error) {
       if (createHttpError.isHttpError(error)) {
@@ -3307,24 +3642,27 @@ export class BaseService<T, TCreateDto, TUpdateDto> {
 
   /**
    * Updates an existing entity.
-   * @param uuid - entity's unique identifier
+   * @param id - entity's unique identifier
    * @param updateDto - Data to update the entity with
    * @returns Updated entity data
    */
-  update = async (uuid: string, updateDto: TUpdateDto): Promise<T | null> => {
+  update = async (id: string, updateDto: TUpdateDto): Promise<T | null> => {
     try {
-      logger.info(`[${this.collectionName} Service] Updating ${this.collectionName} with uuid: ${uuid}`);
-      const data = await this.getByUuid(uuid);
+      logger.info(
+        `[${this.collectionName} Service] Updating ${this.collectionName} with id: ${id}`,
+      );
+      const data = await this.getById(id);
 
       if (!data) {
-        logger.warn(`[${this.collectionName} Service] ${this.collectionName} with uuid ${uuid} does not exist!`);
+        logger.warn(
+          `[${this.collectionName} Service] ${this.collectionName} with id ${id} does not exist!`,
+        );
         throw createHttpError(StatusCodes.BAD_REQUEST, `${this.collectionName} does not exist!`, {
           resource: this.collectionName,
         });
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return await this.baseRepository.update(uuid, updateDto);
+      return await this.baseRepository.update(id, updateDto);
     } catch (error) {
       if (createHttpError.isHttpError(error)) {
         throw error;
@@ -3332,7 +3670,7 @@ export class BaseService<T, TCreateDto, TUpdateDto> {
 
       if (error instanceof Error) {
         logger.warn(`[${this.collectionName} Service] Error updating ${this.collectionName}`, {
-          uuid,
+          id,
           updateDto,
           error: error.message,
         });
@@ -3347,22 +3685,26 @@ export class BaseService<T, TCreateDto, TUpdateDto> {
 
   /**
    * Deletes a entity.
-   * @param uuid - entity's unique identifier
+   * @param id - entity's unique identifier
    * @returns Deletion result
    */
-  delete = async (uuid: string): Promise<T | null> => {
+  delete = async (id: string): Promise<T | null> => {
     try {
-      logger.info(`[${this.collectionName} Service] Deleting ${this.collectionName} with uuid: ${uuid}`);
-      const data = await this.getByUuid(uuid);
+      logger.info(
+        `[${this.collectionName} Service] Deleting ${this.collectionName} with id: ${id}`,
+      );
+      const data = await this.getById(id);
 
       if (!data) {
-        logger.warn(`[${this.collectionName} Service] ${this.collectionName} with uuid ${uuid} does not exist!`);
+        logger.warn(
+          `[${this.collectionName} Service] ${this.collectionName} with id ${id} does not exist!`,
+        );
         throw createHttpError(StatusCodes.BAD_REQUEST, `${this.collectionName} does not exist!`, {
           resource: this.collectionName,
         });
       }
 
-      return await this.baseRepository.delete(uuid);
+      return await this.baseRepository.delete(id);
     } catch (error) {
       if (createHttpError.isHttpError(error)) {
         throw error;
@@ -3370,7 +3712,7 @@ export class BaseService<T, TCreateDto, TUpdateDto> {
 
       if (error instanceof Error) {
         logger.warn(`[${this.collectionName} Service] Error deleting ${this.collectionName}`, {
-          uuid,
+          id,
           error: error.message,
         });
         throw new Error(`Error deleting ${this.collectionName}: ${error.message}`);
@@ -3383,20 +3725,22 @@ export class BaseService<T, TCreateDto, TUpdateDto> {
   };
 
   /**
-   * Deletes multiple entities by their uuids.
-   * @param uuids - List of entity uuids to delete
+   * Deletes multiple entities by their ids.
+   * @param ids - List of entity ids to delete
    * @returns Deletion result
    */
-  deleteAll = async (uuids: string[]): Promise<{ deletedCount: number }> => {
-    if (!Array.isArray(uuids) || uuids.length === 0) {
-      logger.warn(`[${this.collectionName} Service] Invalid array of uuids for bulk delete`);
-      throw new Error("Invalid array of uuids");
+  deleteMany = async (ids: string[]): Promise<{ deletedCount: number }> => {
+    if (!Array.isArray(ids) || ids.length === 0) {
+      logger.warn(`[${this.collectionName} Service] Invalid array of ids for bulk delete`);
+      throw new Error("Invalid array of ids");
     }
 
-    const result = await this.baseRepository.deleteAll(uuids);
+    const result = await this.baseRepository.deleteMany(ids);
 
     if (result.deletedCount === 0) {
-      logger.warn(`[${this.collectionName} Service] No ${this.collectionName} found to delete`, { uuids });
+      logger.warn(`[${this.collectionName} Service] No ${this.collectionName} found to delete`, {
+        ids,
+      });
       throw new Error(`No ${this.collectionName} found to delete`);
     }
 
@@ -3409,8 +3753,7 @@ export class BaseService<T, TCreateDto, TUpdateDto> {
    * @param accountId - account id for creating entities
    * @returns number of imported entities
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  import = async (importDto: TCreateDto[]): Promise<any> => {
+  import = async (importDto: TCreateDto[]): Promise<ImportResult<T>> => {
     try {
       logger.info(`[${this.collectionName} Service] Starting import ${this.collectionName}`);
 
@@ -3482,361 +3825,345 @@ import { logger } from "../winston/winston";
 import { StatusCodes } from "http-status-codes";
 import createHttpError from "http-errors";
 import { csvBufferToJson, csvToJson } from "@/utils/csv-to-json";
-import { Model } from "mongoose";
 import { createResponse } from "@/utils/create-response";
 
 export class BaseController<T, TCreateDto, TUpdateDto> {
-    public collectionName: string;
-    protected baseService: BaseService<T, TCreateDto, TUpdateDto>;
+  public collectionName: string;
+  protected baseService: BaseService<T, TCreateDto, TUpdateDto>;
 
-    constructor(model: Model<T>, collectionName: string) {
-        this.collectionName = collectionName;
-        this.baseService = new BaseService<T, TCreateDto, TUpdateDto>(model, collectionName);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  constructor(model: any, collectionName: string, ignoreFields?: Record<string, boolean>) {
+    this.collectionName = collectionName;
+    this.baseService = new BaseService<T, TCreateDto, TUpdateDto>(
+      model,
+      collectionName,
+      ignoreFields,
+    );
+  }
+
+  /**
+   * Get all entities objects
+   * @param _req - CustomRequest object
+   * @param res - Response object
+   * @param next - Next middleware function
+   * @returns JSON list of entities
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getAll = async (_req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
+    try {
+      logger.info(`[${this.collectionName} Controller] Fetching all ${this.collectionName}`);
+      const data = await this.baseService.getAll();
+
+      return res.json(createResponse({ data }));
+    } catch (error) {
+      if (error instanceof Error) {
+        logger.warn(
+          `[${this.collectionName} Controller] Error fetching all ${this.collectionName}`,
+          {
+            error: error.message,
+          },
+        );
+      }
+      next(error);
     }
+  };
 
-    /**
-     * Get all entities objects
-     * @param _req - CustomRequest object
-     * @param res - Response object
-     * @param next - Next middleware function
-     * @returns JSON list of entities
-     */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    getAll = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
-        try {
-            logger.info(`[${this.collectionName} Controller] Fetching all ${this.collectionName}`);
-            const data = await this.baseService.getAll();
+  /**
+   * Get entity by ID
+   * @param req - CustomRequest object
+   * @param res - Response object
+   * @param next - Next middleware function
+   * @returns JSON entity object
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getById = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
+    const { id } = req.params;
+    const { loggedUser } = req;
+    try {
+      logger.info(`[${this.collectionName} Controller] Fetching ${this.collectionName} by ID`, {
+        loggedUser,
+        id,
+      });
+      const data = await this.baseService.getById(id);
 
-            return res.json(createResponse(req, data));
-        } catch (error) {
-            if (error instanceof Error) {
-                logger.warn(`[${this.collectionName} Controller] Error fetching all ${this.collectionName}`, {
-                    error: error.message,
-                });
-            }
-            next(error);
-        }
-    };
+      return res.json(createResponse({ data }));
+    } catch (error) {
+      if (error instanceof Error) {
+        logger.warn(
+          `[${this.collectionName} Controller] Error fetching ${this.collectionName} by ID`,
+          {
+            error: error.message,
+            loggedUser,
+            id,
+          },
+        );
+      }
+      next(error);
+    }
+  };
 
-    /**
-     * Get entity by ID
-     * @param req - CustomRequest object
-     * @param res - Response object
-     * @param next - Next middleware function
-     * @returns JSON entity object
-     */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    getById = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
-        const { id } = req.params;
-        const { loggedUser } = req;
-        try {
-            logger.info(`[${this.collectionName} Controller] Fetching ${this.collectionName} by ID`, { loggedUser, id });
-            const data = await this.baseService.getById(id);
-            return res.json(createResponse(req, data));
-        } catch (error) {
-            if (error instanceof Error) {
-                logger.warn(`[${this.collectionName} Controller] Error fetching ${this.collectionName} by ID`, {
-                    error: error.message,
-                    loggedUser,
-                    id,
-                });
-            }
-            next(error);
-        }
-    };
+  /**
+   * Get entity by email
+   * @param req - CustomRequest object
+   * @param res - Response object
+   * @param next - Next middleware function
+   * @returns JSON entity object
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getByEmail = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
+    const { email } = req.params;
+    const { loggedUser } = req;
+    try {
+      logger.info(`[${this.collectionName} Controller] Fetching ${this.collectionName} by email`, {
+        loggedUser,
+        email,
+      });
+      const data = await this.baseService.getByEmail(email);
 
-    /**
-     * Get entity by ID
-     * @param req - CustomRequest object
-     * @param res - Response object
-     * @param next - Next middleware function
-     * @returns JSON entity object
-     */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    getByUuid = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
-        const { uuid } = req.params;
-        const { loggedUser } = req;
-        try {
-            logger.info(`[${this.collectionName} Controller] Fetching ${this.collectionName} by uuid`, {
-                loggedUser,
-                uuid,
-            });
-            const data = await this.baseService.getByUuid(uuid);
-            return res.json(createResponse(req, data));
-        } catch (error) {
-            if (error instanceof Error) {
-                logger.warn(`[${this.collectionName} Controller] Error fetching ${this.collectionName} by uuid`, {
-                    error: error.message,
-                    loggedUser,
-                    uuid,
-                });
-            }
-            next(error);
-        }
-    };
+      return res.json(createResponse({ data }));
+    } catch (error) {
+      if (error instanceof Error) {
+        logger.warn(
+          `[${this.collectionName} Controller] Error fetching ${this.collectionName} by email`,
+          {
+            error: error.message,
+            loggedUser,
+            email,
+          },
+        );
+      }
+      next(error);
+    }
+  };
 
-    /**
-     * Get entity by email
-     * @param req - CustomRequest object
-     * @param res - Response object
-     * @param next - Next middleware function
-     * @returns JSON entity object
-     */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    getByEmail = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
-        const { email } = req.params;
-        const { loggedUser } = req;
-        try {
-            logger.info(`[${this.collectionName} Controller] Fetching ${this.collectionName} by email`, {
-                loggedUser,
-                email,
-            });
-            const data = await this.baseService.getByEmail(email);
-            return res.json(createResponse(req, data));
-        } catch (error) {
-            if (error instanceof Error) {
-                logger.warn(`[${this.collectionName} Controller] Error fetching ${this.collectionName} by email`, {
-                    error: error.message,
-                    loggedUser,
-                    email,
-                });
-            }
-            next(error);
-        }
-    };
+  /**
+   * Find entities by query (pagination, sorting, filtering)
+   * @param req - CustomRequest object
+   * @param res - Response object
+   * @param next - Next middleware function
+   * @returns JSON result of the query
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  findByQuery = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
+    try {
+      const { paginate, orderBy, filter } = req.body;
+      const queryOptions = { paginate, orderBy, filter };
+      logger.info(`[${this.collectionName} Controller] Finding ${this.collectionName} by query`, {
+        queryOptions,
+      });
 
-    /**
-     * Find entities by query (pagination, sorting, filtering)
-     * @param req - CustomRequest object
-     * @param res - Response object
-     * @param next - Next middleware function
-     * @returns JSON result of the query
-     */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    findByQuery = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
-        try {
-            const { paginate, orderBy, filter } = req.body;
-            const queryOptions = { paginate, orderBy, filter };
-            logger.info(`[${this.collectionName} Controller] Finding ${this.collectionName} by query`, { queryOptions });
+      const data = await this.baseService.findByQuery(queryOptions);
 
-            const result = await this.baseService.findByQuery(queryOptions);
-            return res.json(createResponse(req, result));
-        } catch (error) {
-            if (error instanceof Error) {
-                logger.warn(`[${this.collectionName} Controller] Error finding ${this.collectionName} by query`, {
-                    error: error.message,
-                });
-            }
-            next(error);
-        }
-    };
+      return res.json(createResponse({ data }));
+    } catch (error) {
+      if (error instanceof Error) {
+        logger.warn(
+          `[${this.collectionName} Controller] Error finding ${this.collectionName} by query`,
+          {
+            error: error.message,
+          },
+        );
+      }
+      next(error);
+    }
+  };
 
-    /**
-     * Create a new entity
-     * @param req - CustomRequest object
-     * @param res - Response object
-     * @param next - Next middleware function
-     * @returns JSON created entity
-     */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    create = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
-        const createDto = req.body;
-        const { loggedUser } = req;
-        try {
-            logger.info(`[${this.collectionName} Controller] Creating new ${this.collectionName}`, {
-                loggedUser,
-                createDto,
-            });
-            const created = await this.baseService.create(createDto);
-            return res.json(
-                createResponse(req, created, "User created successfully", StatusCodes.CREATED),
-            );
-        } catch (error) {
-            if (error instanceof Error) {
-                logger.warn(`[${this.collectionName} Controller] Error creating ${this.collectionName}`, {
-                    error: error.message,
-                    loggedUser,
-                    createDto,
-                });
-            }
-            next(error);
-        }
-    };
+  /**
+   * Create a new entity
+   * @param req - CustomRequest object
+   * @param res - Response object
+   * @param next - Next middleware function
+   * @returns JSON created entity
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  create = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
+    const createDto = req.body;
+    const { loggedUser } = req;
+    try {
+      logger.info(`[${this.collectionName} Controller] Creating new ${this.collectionName}`, {
+        loggedUser,
+        createDto,
+      });
+      const created = await this.baseService.create(createDto);
+      return res.json(createResponse({ data: created, status: StatusCodes.CREATED }));
+    } catch (error) {
+      if (error instanceof Error) {
+        logger.warn(`[${this.collectionName} Controller] Error creating ${this.collectionName}`, {
+          error: error.message,
+          loggedUser,
+          createDto,
+        });
+      }
+      next(error);
+    }
+  };
 
-    /**
-     * Update an existing entity
-     * @param req - CustomRequest object
-     * @param res - Response object
-     * @param next - Next middleware function
-     * @returns JSON updated entity
-     */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    update = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
-        const { uuid } = req.params;
-        const updateDto = req.body;
-        const { loggedUser } = req;
-        try {
-            logger.info(`[${this.collectionName} Controller] Updating ${this.collectionName}`, {
-                loggedUser,
-                uuid,
-                updateDto,
-            });
-            const updatedData = await this.baseService.update(uuid, updateDto);
-            return res.json(createResponse(req, updatedData, "User updated successfully"));
-        } catch (error) {
-            if (error instanceof Error) {
-                logger.warn(`[${this.collectionName} Controller] Error updating ${this.collectionName}`, {
-                    error: error.message,
-                    loggedUser,
-                    uuid,
-                    updateDto,
-                });
-            }
-            next(error);
-        }
-    };
+  /**
+   * Update an existing entity
+   * @param req - CustomRequest object
+   * @param res - Response object
+   * @param next - Next middleware function
+   * @returns JSON updated entity
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  update = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
+    const { id } = req.params;
+    const updateDto = req.body;
+    const { loggedUser } = req;
+    try {
+      logger.info(`[${this.collectionName} Controller] Updating ${this.collectionName}`, {
+        loggedUser,
+        id,
+        updateDto,
+      });
+      const updated = await this.baseService.update(id, updateDto);
+      return res.json(createResponse({ data: updated }));
+    } catch (error) {
+      if (error instanceof Error) {
+        logger.warn(`[${this.collectionName} Controller] Error updating ${this.collectionName}`, {
+          error: error.message,
+          loggedUser,
+          id,
+          updateDto,
+        });
+      }
+      next(error);
+    }
+  };
 
-    /**
-     * Delete a entity by ID
-     * @param req - CustomRequest object
-     * @param res - Response object
-     * @param next - Next middleware function
-     * @returns JSON success message
-     */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    delete = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
-        const { uuid } = req.params;
-        const { loggedUser } = req;
-        try {
-            logger.info(`[${this.collectionName} Controller] Deleting ${this.collectionName} by uuid`, {
-                loggedUser,
-                uuid,
-            });
-            await this.baseService.delete(uuid);
-            return res.json(createResponse(req, {}, "User deleted Successfully"));
-        } catch (error) {
-            if (error instanceof Error) {
-                logger.warn(`[${this.collectionName} Controller] Error deleting ${this.collectionName}`, {
-                    error: error.message,
-                    loggedUser,
-                    uuid,
-                });
-            }
-            next(error);
-        }
-    };
+  /**
+   * Delete a entity by ID
+   * @param req - CustomRequest object
+   * @param res - Response object
+   * @param next - Next middleware function
+   * @returns JSON success message
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  delete = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
+    const { id } = req.params;
+    const { loggedUser } = req;
+    try {
+      logger.info(`[${this.collectionName} Controller] Deleting ${this.collectionName} by id`, {
+        loggedUser,
+        id,
+      });
+      const data = await this.baseService.delete(id);
 
-    /**
-     * Delete multiple entities
-     * @param req - CustomRequest object
-     * @param res - Response object
-     * @param next - Next middleware function
-     * @returns JSON success message
-     */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    deleteAll = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
-        const { uuids } = req.body;
-        const { loggedUser } = req;
-        try {
-            if (!Array.isArray(uuids) || uuids.length === 0) {
-                throw createHttpError(StatusCodes.BAD_REQUEST, "Invalid or empty array of uuids", {
-                    resource: this.collectionName,
-                });
-            }
+      return res.json(createResponse({ data }));
+    } catch (error) {
+      if (error instanceof Error) {
+        logger.warn(`[${this.collectionName} Controller] Error deleting ${this.collectionName}`, {
+          error: error.message,
+          loggedUser,
+          id,
+        });
+      }
+      next(error);
+    }
+  };
 
-            logger.info(`[${this.collectionName} Controller] Deleting multiple ${this.collectionName}`, {
-                loggedUser,
-                uuids,
-            });
-            const result = await this.baseService.deleteAll(uuids);
+  /**
+   * Delete multiple entities
+   * @param req - CustomRequest object
+   * @param res - Response object
+   * @param next - Next middleware function
+   * @returns JSON success message
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  deleteMany = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
+    const { ids } = req.body;
+    const { loggedUser } = req;
+    try {
+      if (!Array.isArray(ids) || ids.length === 0) {
+        throw createHttpError(StatusCodes.BAD_REQUEST, "Invalid or empty array of ids", {
+          resource: this.collectionName,
+        });
+      }
 
-            return res.json(
-                createResponse(
-                    req,
-                    {},
-                    `${result.deletedCount} ${this.collectionName} deleted successfully`,
-                ),
-            );
-        } catch (error) {
-            if (error instanceof Error) {
-                logger.warn(`[${this.collectionName} Controller] Error deleting ${this.collectionName}`, {
-                    error: error.message,
-                    loggedUser,
-                    uuids,
-                });
-            }
-            next(error);
-        }
-    };
+      logger.info(`[${this.collectionName} Controller] Deleting multiple ${this.collectionName}`, {
+        loggedUser,
+        ids,
+      });
+      const data = await this.baseService.deleteMany(ids);
 
-    /**
-     * Import entities
-     * @param req - CustomRequest object
-     * @param res - Response object
-     * @param next - Next middleware function
-     * @returns JSON created entity
-     */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    import = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
-        const { loggedUser, file } = req;
-        if (!file) {
-            return next(createHttpError(StatusCodes.BAD_REQUEST, "No file uploaded."));
-        }
-        try {
-            logger.info(`[${this.collectionName} Controller] Importing new ${this.collectionName}`, { loggedUser });
-            let importEntries;
+      return res.json(createResponse({ data }));
+    } catch (error) {
+      if (error instanceof Error) {
+        logger.warn(`[${this.collectionName} Controller] Error deleting ${this.collectionName}`, {
+          error: error.message,
+          loggedUser,
+          ids,
+        });
+      }
+      next(error);
+    }
+  };
 
-            if (file.buffer) {
-                importEntries = await csvBufferToJson(file.buffer);
-            } else {
-                importEntries = await csvToJson(file.path);
-            }
+  /**
+   * Import entities
+   * @param req - CustomRequest object
+   * @param res - Response object
+   * @param next - Next middleware function
+   * @returns JSON created entity
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  import = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
+    const { loggedUser, file } = req;
+    if (!file) {
+      return next(createHttpError(StatusCodes.BAD_REQUEST, "No file uploaded."));
+    }
+    try {
+      logger.info(`[${this.collectionName} Controller] Importing new ${this.collectionName}`, {
+        loggedUser,
+      });
+      let importEntries;
 
-            const imported = await this.baseService.import(importEntries);
+      if (file.buffer) {
+        importEntries = await csvBufferToJson(file.buffer);
+      } else {
+        importEntries = await csvToJson(file.path);
+      }
 
-            return res.json(
-                createResponse(
-                    req,
-                    imported.createdEntities,
-                    `${imported.createdCount} completed, ${imported.skippedCount} skipped`,
-                ),
-            );
-        } catch (error) {
-            if (error instanceof Error) {
-                logger.warn(`[${this.collectionName} Controller] Error creating ${this.collectionName}`, {
-                    error: error.message,
-                    loggedUser,
-                });
-            }
-            next(error);
-        }
-    };
+      const imported = await this.baseService.import(importEntries);
 
-    /**
-     * Export entities
-     * @param _req - CustomRequest object
-     * @param res - Response object
-     * @param next - Next middleware function
-     * @returns JSON list of entities
-     */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    export = async (_req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
-        try {
-            logger.info(`[${this.collectionName} Controller] Exporting ${this.collectionName}`);
-            const csv = await this.baseService.export();
-            res.setHeader("Content-Type", "text/csv");
-            res.attachment(`${this.collectionName}.csv`);
-            res.send(csv);
-        } catch (error) {
-            if (error instanceof Error) {
-                logger.warn(`[${this.collectionName} Controller] Error exporting ${this.collectionName}`, {
-                    error: error.message,
-                });
-            }
-            next(error);
-        }
-    };
+      return res.json(createResponse({ data: imported }));
+    } catch (error) {
+      if (error instanceof Error) {
+        logger.warn(`[${this.collectionName} Controller] Error creating ${this.collectionName}`, {
+          error: error.message,
+          loggedUser,
+        });
+      }
+      next(error);
+    }
+  };
+
+  /**
+   * Export entities
+   * @param _req - CustomRequest object
+   * @param res - Response object
+   * @param next - Next middleware function
+   * @returns JSON list of entities
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  export = async (_req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
+    try {
+      logger.info(`[${this.collectionName} Controller] Exporting ${this.collectionName}`);
+      const csv = await this.baseService.export();
+      res.setHeader("Content-Type", "text/csv");
+      res.attachment(`${this.collectionName}.csv`);
+      res.status(StatusCodes.OK).send(csv);
+    } catch (error) {
+      if (error instanceof Error) {
+        logger.warn(`[${this.collectionName} Controller] Error exporting ${this.collectionName}`, {
+          error: error.message,
+        });
+      }
+      next(error);
+    }
+  };
 }
+
 
 File: src/common/winston/winston.ts
 --------------------------------------------------
@@ -4045,14 +4372,19 @@ import { AuthDto, RegisterDto, ResetPasswordDto } from "@/entities/auth/auth.dto
 import { AuthService } from "@/entities/auth/auth.services";
 import { logger } from "@/common/winston/winston";
 import { CustomRequest } from "@/types/request";
+import { StatusCodes } from "http-status-codes";
+import { createResponse } from "@/utils/create-response";
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
 
 export class AuthController {
   private collectionName: string;
   private authService: AuthService;
 
   constructor() {
-    this.collectionName = "Auth";
-    this.authService = new AuthService("Auth");
+    this.collectionName = "User";
+    this.authService = new AuthService(prisma.user, "User");
   }
 
   /**
@@ -4061,18 +4393,23 @@ export class AuthController {
    * @param res - Response object
    * @param next - Next middleware function
    */
-  login = async (req: CustomRequest, res: Response, next: NextFunction): Promise<void> => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  login = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
     const loginDto: AuthDto = req.body;
     const { loggedUser } = req;
-    logger.info(`[${this.collectionName} Controller] login API invoked`, { email: loginDto.email, loggedUser });
+    logger.info(`[${this.collectionName} Controller] login API invoked`, {
+      email: loginDto.email,
+      loggedUser,
+    });
 
     try {
-      const result = await this.authService.login(loginDto);
+      const data = await this.authService.login(loginDto);
       logger.info(`[${this.collectionName} Controller] User login successful`, {
         email: loginDto.email,
         loggedUser,
       });
-      res.json(result);
+
+      return res.json(createResponse({ data, status: StatusCodes.CREATED }));
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(`[${this.collectionName} Controller] login API error`, {
@@ -4081,7 +4418,9 @@ export class AuthController {
           loggedUser,
         });
       } else {
-        logger.warn(`[${this.collectionName} Controller] login API error: Unknown error occurred`, { loggedUser });
+        logger.warn(`[${this.collectionName} Controller] login API error: Unknown error occurred`, {
+          loggedUser,
+        });
       }
       next(error);
     }
@@ -4093,7 +4432,8 @@ export class AuthController {
    * @param res - Response object
    * @param next - Next middleware function
    */
-  register = async (req: CustomRequest, res: Response, next: NextFunction): Promise<void> => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  register = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
     const registerDto: RegisterDto = req.body;
     const { loggedUser } = req;
     logger.info(`[${this.collectionName} Controller] Register API invoked`, {
@@ -4102,12 +4442,13 @@ export class AuthController {
     });
 
     try {
-      const result = await this.authService.register(registerDto);
+      const data = await this.authService.register(registerDto);
       logger.info(`[${this.collectionName} Controller] User registration successful`, {
         email: registerDto.email,
         loggedUser,
       });
-      res.json(result);
+
+      return res.json(createResponse({ data, status: StatusCodes.CREATED }));
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(`[${this.collectionName} Controller] Register API error`, {
@@ -4116,9 +4457,12 @@ export class AuthController {
           loggedUser,
         });
       } else {
-        logger.warn(`[${this.collectionName} Controller] Register API error: Unknown error occurred`, {
-          loggedUser,
-        });
+        logger.warn(
+          `[${this.collectionName} Controller] Register API error: Unknown error occurred`,
+          {
+            loggedUser,
+          },
+        );
       }
       next(error);
     }
@@ -4130,15 +4474,20 @@ export class AuthController {
    * @param res - Response object
    * @param next - Next middleware function
    */
-  logout = async (req: CustomRequest, res: Response, next: NextFunction): Promise<void> => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  logout = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
     const token = req.headers.authorization?.split(" ")[1];
     const { loggedUser } = req;
     logger.info(`[${this.collectionName} Controller] Logout API invoked`, { token, loggedUser });
 
     try {
-      const result = await this.authService.logout(token!);
-      logger.info(`[${this.collectionName} Controller] User logout successful`, { token, loggedUser });
-      res.json(result);
+      const data = await this.authService.logout(token!);
+      logger.info(`[${this.collectionName} Controller] User logout successful`, {
+        token,
+        loggedUser,
+      });
+
+      return res.json(createResponse({ data, status: StatusCodes.CREATED }));
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(`[${this.collectionName} Controller] Logout API error`, {
@@ -4147,7 +4496,10 @@ export class AuthController {
           loggedUser,
         });
       } else {
-        logger.warn(`[${this.collectionName} Controller] Logout API error: Unknown error occurred`, { loggedUser });
+        logger.warn(
+          `[${this.collectionName} Controller] Logout API error: Unknown error occurred`,
+          { loggedUser },
+        );
       }
       next(error);
     }
@@ -4159,15 +4511,22 @@ export class AuthController {
    * @param res - Response object
    * @param next - Next middleware function
    */
-  extendToken = async (req: CustomRequest, res: Response, next: NextFunction): Promise<void> => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  extendToken = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
     const token = req.headers.authorization?.split(" ")[1];
     const { loggedUser } = req;
-    logger.info(`[${this.collectionName} Controller] ExtendToken API invoked`, { token, loggedUser });
+    logger.info(`[${this.collectionName} Controller] ExtendToken API invoked`, {
+      token,
+      loggedUser,
+    });
 
     try {
-      const newToken = await this.authService.extendToken(token!);
-      logger.info(`[${this.collectionName} Controller] Token extended successfully`, { newToken, loggedUser });
-      res.json({ token: newToken });
+      const data = await this.authService.extendToken(token!);
+      logger.info(`[${this.collectionName} Controller] Token extended successfully`, {
+        data,
+        loggedUser,
+      });
+      return res.json(createResponse({ data, status: StatusCodes.CREATED }));
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(`[${this.collectionName} Controller] ExtendToken API error`, {
@@ -4176,9 +4535,12 @@ export class AuthController {
           loggedUser,
         });
       } else {
-        logger.warn(`[${this.collectionName} Controller] ExtendToken API error: Unknown error occurred`, {
-          loggedUser,
-        });
+        logger.warn(
+          `[${this.collectionName} Controller] ExtendToken API error: Unknown error occurred`,
+          {
+            loggedUser,
+          },
+        );
       }
       next(error);
     }
@@ -4190,18 +4552,22 @@ export class AuthController {
    * @param res - Response object
    * @param next - Next middleware function
    */
-  forgotPassword = async (req: CustomRequest, res: Response, next: NextFunction): Promise<void> => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  forgotPassword = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
     const { email } = req.body;
     const { loggedUser } = req;
-    logger.info(`[${this.collectionName} Controller] Forgot password API invoked`, { email, loggedUser });
+    logger.info(`[${this.collectionName} Controller] Forgot password API invoked`, {
+      email,
+      loggedUser,
+    });
 
     try {
-      const message = await this.authService.forgotPassword(email);
+      const data = await this.authService.forgotPassword(email);
       logger.info(`[${this.collectionName} Controller] Forgot password successful`, {
         email,
         loggedUser,
       });
-      res.json(message);
+      return res.json(createResponse({ data, status: StatusCodes.CREATED }));
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(`[${this.collectionName} Controller] Forgot password API error`, {
@@ -4210,9 +4576,12 @@ export class AuthController {
           loggedUser,
         });
       } else {
-        logger.warn(`[${this.collectionName} Controller] Forgot password API error: Unknown error occurred`, {
-          loggedUser,
-        });
+        logger.warn(
+          `[${this.collectionName} Controller] Forgot password API error: Unknown error occurred`,
+          {
+            loggedUser,
+          },
+        );
       }
       next(error);
     }
@@ -4224,23 +4593,27 @@ export class AuthController {
    * @param res - Response object
    * @param next - Next middleware function
    */
-  resetPassword = async (req: CustomRequest, res: Response, next: NextFunction): Promise<void> => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  resetPassword = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
     const { resetToken, password, confirmPassword } = req.body;
     const { loggedUser } = req;
-    logger.info(`[${this.collectionName} Controller] Reset password API invoked`, { resetToken, loggedUser });
+    logger.info(`[${this.collectionName} Controller] Reset password API invoked`, {
+      resetToken,
+      loggedUser,
+    });
 
     const resetPasswordDto: ResetPasswordDto = {
-      password: password as string,
-      confirmPassword: confirmPassword as string,
-      resetToken: resetToken as string,
+      password,
+      confirmPassword,
+      resetToken,
     };
     try {
-      const message = await this.authService.resetPassword(resetPasswordDto);
+      const data = await this.authService.resetPassword(resetPasswordDto);
       logger.info(`[${this.collectionName} Controller] Reset password successful`, {
         resetToken,
         loggedUser,
       });
-      res.json(message);
+      return res.json(createResponse({ data, status: StatusCodes.CREATED }));
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(`[${this.collectionName} Controller] Reset password API error`, {
@@ -4249,9 +4622,12 @@ export class AuthController {
           loggedUser,
         });
       } else {
-        logger.warn(`[${this.collectionName} Controller] Reset password API error: Unknown error occurred`, {
-          loggedUser,
-        });
+        logger.warn(
+          `[${this.collectionName} Controller] Reset password API error: Unknown error occurred`,
+          {
+            loggedUser,
+          },
+        );
       }
       next(error);
     }
@@ -4267,7 +4643,7 @@ import { z } from "zod";
 
 extendZodWithOpenApi(z);
 
-const PASSWORD_SCHEMA = z
+const passwordSchema = z
   .string()
   .min(8)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -4302,27 +4678,27 @@ const PASSWORD_SCHEMA = z
     }
   });
 
-export const AuthSchema = z.object({
+export const loginSchema = z.object({
   email: z.string().email(),
-  password: PASSWORD_SCHEMA,
+  password: passwordSchema,
 });
 
-export const LogoutSchema = z.object({
+export const logoutSchema = z.object({
   success: z.boolean(),
 });
 
-export const ExtendTokenSchema = z.object({
+export const extendTokenSchema = z.object({
   token: z.string(),
 });
 
-export const ForgotPasswordSchema = z.object({
+export const forgotPasswordSchema = z.object({
   email: z.string().email().trim(),
 });
 
-export const ResetPasswordSchema = z
+export const resetPasswordSchema = z
   .object({
     resetToken: z.string(),
-    password: PASSWORD_SCHEMA,
+    password: passwordSchema,
     confirmPassword: z.string().min(8),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -4330,12 +4706,10 @@ export const ResetPasswordSchema = z
     path: ["confirmPassword"],
   });
 
-export const RegisterSchema = z
+export const registerSchema = z
   .object({
-    name: z.string().min(4, { message: "Name must be at least 4 characters long" }),
-    username: z.string().min(4, { message: "Username must be at least 4 characters long" }),
     email: z.string().email(),
-    password: PASSWORD_SCHEMA,
+    password: passwordSchema,
     confirmPassword: z.string().min(8),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -4343,9 +4717,9 @@ export const RegisterSchema = z
     path: ["confirmPassword"],
   });
 
-export type RegisterDto = z.infer<typeof RegisterSchema>;
-export type AuthDto = z.infer<typeof AuthSchema>;
-export type ResetPasswordDto = z.infer<typeof ResetPasswordSchema>;
+export type RegisterDto = z.infer<typeof registerSchema>;
+export type AuthDto = z.infer<typeof loginSchema>;
+export type ResetPasswordDto = z.infer<typeof resetPasswordSchema>;
 
 
 File: src/entities/auth/auth.route.ts
@@ -4356,12 +4730,12 @@ import { authMiddleware, zodValidation } from "@/middlewares";
 import { OpenAPIRegistry } from "@asteasolutions/zod-to-openapi";
 import { createApiResponse } from "@/common/swagger/swagger-response-builder";
 import {
-  AuthSchema,
-  ExtendTokenSchema,
-  ForgotPasswordSchema,
-  LogoutSchema,
-  RegisterSchema,
-  ResetPasswordSchema,
+  loginSchema,
+  extendTokenSchema,
+  forgotPasswordSchema,
+  logoutSchema,
+  registerSchema,
+  resetPasswordSchema,
 } from "@/entities/auth/auth.dto";
 import { AuthController } from "@/entities/auth/auth.controller";
 
@@ -4373,7 +4747,7 @@ const ROUTE = `/${TAG.toLowerCase()}`;
 export const authRegistry = new OpenAPIRegistry();
 const authController = new AuthController();
 
-authRegistry.register(TAG, AuthSchema);
+authRegistry.register(TAG, loginSchema);
 
 authRegistry.registerPath({
   method: "post",
@@ -4382,12 +4756,12 @@ authRegistry.registerPath({
   summary: "Login",
   request: {
     body: {
-      content: { "application/json": { schema: AuthSchema } },
+      content: { "application/json": { schema: loginSchema } },
     },
   },
-  responses: createApiResponse(AuthSchema, "Login Successfully"),
+  responses: createApiResponse(loginSchema, "Login Successfully"),
 });
-authRouter.post("/login", zodValidation(AuthSchema), authController.login);
+authRouter.post("/login", zodValidation(loginSchema), authController.login);
 
 //====================================================================================================
 
@@ -4398,12 +4772,12 @@ authRegistry.registerPath({
   summary: "Register",
   request: {
     body: {
-      content: { "application/json": { schema: RegisterSchema } },
+      content: { "application/json": { schema: registerSchema } },
     },
   },
-  responses: createApiResponse(RegisterSchema, "Register Successfully"),
+  responses: createApiResponse(registerSchema, "Register Successfully"),
 });
-authRouter.post("/register", zodValidation(RegisterSchema), authController.register);
+authRouter.post("/register", zodValidation(registerSchema), authController.register);
 
 //====================================================================================================
 
@@ -4414,15 +4788,15 @@ authRegistry.registerPath({
   summary: "Extend Token",
   request: {
     body: {
-      content: { "application/json": { schema: ExtendTokenSchema } },
+      content: { "application/json": { schema: extendTokenSchema } },
     },
   },
-  responses: createApiResponse(ExtendTokenSchema, "Token Extended Successfully"),
+  responses: createApiResponse(extendTokenSchema, "Token Extended Successfully"),
 });
 authRouter.post(
   "/extend-token",
   authMiddleware,
-  zodValidation(ExtendTokenSchema),
+  zodValidation(extendTokenSchema),
   authController.extendToken,
 );
 
@@ -4433,7 +4807,7 @@ authRegistry.registerPath({
   path: `${ROUTE}/logout`,
   tags: [TAG],
   summary: "Logout",
-  responses: createApiResponse(LogoutSchema, "Logout Successfully"),
+  responses: createApiResponse(logoutSchema, "Logout Successfully"),
 });
 authRouter.get("/logout", authMiddleware, authController.logout);
 
@@ -4446,14 +4820,14 @@ authRegistry.registerPath({
   summary: "Forgot Password",
   request: {
     body: {
-      content: { "application/json": { schema: ForgotPasswordSchema } },
+      content: { "application/json": { schema: forgotPasswordSchema } },
     },
   },
-  responses: createApiResponse(ForgotPasswordSchema, "Reset link sent. Check you email"),
+  responses: createApiResponse(forgotPasswordSchema, "Reset link sent. Check you email"),
 });
 authRouter.post(
   "/forgot-password",
-  zodValidation(ForgotPasswordSchema),
+  zodValidation(forgotPasswordSchema),
   authController.forgotPassword,
 );
 
@@ -4466,14 +4840,14 @@ authRegistry.registerPath({
   summary: "Reset Password",
   request: {
     body: {
-      content: { "application/json": { schema: ResetPasswordSchema } },
+      content: { "application/json": { schema: resetPasswordSchema } },
     },
   },
-  responses: createApiResponse(ResetPasswordSchema, "Password reset successful"),
+  responses: createApiResponse(resetPasswordSchema, "Password reset successful"),
 });
 authRouter.post(
   "/reset-password",
-  zodValidation(ResetPasswordSchema),
+  zodValidation(resetPasswordSchema),
   authController.resetPassword,
 );
 
@@ -4492,19 +4866,21 @@ import { StatusCodes } from "http-status-codes";
 import { UsersService } from "@/entities/users/users.service";
 import { sendMail } from "@/common/mail-sender/mail-sender";
 import { BaseRepository } from "@/common/base/base.repository";
-import { CreateUsersDto, UpdateUsersDto, UsersDto, UsersModel } from "../users/users.dto";
+import { CreateUsersDto, UpdateUsersDto } from "../users/users.dto";
 import { env } from "@/config/env";
 import { createTemplate } from "@/template/create-template";
+import { user as User } from "@prisma/client";
 
 export class AuthService {
   private collectionName: string;
   private usersService: UsersService;
-  private usersRepository: BaseRepository<UsersDto, UpdateUsersDto, CreateUsersDto>;
+  private usersRepository: BaseRepository<User, UpdateUsersDto, CreateUsersDto>;
 
-  constructor(collectionName: string) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  constructor(model: any, collectionName: string) {
     this.collectionName = collectionName;
-    this.usersService = new UsersService(UsersModel, "Users");
-    this.usersRepository = new BaseRepository(UsersModel, "Users");
+    this.usersService = new UsersService(model, "Users");
+    this.usersRepository = new BaseRepository(model, "Users");
   }
 
   /**
@@ -4514,15 +4890,20 @@ export class AuthService {
    * @throws HTTP error if user not found or password is invalid.
    */
   login = async (authData: AuthDto) => {
-    logger.info(`[${this.collectionName} Service] login service invoked`, { email: authData.email });
+    logger.info(`[${this.collectionName} Service] login service invoked`, {
+      email: authData.email,
+    });
 
     try {
       const user = await this.usersService.getByEmail(authData.email);
 
       if (!user) {
-        logger.warn(`[${this.collectionName} Service] ${this.collectionName} not found during login`, {
-          email: authData.email,
-        });
+        logger.warn(
+          `[${this.collectionName} Service] ${this.collectionName} not found during login`,
+          {
+            email: authData.email,
+          },
+        );
         throw createHttpError(StatusCodes.BAD_REQUEST, `${this.collectionName} does not exist!`, {
           resource: "Auth",
         });
@@ -4538,13 +4919,14 @@ export class AuthService {
       }
 
       const token = generateToken({
-        id: user.uuid,
-        username: user.username,
+        id: user.id,
         name: user.name,
         email: user.email,
       });
 
-      logger.info(`[${this.collectionName} Service] Token received successfully`, { email: authData.email });
+      logger.info(`[${this.collectionName} Service] Token received successfully`, {
+        email: authData.email,
+      });
       return { user, token };
     } catch (error) {
       if (createHttpError.isHttpError(error)) {
@@ -4558,7 +4940,9 @@ export class AuthService {
         });
         throw new Error(`Error while login: ${error.message}`);
       }
-      logger.warn(`[${this.collectionName} Service] Unknown error during login`, { email: authData.email });
+      logger.warn(`[${this.collectionName} Service] Unknown error during login`, {
+        email: authData.email,
+      });
       throw new Error("Unknown error occurred while login");
     }
   };
@@ -4570,30 +4954,21 @@ export class AuthService {
    * @throws HTTP error if user already exists.
    */
   register = async (registerDto: RegisterDto) => {
-    logger.info(`[${this.collectionName} Service] Register service invoked`, { email: registerDto.email });
+    logger.info(`[${this.collectionName} Service] Register service invoked`, {
+      email: registerDto.email,
+    });
 
     try {
-      const user = await this.usersService.getByEmail(registerDto.email);
-
-      if (user) {
-        logger.warn(
-          `[${this.collectionName} Service] ${this.collectionName} already exists during registration`,
-          {
-            email: registerDto.email,
-          },
-        );
-        throw createHttpError(StatusCodes.BAD_REQUEST, `${this.collectionName} already exist!`, {
-          resource: "Auth",
-        });
-      }
-
       await this.usersService.create(registerDto);
 
       const login = await this.login(registerDto);
 
-      logger.info(`[${this.collectionName} Service] ${this.collectionName} registered successfully`, {
-        email: registerDto.email,
-      });
+      logger.info(
+        `[${this.collectionName} Service] ${this.collectionName} registered successfully`,
+        {
+          email: registerDto.email,
+        },
+      );
       return login;
     } catch (error) {
       if (createHttpError.isHttpError(error)) {
@@ -4627,7 +5002,6 @@ export class AuthService {
       const payload = verifyToken(token);
       const newToken = generateToken({
         id: payload.id,
-        username: payload.username,
         name: payload.name,
         email: payload.email,
       });
@@ -4635,10 +5009,15 @@ export class AuthService {
       return newToken;
     } catch (error) {
       if (error instanceof Error) {
-        logger.warn(`[${this.collectionName} Service] Error extending token`, { error: error.message, token });
+        logger.warn(`[${this.collectionName} Service] Error extending token`, {
+          error: error.message,
+          token,
+        });
         throw new Error(`[${this.collectionName} Service] Error extend token: ${error.message}`);
       }
-      logger.warn(`[${this.collectionName} Service] Unknown error while extending token`, { token });
+      logger.warn(`[${this.collectionName} Service] Unknown error while extending token`, {
+        token,
+      });
       throw new Error(`[${this.collectionName} Service] Unknown error occurred while extend token`);
     }
   };
@@ -4656,7 +5035,10 @@ export class AuthService {
       return { token, success: true };
     } catch (error) {
       if (error instanceof Error) {
-        logger.warn(`[${this.collectionName} Service] Error during logout`, { error: error.message, token });
+        logger.warn(`[${this.collectionName} Service] Error during logout`, {
+          error: error.message,
+          token,
+        });
         throw new Error(`Error logout: ${error.message}`);
       }
       logger.warn(`[${this.collectionName} Service] Unknown error during logout`, { token });
@@ -4686,13 +5068,17 @@ export class AuthService {
       }
 
       const resetToken = generateToken({
-        id: user.uuid,
-        username: user.username,
+        id: user.id,
         name: user.name,
         email: user.email,
       });
 
-      await this.usersService.update(user.uuid, { resetToken });
+      await this.usersService.update(user.id as string, {
+        resetToken,
+        name: user.name!,
+        email: user.email,
+        updatedAt: new Date(),
+      });
 
       // Send email
       try {
@@ -4714,7 +5100,10 @@ export class AuthService {
         throw new Error(`Error while sending email: ${error}`);
       }
 
-      logger.info(`[${this.collectionName} Service] Email reset link successfully sent`, { email, resetToken });
+      logger.info(`[${this.collectionName} Service] Email reset link successfully sent`, {
+        email,
+        resetToken,
+      });
       return { message: "Reset link sent. Check your inbox" };
     } catch (error) {
       if (createHttpError.isHttpError(error)) {
@@ -4726,12 +5115,16 @@ export class AuthService {
           error: error.message,
           email,
         });
-        throw new Error(`[${this.collectionName} Service] Error while forgot password: ${error.message}`);
+        throw new Error(
+          `[${this.collectionName} Service] Error while forgot password: ${error.message}`,
+        );
       }
       logger.warn(`[${this.collectionName} Service] Unknown error during registration`, {
         email,
       });
-      throw new Error(`[${this.collectionName} Service] Unknown error occurred while forgot password`);
+      throw new Error(
+        `[${this.collectionName} Service] Unknown error occurred while forgot password`,
+      );
     }
   };
 
@@ -4741,9 +5134,13 @@ export class AuthService {
     });
 
     try {
-      const user = await this.usersRepository.getByField("resetToken", resetPasswordDto.resetToken);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const user: any = await this.usersRepository.getByField(
+        "resetToken",
+        resetPasswordDto.resetToken,
+      );
 
-      if (!user) {
+      if (user.length === 0) {
         logger.warn(`[${this.collectionName} Service] ${this.collectionName} does not exists!`, {
           resetToken: resetPasswordDto.resetToken,
         });
@@ -4752,15 +5149,15 @@ export class AuthService {
         });
       }
 
-      if (!user.resetToken || resetPasswordDto.resetToken !== user.resetToken) {
+      if (!user[0].resetToken || resetPasswordDto.resetToken !== user[0].resetToken) {
         throw createHttpError(StatusCodes.BAD_REQUEST, "Invalid or expired reset token.");
       }
 
       const hashedPassword = await hash(resetPasswordDto.password, env.HASH!);
 
-      await this.usersRepository.update(user.uuid, {
+      await this.usersService.update(user[0].id, {
         password: hashedPassword,
-        resetToken: undefined,
+        resetToken: null,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
@@ -4778,12 +5175,16 @@ export class AuthService {
           error: error.message,
           resetToken: resetPasswordDto.resetToken,
         });
-        throw new Error(`[${this.collectionName} Service] Error while reset password: ${error.message}`);
+        throw new Error(
+          `[${this.collectionName} Service] Error while reset password: ${error.message}`,
+        );
       }
       logger.warn(`[${this.collectionName} Service] Unknown error during registration`, {
         resetToken: resetPasswordDto.resetToken,
       });
-      throw new Error(`[${this.collectionName} Service] Unknown error occurred while reset password`);
+      throw new Error(
+        `[${this.collectionName} Service] Unknown error occurred while reset password`,
+      );
     }
   };
 }
@@ -4796,16 +5197,15 @@ import { NextFunction, Response } from "express";
 import { logger } from "@/common/winston/winston";
 import { CustomRequest } from "@/types/request";
 import {
-  checkMongoDB,
   checkRedis,
   createHealthCheckResponse,
   formatMemoryUsage,
 } from "@/entities/health/health.helper";
 import { StatusCodes } from "http-status-codes";
-import redis from "@/config/redis/redis";
 import fs from "fs";
 import { env } from "@/config/env";
 import path from "path";
+import { RedisClient } from "@/config/redis/redis";
 
 export class HealthController {
   private logFileName: string;
@@ -4823,7 +5223,6 @@ export class HealthController {
   health = async (_: CustomRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const healthCheck = {
-        mongo: await checkMongoDB(),
         redis: await checkRedis(),
         server: {
           status: "healthy",
@@ -4861,6 +5260,7 @@ export class HealthController {
    */
   clearCache = async (_: CustomRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
+      const redis = RedisClient.getInstance();
       const stream = redis.scanStream({
         match: "apiResponseCache*", // Pattern to match keys
         count: 100, // Process 100 keys per iteration
@@ -4928,26 +5328,13 @@ export class HealthController {
 File: src/entities/health/health.helper.ts
 --------------------------------------------------
 Content of src/entities/health/health.helper.ts:
-import mongoose from "mongoose";
-import redis from "@/config/redis/redis";
+import { RedisClient } from "@/config/redis/redis";
 
 export const checkRedis = async () => {
   try {
+    const redis = RedisClient.getInstance();
     await redis.ping();
     return { status: "healthy", details: {} };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (error: any) {
-    return { status: "unhealthy", details: { error: error.message } };
-  }
-};
-
-export const checkMongoDB = async () => {
-  try {
-    const isConnected = mongoose.connection.readyState === 1;
-    return {
-      status: isConnected ? "healthy" : "unhealthy",
-      details: {},
-    };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     return { status: "unhealthy", details: { error: error.message } };
@@ -5034,68 +5421,47 @@ export default healthRouter;
 File: src/entities/users/users.dto.ts
 --------------------------------------------------
 Content of src/entities/users/users.dto.ts:
+import { userSchema } from "@/generated/zod";
 import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
-import { model } from "mongoose";
 import { z } from "zod";
-import { zodSchema } from "@zodyac/zod-mongoose";
 
 extendZodWithOpenApi(z);
 
-export const UsersSchema = z.object({
-  uuid: z.string(),
-  name: z.string().min(4, "Name must be at least 4 characters long"),
-  username: z.string().min(4, "Username must be at least 4 characters long"),
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters long"),
-  bio: z.string().optional(),
-  phoneNumber: z.string().optional(),
-  createdAt: z.date().optional(),
-  updatedAt: z.date().optional(),
-  resetToken: z.string().optional(),
-});
-
-export const CreateUsersSchema = UsersSchema.omit({
-  uuid: true,
+export const createUsersSchema = userSchema.omit({
+  id: true,
   createdAt: true,
   updatedAt: true,
-});
+}).partial();
 
-export const UpdateUsersSchema = z.object({
-  name: z.string().min(4, "Name must be at least 4 characters long").optional(),
-  username: z.string().min(4, "Username must be at least 4 characters long").optional(),
-  email: z.string().email("Invalid email address").optional(),
-  bio: z.string().optional(),
-  phoneNumber: z.string().optional(),
-  updatedAt: z.date().optional(),
-  resetToken: z.string().optional(),
-});
+export const updateUsersSchema = userSchema.omit({
+  id: true,
+  password: true,
+  createdAt: true,
+}).partial();
 
-export type UsersDto = z.infer<typeof UsersSchema>;
-export type CreateUsersDto = z.infer<typeof CreateUsersSchema>;
-export type UpdateUsersDto = z.infer<typeof UpdateUsersSchema>;
-
-const schema = zodSchema(UsersSchema);
-export const UsersModel = model("Users", schema);
+export type UsersDto = z.infer<typeof userSchema>;
+export type CreateUsersDto = z.infer<typeof createUsersSchema>;
+export type UpdateUsersDto = z.infer<typeof updateUsersSchema>;
 
 
 File: src/entities/users/users.service.ts
 --------------------------------------------------
 Content of src/entities/users/users.service.ts:
-import { UsersDto, UpdateUsersDto, CreateUsersDto } from "@/entities/users/users.dto";
+import { UpdateUsersDto, CreateUsersDto } from "@/entities/users/users.dto";
 import { env } from "@/config/env";
 import { hash } from "bcrypt";
-import { v4 as uuidv4 } from "uuid";
 import createHttpError from "http-errors";
 import { StatusCodes } from "http-status-codes";
 import { logger } from "@/common/winston/winston";
 import { BaseService } from "@/common/base/base.services";
-import { Model } from "mongoose";
+import { user as User } from "@prisma/client";
 
-export class UsersService extends BaseService<UsersDto, CreateUsersDto, UpdateUsersDto> {
+export class UsersService extends BaseService<User, CreateUsersDto, UpdateUsersDto> {
   private collectionNameService: string;
 
-  constructor(model: Model<UsersDto>, collectionName: string) {
-    super(model, collectionName);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  constructor(model: any, collectionName: string, ignoreFields?: Record<string, boolean>) {
+    super(model, collectionName, ignoreFields);
     this.collectionNameService = collectionName;
   }
 
@@ -5104,40 +5470,32 @@ export class UsersService extends BaseService<UsersDto, CreateUsersDto, UpdateUs
    * @param createDto - Data for creating a new entity
    * @returns Created entity data
    */
-  create = async (createDto: CreateUsersDto): Promise<UsersDto> => {
+  create = async (createDto: CreateUsersDto): Promise<User | null> => {
     try {
       logger.info(
-        `[${this.collectionNameService} Controller] Creating ${this.collectionNameService} with email: ${createDto.email}`,
+        `[${this.collectionNameService} Service] Creating ${this.collectionNameService} with email: ${createDto.email}`,
       );
-      const data = await this.baseRepository.getByEmail(createDto.email);
-      const username = await this.baseRepository.getByUsername(createDto.username);
+      const data = await this.baseRepository.getByEmail(createDto.email!);
 
       if (data) {
         logger.warn(
-          `[${this.collectionNameService} Controller] ${this.collectionNameService} with email ${createDto.email} already exists`,
+          `[${this.collectionNameService} Service] ${this.collectionNameService} with email ${createDto.email} already exists`,
         );
-        throw createHttpError(StatusCodes.BAD_REQUEST, `${this.collectionNameService} already exists!`, {
-          resource: this.collectionNameService,
-        });
+        throw createHttpError(
+          StatusCodes.BAD_REQUEST,
+          `${this.collectionNameService} already exists!`,
+          {
+            resource: this.collectionNameService,
+          },
+        );
       }
 
-      if (username) {
-        logger.warn(
-          `[${this.collectionNameService} Controller] ${this.collectionNameService} with username ${createDto.username} already exists.`,
-        );
-        throw createHttpError(StatusCodes.BAD_REQUEST, "username is taken!", {
-          resource: "Users",
-        });
-      }
+      const hashedPassword = await hash(createDto.password!, env.HASH!);
 
-      const hashedPassword = await hash(createDto.password, env.HASH!);
-      const currentTime = new Date();
       const newDto = {
-        ...createDto,
-        uuid: uuidv4(),
+        name: createDto.name,
+        email: createDto.email,
         password: hashedPassword,
-        createdAt: currentTime,
-        updatedAt: currentTime,
       };
 
       return await this.baseRepository.create(newDto);
@@ -5147,14 +5505,17 @@ export class UsersService extends BaseService<UsersDto, CreateUsersDto, UpdateUs
       }
 
       if (error instanceof Error) {
-        logger.warn(`[${this.collectionNameService} Controller] Error creating ${this.collectionNameService}`, {
-          createDto,
-          error: error.message,
-        });
+        logger.warn(
+          `[${this.collectionNameService} Service] Error creating ${this.collectionNameService}`,
+          {
+            createDto,
+            error: error.message,
+          },
+        );
         throw new Error(`Error creating ${this.collectionNameService}: ${error.message}`);
       }
       logger.warn(
-        `[${this.collectionNameService} Controller] Unknown error occurred while creating ${this.collectionNameService}`,
+        `[${this.collectionNameService} Service] Unknown error occurred while creating ${this.collectionNameService}`,
       );
       throw new Error(`Unknown error occurred while creating ${this.collectionNameService}`);
     }
@@ -5162,41 +5523,37 @@ export class UsersService extends BaseService<UsersDto, CreateUsersDto, UpdateUs
 
   /**
    * Updates an existing entity.
-   * @param uuid - entity's unique identifier
+   * @param id - entity's unique identifier
    * @param updateDto - Data to update the entity with
    * @returns Updated entity data
    */
-  update = async (uuid: string, updateDto: UpdateUsersDto): Promise<UsersDto | null> => {
+  update = async (id: string, updateDto: UpdateUsersDto): Promise<User | null> => {
     try {
-      logger.info(`[${this.collectionNameService} Controller] Updating ${this.collectionNameService} with uuid: ${uuid}`);
-      const data = await this.getByUuid(uuid);
+      logger.info(
+        `[${this.collectionNameService} Service] Updating ${this.collectionNameService} with id: ${id}`,
+      );
+      const data = await this.getById(id);
 
       if (!data) {
-        logger.warn(`[${this.collectionNameService} Controller] ${this.collectionNameService} with uuid ${uuid} does not exist!`);
-        throw createHttpError(StatusCodes.BAD_REQUEST, `${this.collectionNameService} does not exist!`, {
-          resource: this.collectionNameService,
-        });
+        logger.warn(
+          `[${this.collectionNameService} Service] ${this.collectionNameService} with id ${id} does not exist!`,
+        );
+        throw createHttpError(
+          StatusCodes.BAD_REQUEST,
+          `${this.collectionNameService} does not exist!`,
+          {
+            resource: this.collectionNameService,
+          },
+        );
       }
 
       if (updateDto.email) {
         const email = await this.baseRepository.getByEmail(updateDto.email);
         if (email) {
           logger.warn(
-            `[${this.collectionNameService} Controller] ${this.collectionNameService} with email ${updateDto.email} already exists`,
+            `[${this.collectionNameService} Service] ${this.collectionNameService} with email ${updateDto.email} already exists`,
           );
           throw createHttpError(StatusCodes.BAD_REQUEST, "Email already exists!", {
-            resource: this.collectionNameService,
-          });
-        }
-      }
-
-      if (updateDto.username) {
-        const username = await this.baseRepository.getByUsername(updateDto.username);
-        if (username) {
-          logger.warn(
-            `[${this.collectionNameService} Controller] ${this.collectionNameService} with username ${updateDto.email} already exists`,
-          );
-          throw createHttpError(StatusCodes.BAD_REQUEST, "Username already exists!", {
             resource: this.collectionNameService,
           });
         }
@@ -5208,23 +5565,25 @@ export class UsersService extends BaseService<UsersDto, CreateUsersDto, UpdateUs
 
       updateDto.updatedAt = new Date();
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return await this.baseRepository.update(uuid, updateDto as any);
+      return await this.baseRepository.update(id, updateDto);
     } catch (error) {
       if (createHttpError.isHttpError(error)) {
         throw error;
       }
 
       if (error instanceof Error) {
-        logger.warn(`[${this.collectionNameService} Controller] Error updating ${this.collectionNameService}`, {
-          uuid,
-          updateDto,
-          error: error.message,
-        });
+        logger.warn(
+          `[${this.collectionNameService} Service] Error updating ${this.collectionNameService}`,
+          {
+            id,
+            updateDto,
+            error: error.message,
+          },
+        );
         throw new Error(`Error updating ${this.collectionNameService}: ${error.message}`);
       }
       logger.warn(
-        `[${this.collectionNameService} Controller] Unknown error occurred while updating ${this.collectionNameService}`,
+        `[${this.collectionNameService} Service] Unknown error occurred while updating ${this.collectionNameService}`,
       );
       throw new Error(`Unknown error occurred while updating ${this.collectionNameService}`);
     }
@@ -5242,16 +5601,20 @@ import { logger } from "@/common/winston/winston";
 import { CustomRequest } from "@/types/request";
 import { createResponse } from "@/utils/create-response";
 import { BaseController } from "@/common/base/base.controller";
-import { CreateUsersDto, UpdateUsersDto, UsersDto, UsersModel } from "./users.dto";
+import { CreateUsersDto, UpdateUsersDto } from "./users.dto";
+import { PrismaClient, user as User } from "@prisma/client";
 
-export class UsersController extends BaseController<UsersDto, CreateUsersDto, UpdateUsersDto> {
+const prisma = new PrismaClient();
+const IGNORE_FIELDS = { password: true };
+
+export class UsersController extends BaseController<User, CreateUsersDto, UpdateUsersDto> {
   public collectionName: string;
   public usersService: UsersService;
 
   constructor() {
-    super(UsersModel, "Users");
+    super(prisma.user, "Users", IGNORE_FIELDS);
     this.collectionName = "Users";
-    this.usersService = new UsersService(UsersModel, this.collectionName);
+    this.usersService = new UsersService(prisma.user, this.collectionName, IGNORE_FIELDS);
   }
 
   /**
@@ -5271,9 +5634,7 @@ export class UsersController extends BaseController<UsersDto, CreateUsersDto, Up
         createDto,
       });
       const created = await this.usersService.create(createDto);
-      return res.json(
-        createResponse(req, created, "User created successfully", StatusCodes.CREATED),
-      );
+      return res.json(createResponse({ data: created, status: StatusCodes.CREATED }));
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(`[${this.collectionName} Controller] Error creating ${this.collectionName}`, {
@@ -5295,23 +5656,23 @@ export class UsersController extends BaseController<UsersDto, CreateUsersDto, Up
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   update = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
-    const { uuid } = req.params;
+    const { id } = req.params;
     const updateDto = req.body;
     const { loggedUser } = req;
     try {
       logger.info(`[${this.collectionName} Controller] Updating ${this.collectionName}`, {
         loggedUser,
-        uuid,
+        id,
         updateDto,
       });
-      const updatedData = await this.usersService.update(uuid, updateDto);
-      return res.json(createResponse(req, updatedData, "User updated successfully"));
+      const updatedData = await this.usersService.update(id, updateDto);
+      return res.json(createResponse({ data: updatedData, status: StatusCodes.CREATED }));
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(`[${this.collectionName} Controller] Error updating ${this.collectionName}`, {
           error: error.message,
           loggedUser,
-          uuid,
+          id,
           updateDto,
         });
       }
@@ -5324,18 +5685,18 @@ export class UsersController extends BaseController<UsersDto, CreateUsersDto, Up
 File: src/entities/users/users.route.ts
 --------------------------------------------------
 Content of src/entities/users/users.route.ts:
-import { UpdateUsersSchema, UsersSchema } from "@/entities/users/users.dto";
+import { updateUsersSchema } from "@/entities/users/users.dto";
 import { OpenAPIRegistry } from "@asteasolutions/zod-to-openapi";
 import { UsersController } from "@/entities/users/users.controller";
 import { authMiddleware } from "@/middlewares";
 import { createApiResponse } from "@/common/swagger/swagger-response-builder";
 import { zodValidation } from "@/middlewares/zod-validation";
 import { z } from "zod";
-import { FindByQuerySchema } from "@/schemas/find-by-query";
+import { findByQuerySchema } from "@/schemas/find-by-query";
 import { Router } from "express";
-import { RegisterSchema } from "@/entities/auth/auth.dto";
-import { ImportFileSchema } from "@/schemas/import-file";
+import { importFileSchema } from "@/schemas/import-file";
 import { uploadImportMiddleware } from "@/common/multer/multer";
+import { userSchema } from "@/generated/zod";
 
 const usersRouter = Router();
 usersRouter.use(authMiddleware);
@@ -5346,14 +5707,14 @@ const ROUTE = `/${TAG.toLowerCase()}`;
 export const usersRegistry = new OpenAPIRegistry();
 const usersController = new UsersController();
 
-usersRegistry.register(TAG, UsersSchema);
+usersRegistry.register(TAG, userSchema);
 
 usersRegistry.registerPath({
   method: "get",
   path: ROUTE,
   summary: `Get all ${TAG}`,
   tags: [TAG],
-  responses: createApiResponse(z.array(UsersSchema), "Success"),
+  responses: createApiResponse(z.array(userSchema), "Success"),
 });
 usersRouter.get("/", usersController.getAll);
 
@@ -5366,7 +5727,7 @@ usersRegistry.registerPath({
   summary: `Import ${TAG}`,
   request: {
     body: {
-      content: { "multipart/form-data": { schema: ImportFileSchema } },
+      content: { "multipart/form-data": { schema: importFileSchema } },
     },
   },
   responses: createApiResponse(z.null(), `${TAG}s Imported Successfully`),
@@ -5394,23 +5755,9 @@ usersRegistry.registerPath({
   request: {
     params: z.object({ id: z.string() }),
   },
-  responses: createApiResponse(UsersSchema, "Success"),
+  responses: createApiResponse(userSchema, "Success"),
 });
 usersRouter.get("/:id", usersController.getById);
-
-//====================================================================================================
-
-usersRegistry.registerPath({
-  method: "get",
-  path: `${ROUTE}/uuid/{uuid}`,
-  tags: [TAG],
-  summary: `Get ${TAG} by uuid`,
-  request: {
-    params: z.object({ uuid: z.string() }),
-  },
-  responses: createApiResponse(UsersSchema, "Success"),
-});
-usersRouter.get("/uuid/:uuid", usersController.getByUuid);
 
 //====================================================================================================
 
@@ -5422,7 +5769,7 @@ usersRegistry.registerPath({
   request: {
     params: z.object({ email: z.string() }),
   },
-  responses: createApiResponse(UsersSchema, "Success"),
+  responses: createApiResponse(userSchema, "Success"),
 });
 usersRouter.get("/email/:email", usersController.getByEmail);
 
@@ -5435,12 +5782,12 @@ usersRegistry.registerPath({
   summary: `Find ${TAG} by query`,
   request: {
     body: {
-      content: { "application/json": { schema: FindByQuerySchema } },
+      content: { "application/json": { schema: findByQuerySchema } },
     },
   },
-  responses: createApiResponse(z.array(FindByQuerySchema), "Success"),
+  responses: createApiResponse(z.array(findByQuerySchema), "Success"),
 });
-usersRouter.post("/find", zodValidation(FindByQuerySchema), usersController.findByQuery);
+usersRouter.post("/find", zodValidation(findByQuerySchema), usersController.findByQuery);
 
 //====================================================================================================
 
@@ -5451,29 +5798,29 @@ usersRegistry.registerPath({
   summary: `Create ${TAG}`,
   request: {
     body: {
-      content: { "application/json": { schema: RegisterSchema } },
+      content: { "application/json": { schema: userSchema } },
     },
   },
-  responses: createApiResponse(RegisterSchema, `${TAG} Created Successfully`),
+  responses: createApiResponse(userSchema, `${TAG} Created Successfully`),
 });
-usersRouter.post("/", zodValidation(RegisterSchema), usersController.create);
+usersRouter.post("/", zodValidation(userSchema), usersController.create);
 
 //====================================================================================================
 
 usersRegistry.registerPath({
   method: "put",
-  path: `${ROUTE}/{uuid}`,
+  path: `${ROUTE}/{id}`,
   tags: [TAG],
   summary: `Update ${TAG}`,
   request: {
-    params: z.object({ uuid: z.string() }),
+    params: z.object({ id: z.string() }),
     body: {
-      content: { "application/json": { schema: UpdateUsersSchema } },
+      content: { "application/json": { schema: updateUsersSchema } },
     },
   },
-  responses: createApiResponse(UpdateUsersSchema, `${TAG} Updated Successfully`),
+  responses: createApiResponse(updateUsersSchema, `${TAG} Updated Successfully`),
 });
-usersRouter.put("/:uuid", zodValidation(UpdateUsersSchema), usersController.update);
+usersRouter.put("/:id", zodValidation(updateUsersSchema), usersController.update);
 
 //====================================================================================================
 
@@ -5484,30 +5831,30 @@ usersRegistry.registerPath({
   summary: `Delete ${TAG} in bulk`,
   request: {
     body: {
-      content: { "application/json": { schema: z.object({ uuids: z.array(z.string()) }) } },
+      content: { "application/json": { schema: z.object({ ids: z.array(z.string()) }) } },
     },
   },
   responses: createApiResponse(z.null(), `${TAG}s Deleted Successfully`),
 });
 usersRouter.delete(
   "/bulk",
-  zodValidation(z.object({ uuids: z.array(z.string()) })),
-  usersController.deleteAll,
+  zodValidation(z.object({ ids: z.array(z.string()) })),
+  usersController.deleteMany,
 );
 
 //====================================================================================================
 
 usersRegistry.registerPath({
   method: "delete",
-  path: `${ROUTE}/{uuid}`,
+  path: `${ROUTE}/{id}`,
   tags: [TAG],
   summary: `Delete ${TAG}`,
   request: {
-    params: z.object({ uuid: z.string() }),
+    params: z.object({ id: z.string() }),
   },
   responses: createApiResponse(z.null(), `${TAG} Deleted Successfully`),
 });
-usersRouter.delete("/:uuid", usersController.delete);
+usersRouter.delete("/:id", usersController.delete);
 
 export default usersRouter;
 
@@ -5515,67 +5862,63 @@ export default usersRouter;
 File: src/entities/files/files.service.ts
 --------------------------------------------------
 Content of src/entities/files/files.service.ts:
-import { FilesRepository } from "@/entities/files/files.repository";
 import createHttpError from "http-errors";
-import { StatusCodes } from "http-status-codes";
 import { logger } from "@/common/winston/winston";
-import { UpdateFilesDto, UploadFilesDto } from "@/entities/files/files.dto";
-import { v4 as uuidv4 } from "uuid";
-export class FilesService {
-  private filesRepository = new FilesRepository();
+import { BaseService } from "@/common/base/base.services";
+import { UpdateFilesDto, UploadFilesDto } from "./files.dto";
+import { file as File } from "@prisma/client";
 
-  async uploadFiles(fileData: UploadFilesDto) {
+export class FilesService extends BaseService<File, UploadFilesDto, UpdateFilesDto> {
+  private collectionNameService: string;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  constructor(model: any, collectionName: string, ignoreFields?: Record<string, boolean>) {
+    super(model, collectionName, ignoreFields);
+    this.collectionNameService = collectionName;
+  }
+
+  /**
+   * Fetches a entity by their userId.
+   * @param userId - entity's userId
+   * @returns entity data or false if not found
+   */
+  getByUser = async (userId: string): Promise<File | File[] | false> => {
     try {
-      logger.info("Uploading file metadata to the database", { fileData });
-      const fileUpload = {
-        ...fileData,
-        uuid: uuidv4(),
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        views: "0",
-        userId: "talhaakhter01@gmail.com",
-      };
-      return await this.filesRepository.createFile(fileUpload);
+      logger.info(
+        `[${this.collectionNameService} Service] Fetching ${this.collectionNameService} with userId: ${userId}`,
+      );
+      const data = await this.baseRepository.getByUser(userId);
+
+      if (!data) {
+        logger.warn(
+          `[${this.collectionNameService} Service] ${this.collectionNameService} with userId ${userId} not found`,
+        );
+        return false;
+      }
+
+      return data;
     } catch (error) {
-      logger.warn("Error uploading file metadata", { error });
-      throw createHttpError(StatusCodes.INTERNAL_SERVER_ERROR, "Error uploading file metadata.");
+      if (createHttpError.isHttpError(error)) {
+        throw error;
+      }
+      if (error instanceof Error) {
+        logger.warn(
+          `[${this.collectionNameService} Service] Error fetching ${this.collectionNameService} by userId`,
+          {
+            userId,
+            error: error.message,
+          },
+        );
+        throw new Error(`Error fetching ${this.collectionNameService} by email: ${error.message}`);
+      }
+      logger.warn(
+        `[${this.collectionNameService} Service] Unknown error occurred while fetching ${this.collectionNameService} by email`,
+      );
+      throw new Error(
+        `Unknown error occurred while fetching ${this.collectionNameService} by email`,
+      );
     }
-  }
-
-  async getFileById(id: string) {
-    const file = await this.filesRepository.getFilesById(id);
-
-    if (!file) {
-      throw createHttpError(StatusCodes.NOT_FOUND, "File not found.");
-    }
-
-    return file;
-  }
-
-  async getAllFiles() {
-    // eslint-disable-next-line no-return-await
-    return await this.filesRepository.getAllFiles();
-  }
-
-  async updateFile(id: string, updateData: UpdateFilesDto) {
-    const updatedFile = await this.filesRepository.updateFile(id, updateData);
-
-    if (!updatedFile) {
-      throw createHttpError(StatusCodes.NOT_FOUND, "File not found.");
-    }
-
-    return updatedFile;
-  }
-
-  async deleteFile(id: string) {
-    const deletedFile = await this.filesRepository.deleteFile(id);
-
-    if (!deletedFile) {
-      throw createHttpError(StatusCodes.NOT_FOUND, "File not found.");
-    }
-
-    return deletedFile;
-  }
+  };
 }
 
 
@@ -5583,216 +5926,189 @@ File: src/entities/files/files.controller.ts
 --------------------------------------------------
 Content of src/entities/files/files.controller.ts:
 import { NextFunction, Response } from "express";
-import { FilesService } from "@/entities/files/files.service";
 import { UpdateFilesDto, UploadFilesDto } from "@/entities/files/files.dto";
 import { logger } from "@/common/winston/winston";
 import { CustomRequest } from "@/types/request";
 import { saveFileToDisk } from "@/common/multer/save-file-to-disk";
 import { updateImageToDisk } from "@/common/multer/update-file-to-disk";
 import { deleteFileFromDisk } from "@/common/multer/delete-file-from-disk";
+import { BaseController } from "@/common/base/base.controller";
+import { createResponse } from "@/utils/create-response";
+import { StatusCodes } from "http-status-codes";
+import { FilesService } from "./files.service";
+import { PrismaClient, file as File } from "@prisma/client";
 
-const filesService = new FilesService();
-export class FilesController {
-  async getAllFiles(req: CustomRequest, res: Response, next: NextFunction): Promise<void> {
+const prisma = new PrismaClient();
+const IGNORE_FIELDS = { v: true };
+
+export class FilesController extends BaseController<File, UploadFilesDto, UpdateFilesDto> {
+  public collectionName: string;
+  public filesService: FilesService;
+
+  constructor() {
+    super(prisma.file, "Files", IGNORE_FIELDS);
+    this.collectionName = "Files";
+    this.filesService = new FilesService(prisma.file, this.collectionName, IGNORE_FIELDS);
+  }
+
+  /**
+   * Get entity by ID
+   * @param req - CustomRequest object
+   * @param res - Response object
+   * @param next - Next middleware function
+   * @returns JSON entity object
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getByUser = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
+    const { userId } = req.params;
     const { loggedUser } = req;
     try {
-      const files = await filesService.getAllFiles();
-      res.json(files);
+      logger.info(`[${this.collectionName} Controller] Fetching ${this.collectionName} by userId`, {
+        loggedUser,
+        userId,
+      });
+      const data = await this.filesService.getByUser(userId);
+
+      return res.json(createResponse({ data }));
     } catch (error) {
       if (error instanceof Error) {
-        logger.warn("Error getting files", { error: error.message, loggedUser });
+        logger.warn(
+          `[${this.collectionName} Controller] Error fetching ${this.collectionName} by userId`,
+          {
+            error: error.message,
+            loggedUser,
+            userId,
+          },
+        );
       }
       next(error);
     }
-  }
+  };
 
-  async getFileById(req: CustomRequest, res: Response, next: NextFunction): Promise<void> {
-    const { id } = req.params;
+  /**
+   * Upload an entity
+   * @param req - CustomRequest object
+   * @param res - Response object
+   * @param next - Next middleware function
+   * @returns JSON updated entity
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  upload = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
     const { loggedUser } = req;
     try {
-      const file = await filesService.getFileById(id);
-      res.json(file);
-    } catch (error) {
-      if (error instanceof Error) {
-        logger.warn("Error getting file", { error: error.message, loggedUser, id });
-      }
-      next(error);
-    }
-  }
+      const { buffer, mimetype } = req.file!;
+      const { tags, views, userRef } = req.body;
 
-  async createFile(req: CustomRequest, res: Response, next: NextFunction): Promise<void> {
-    const { loggedUser } = req;
-    const { buffer, mimetype } = req.file!;
-    const { tags } = req.body;
+      const { name, path } = await saveFileToDisk(req.file);
+      logger.info(`[${this.collectionName} Controller] Creating new ${this.collectionName}`, {
+        loggedUser,
+        tags,
+        name,
+        path,
+      });
+      const text = `data:${mimetype};base64,${buffer.toString("base64")}`;
 
-    try {
-      const { fileName, filePath } = await saveFileToDisk(req.file);
-      const fileText = `data:${mimetype};base64,${buffer.toString("base64")}`;
-      const fileData: UploadFilesDto = { fileName, filePath, fileText, userId: loggedUser!, tags };
-      const newFile = await filesService.uploadFiles(fileData);
-      res.status(201).json(newFile);
+      const fileUpload = {
+        name,
+        text,
+        path,
+        userId: userRef,
+        tags,
+        views: views ?? "0",
+      };
+      const created = await this.baseService.create(fileUpload);
+
+      return res.json(createResponse({ data: created, status: StatusCodes.CREATED }));
     } catch (error) {
       if (error instanceof Error) {
         logger.warn("Error uploading file", { error: error.message, loggedUser });
       }
       next(error);
     }
-  }
+  };
 
-  async updateFile(req: CustomRequest, res: Response, next: NextFunction): Promise<void> {
+  /**
+   * Update an existing entity
+   * @param req - CustomRequest object
+   * @param res - Response object
+   * @param next - Next middleware function
+   * @returns JSON updated entity
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  update = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
     const { loggedUser } = req;
     const { id } = req.params;
-    const { buffer, mimetype } = req.file!;
-    const updateData = req.body;
     try {
-      const existFile = await filesService.getFileById(id);
+      const { buffer, mimetype } = req.file!;
+      const updateData = req.body;
+      const existFile = await this.baseService.getById(id);
       if (!existFile) {
         throw new Error("File not found");
       }
-      const { fileName, filePath } = await updateImageToDisk(existFile.fileName!, req.file);
+      await updateImageToDisk(existFile.name!, req.file);
       const fileText = `data:${mimetype};base64,${buffer.toString("base64")}`;
       const fileData: UpdateFilesDto = {
-        fileName,
-        filePath,
         fileText,
-        userId: loggedUser!,
         ...updateData,
       };
-      const updatedFile = await filesService.updateFile(id, fileData);
-      res.json(updatedFile);
+      const updated = await this.baseService.update(id, fileData);
+
+      return res.json(createResponse({ data: updated, status: StatusCodes.CREATED }));
     } catch (error) {
       if (error instanceof Error) {
         logger.warn("Error updating file", { error: error.message, loggedUser, id });
       }
       next(error);
     }
-  }
+  };
 
-  async deleteFile(req: CustomRequest, res: Response, next: NextFunction): Promise<void> {
+  /**
+   * Delete an existing entity
+   * @param req - CustomRequest object
+   * @param res - Response object
+   * @param next - Next middleware function
+   * @returns JSON updated entity
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  delete = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
     const { loggedUser } = req;
     const { id } = req.params;
     try {
-      const existFile = await filesService.getFileById(id);
+      const existFile = await this.baseService.getById(id);
       if (!existFile) {
         throw new Error("File not found");
       }
-      await deleteFileFromDisk(existFile.fileName!);
-      await filesService.deleteFile(id);
-      res.status(204).send();
+      await deleteFileFromDisk(existFile.name!);
+      const deleted = await this.baseService.delete(id);
+
+      return res.json(createResponse({ data: deleted, status: StatusCodes.CREATED }));
     } catch (error) {
       if (error instanceof Error) {
         logger.warn("Error deleting file", { error: error.message, loggedUser, id });
       }
       next(error);
     }
-  }
+  };
 }
 
 
 File: src/entities/files/files.dto.ts
 --------------------------------------------------
 Content of src/entities/files/files.dto.ts:
+import { fileSchema } from "@/generated/zod";
 import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
-import { model } from "mongoose";
 import { z } from "zod";
-import { zodSchema } from "@zodyac/zod-mongoose";
 
 extendZodWithOpenApi(z);
 
-export const FilesSchema = z.object({
-  uuid: z.string(),
-  filePath: z.string().optional(),
-  tags: z.string(),
-  fileName: z.string().optional(),
-  fileText: z.string().optional(),
-  views: z.string().optional(),
-  userId: z.string().optional(),
-  createdAt: z
-    .date()
-    .default(() => new Date())
-    .optional(),
-  updatedAt: z
-    .date()
-    .default(() => new Date())
-    .optional(),
-});
+export const uploadFilesSchema = fileSchema.omit({
+  id: true,
+}).partial();
 
-export const UploadFilesSchema = FilesSchema.omit({
-  uuid: true,
-  createdAt: true,
-  updatedAt: true,
-}).extend({
-  file: z
-    .any()
-    .openapi({
-      type: "string",
-      format: "binary",
-    })
-    .describe("The file to upload")
-    .optional(),
-});
+export const updateFilesSchema = fileSchema.partial();
 
-export const UpdateFilesSchema = FilesSchema.omit({
-  uuid: true,
-  createdAt: true,
-  updatedAt: true,
-}).extend({
-  file: z
-    .any()
-    .openapi({
-      type: "string",
-      format: "binary",
-    })
-    .describe("The file to upload")
-    .optional(),
-});
-
-export type FilesDto = z.infer<typeof FilesSchema>;
-export type UploadFilesDto = z.infer<typeof UploadFilesSchema>;
-export type UpdateFilesDto = z.infer<typeof UpdateFilesSchema>;
-
-const schema = zodSchema(FilesSchema);
-export const FilesModel = model("Files", schema);
-
-
-File: src/entities/files/files.repository.ts
---------------------------------------------------
-Content of src/entities/files/files.repository.ts:
-import { FilesDto, FilesModel, UpdateFilesDto } from "@/entities/files/files.dto";
-import { logger } from "@/common/winston/winston";
-
-export class FilesRepository {
-  async getAllFiles(): Promise<FilesDto[]> {
-    logger.info("Fetching all files from repository");
-    // eslint-disable-next-line no-return-await
-    return await FilesModel.find();
-  }
-
-  async getFilesById(uuid: string): Promise<FilesDto | null> {
-    logger.info(`Fetching file with ID: ${uuid}`);
-    // eslint-disable-next-line no-return-await
-    return await FilesModel.findOne({ uuid });
-  }
-
-  async createFile(file: FilesDto): Promise<FilesDto> {
-    logger.info("Creating a new file in the repository");
-    const newFile = new FilesModel(file);
-    // eslint-disable-next-line no-return-await
-    return await newFile.save();
-  }
-
-  async updateFile(uuid: string, updateData: UpdateFilesDto): Promise<FilesDto | null> {
-    logger.info(`Updating file with ID: ${uuid}`);
-    // eslint-disable-next-line no-return-await
-    return await FilesModel.findOneAndUpdate({ uuid }, updateData, { new: true });
-  }
-
-  async deleteFile(uuid: string): Promise<boolean | null> {
-    logger.info(`Deleting file with ID: ${uuid}`);
-    // eslint-disable-next-line no-return-await
-    return await FilesModel.findOneAndDelete({ uuid });
-  }
-}
+export type UploadFilesDto = z.infer<typeof uploadFilesSchema>;
+export type UpdateFilesDto = z.infer<typeof updateFilesSchema>;
 
 
 File: src/entities/files/files.route.ts
@@ -5802,87 +6118,133 @@ import { Router } from "express";
 import { uploadMiddleware } from "@/common/multer/multer";
 import { FilesController } from "@/entities/files/files.controller";
 import { OpenAPIRegistry } from "@asteasolutions/zod-to-openapi";
-import { FilesSchema, UpdateFilesSchema, UploadFilesSchema } from "@/entities/files/files.dto";
+import { updateFilesSchema, uploadFilesSchema } from "@/entities/files/files.dto";
 import { createApiResponse } from "@/common/swagger/swagger-response-builder";
 import { z } from "zod";
 import { authMiddleware, zodValidation } from "@/middlewares";
+import { findByQuerySchema } from "@/schemas/find-by-query";
+import { fileSchema } from "@/generated/zod";
 
 const filesRouter = Router();
 filesRouter.use(authMiddleware);
 
+const TAG = "Files";
+const ROUTE = `/${TAG.toLowerCase()}`;
+
 export const filesRegistry = new OpenAPIRegistry();
 const filesController = new FilesController();
 
-filesRegistry.register("Files", FilesSchema);
+filesRegistry.register(TAG, fileSchema);
 
 filesRegistry.registerPath({
   method: "get",
-  path: "/files",
-  summary: "Get all files",
-  tags: ["File"],
-  responses: createApiResponse(z.array(FilesSchema), "Success"),
+  path: ROUTE,
+  summary: `Get all ${TAG}`,
+  tags: [TAG],
+  responses: createApiResponse(z.array(fileSchema), "Success"),
 });
-filesRouter.get("/", filesController.getAllFiles);
+filesRouter.get("/", filesController.getAll);
+
+//====================================================================================================
 
 filesRegistry.registerPath({
   method: "get",
-  path: "/files/{id}",
-  tags: ["File"],
-  summary: "Get a single file",
+  path: `${ROUTE}/{id}`,
+  tags: [TAG],
+  summary: `Get ${TAG} by id`,
   request: {
     params: z.object({ id: z.string() }),
   },
-  responses: createApiResponse(FilesSchema, "Success"),
+  responses: createApiResponse(fileSchema, "Success"),
 });
-filesRouter.get("/:id", filesController.getFileById);
+filesRouter.get("/:id", filesController.getById);
+
+//====================================================================================================
+
+filesRegistry.registerPath({
+  method: "get",
+  path: `${ROUTE}/user/{userId}`,
+  tags: [TAG],
+  summary: `Get ${TAG} by userId`,
+  request: {
+    params: z.object({ userId: z.string() }),
+  },
+  responses: createApiResponse(fileSchema, "Success"),
+});
+filesRouter.get("/user/:userId", filesController.getByUser);
+
+//====================================================================================================
 
 filesRegistry.registerPath({
   method: "post",
-  path: "/files/upload",
-  tags: ["File"],
+  path: `${ROUTE}/find`,
+  tags: [TAG],
+  summary: `Find ${TAG} by query`,
   request: {
     body: {
-      content: { "multipart/form-data": { schema: UploadFilesSchema } },
+      content: { "application/json": { schema: findByQuerySchema } },
     },
   },
-  responses: createApiResponse(UploadFilesSchema, "File uploaded Successfully"),
+  responses: createApiResponse(z.array(findByQuerySchema), "Success"),
+});
+filesRouter.post("/find", zodValidation(findByQuerySchema), filesController.findByQuery);
+
+//====================================================================================================
+
+filesRegistry.registerPath({
+  method: "post",
+  path: `${ROUTE}/upload`,
+  tags: [TAG],
+  summary: `Upload ${TAG}`,
+  request: {
+    body: {
+      content: { "multipart/form-data": { schema: uploadFilesSchema } },
+    },
+  },
+  responses: createApiResponse(uploadFilesSchema, "File uploaded Successfully"),
 });
 filesRouter.post(
   "/upload",
   uploadMiddleware,
-  zodValidation(UploadFilesSchema),
-  filesController.createFile,
+  zodValidation(uploadFilesSchema),
+  filesController.upload,
 );
+
+//====================================================================================================
 
 filesRegistry.registerPath({
   method: "put",
-  path: "/files/{id}",
-  tags: ["File"],
+  path: `${ROUTE}/{id}`,
+  tags: [TAG],
   request: {
     params: z.object({ id: z.string() }),
     body: {
-      content: { "multipart/form-data": { schema: UpdateFilesSchema } },
+      content: { "multipart/form-data": { schema: updateFilesSchema } },
     },
   },
-  responses: createApiResponse(UpdateFilesSchema, "File updated Successfully"),
+  responses: createApiResponse(updateFilesSchema, "File updated Successfully"),
 });
 filesRouter.put(
   "/:id",
   uploadMiddleware,
-  zodValidation(UpdateFilesSchema),
-  filesController.updateFile,
+  zodValidation(updateFilesSchema),
+  filesController.update,
 );
+
+//====================================================================================================
 
 filesRegistry.registerPath({
   method: "delete",
-  path: "/files/{id}",
-  tags: ["File"],
-  summary: "Delete file",
+  path: `${ROUTE}/{id}`,
+  tags: [TAG],
+  summary: `Delete ${TAG}`,
   request: {
     params: z.object({ id: z.string() }),
   },
-  responses: createApiResponse(z.null(), "File deleted Successfully"),
+  responses: createApiResponse(z.null(), `${TAG} Deleted Successfully`),
 });
-filesRouter.delete("/:id", filesController.deleteFile);
+filesRouter.delete("/:id", filesController.delete);
 
 export default filesRouter;
+
+

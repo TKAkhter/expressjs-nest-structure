@@ -1,14 +1,15 @@
 import createHttpError from "http-errors";
 import { logger } from "@/common/winston/winston";
 import { BaseService } from "@/common/base/base.services";
-import { Model } from "mongoose";
-import { FilesDto, UpdateFilesDto, UploadFilesDto } from "./files.dto";
+import { UpdateFilesDto, UploadFilesDto } from "./files.dto";
+import { file as File } from "@prisma/client";
 
-export class FilesService extends BaseService<FilesDto, UploadFilesDto, UpdateFilesDto> {
+export class FilesService extends BaseService<File, UploadFilesDto, UpdateFilesDto> {
   private collectionNameService: string;
 
-  constructor(model: Model<FilesDto>, collectionName: string) {
-    super(model, collectionName);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  constructor(model: any, collectionName: string, ignoreFields?: Record<string, boolean>) {
+    super(model, collectionName, ignoreFields);
     this.collectionNameService = collectionName;
   }
 
@@ -17,7 +18,7 @@ export class FilesService extends BaseService<FilesDto, UploadFilesDto, UpdateFi
    * @param userId - entity's userId
    * @returns entity data or false if not found
    */
-  getByUser = async (userId: string): Promise<FilesDto | FilesDto[] | false> => {
+  getByUser = async (userId: string): Promise<File | File[] | false> => {
     try {
       logger.info(
         `[${this.collectionNameService} Service] Fetching ${this.collectionNameService} with userId: ${userId}`,

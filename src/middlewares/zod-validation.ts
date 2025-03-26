@@ -19,6 +19,13 @@ export const zodValidation =
       logger.warn("Zod Validation Error", error);
       return res
         .status(StatusCodes.BAD_REQUEST)
-        .json(createResponse(req, error, "Zod Validation Error", StatusCodes.BAD_REQUEST));
+        .json(
+          createResponse({
+            req,
+            data: error,
+            message: "Zod Validation Error",
+            status: StatusCodes.BAD_REQUEST,
+          }),
+        );
     }
   };

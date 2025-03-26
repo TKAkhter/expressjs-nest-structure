@@ -4,18 +4,23 @@ import { z } from "zod";
 
 extendZodWithOpenApi(z);
 
+const fileUploadSchema = {
+  file: z
+    .any()
+    .openapi({
+      type: "string",
+      format: "binary",
+    })
+    .describe("The file to upload")
+    .optional(),
+  views: z
+    .string()
+    .refine((data) => !Number.isNaN(Number(data)), "ID must be a numeric value")
+    .transform(Number)
+    .refine((num) => num > 0, "ID must be a positive number"),
+};
+
 export const uploadFilesSchema = fileSchema
-  .extend({
-    file: z
-      .any()
-      .openapi({
-        type: "string",
-        format: "binary",
-      })
-      .describe("The file to upload")
-      .optional(),
-    fileViews: z.string(),
-  })
   .omit({
     id: true,
     path: true,
@@ -24,20 +29,10 @@ export const uploadFilesSchema = fileSchema
     createdAt: true,
     updatedAt: true,
   })
+  .extend(fileUploadSchema)
   .partial();
 
 export const updateFilesSchema = fileSchema
-  .extend({
-    file: z
-      .any()
-      .openapi({
-        type: "string",
-        format: "binary",
-      })
-      .describe("The file to upload")
-      .optional(),
-    fileViews: z.string(),
-  })
   .omit({
     id: true,
     path: true,
@@ -46,6 +41,7 @@ export const updateFilesSchema = fileSchema
     createdAt: true,
     updatedAt: true,
   })
+  .extend(fileUploadSchema)
   .partial();
 
 export type UploadFilesDto = z.infer<typeof uploadFilesSchema>;

@@ -7,7 +7,6 @@ import colors from "colors/safe";
 import "winston-mongodb";
 
 const isWinstonEnabled = env.ENABLE_WINSTON === "1";
-const isLogsEnabled = env.ENABLE_LOGS === "1";
 const logsDirectory = env.LOGS_DIRECTORY;
 const logsType = env.LOGS_TYPE;
 const timeZone = env.TZ;
@@ -84,7 +83,7 @@ const createDailyRotateTransport = (level: string) =>
     maxFiles: logsFileDuration,
     format: format.combine(
       // eslint-disable-next-line no-extra-parens
-      format((info) => (info.level === level ? info : false))(), // eslint-disable multiline-ternary
+      format((info) => (info.level === level ? info : false))(),
       fileFormat,
     ),
   });
@@ -129,41 +128,33 @@ export const winstonLogger: Logger = createLogger({
 });
 
 // Export logger functions with fallback to console logs if disabled
-export const logger = isWinstonEnabled
-  ? {
-      // eslint-disable-next-line no-confusing-arrow
-      info: (message: string, metadata?: Record<string, unknown>) =>
-        isLogsEnabled ? winstonLogger.info(message, metadata) : null, // eslint-disable-line multiline-ternary
-      // eslint-disable-next-line no-confusing-arrow
-      debug: (message: string, metadata?: Record<string, unknown>) =>
-        isLogsEnabled ? winstonLogger.debug(message, metadata) : null, // eslint-disable-line multiline-ternary
-
-      warn: (message: string, metadata?: Record<string, unknown>) =>
-        winstonLogger.warn(message, metadata),
-      // eslint-disable-next-line no-confusing-arrow
-      http: (message: string, metadata?: Record<string, unknown>) =>
-        isLogsEnabled ? winstonLogger.http(message, metadata) : null, // eslint-disable-line multiline-ternary
-
-      error: (message: string, metadata?: Record<string, unknown>) =>
-        winstonLogger.error(message, metadata),
-    }
-  : {
-      // eslint-disable-next-line no-confusing-arrow
-      info: (message: string, metadata?: Record<string, unknown>) =>
-        isLogsEnabled ? console.log(colors.green(message), metadata ?? "") : null, // eslint-disable-line multiline-ternary
-      // eslint-disable-next-line no-confusing-arrow
-      debug: (message: string, metadata?: Record<string, unknown>) =>
-        isLogsEnabled ? console.log(colors.magenta(message), metadata ?? "") : null, // eslint-disable-line multiline-ternary
-
-      warn: (message: string, metadata?: Record<string, unknown>) =>
-        console.log(colors.yellow(message), metadata ?? ""),
-      // eslint-disable-next-line no-confusing-arrow
-      http: (message: string, metadata?: Record<string, unknown>) =>
-        isLogsEnabled ? console.log(colors.blue(message), metadata ?? "") : null, // eslint-disable-line multiline-ternary
-
-      error: (message: string, metadata?: Record<string, unknown>) =>
-        console.log(colors.red(message), formatConsoleMetaData(metadata) ?? ""),
-    };
+export const logger = {
+  // eslint-disable-next-line no-extra-parens
+  info: (message: string, metadata?: Record<string, unknown>) =>
+    isWinstonEnabled
+      ? winstonLogger.info(message, metadata)
+      : console.log(colors.green(message), metadata ?? ""),
+  // eslint-disable-next-line no-extra-parens
+  debug: (message: string, metadata?: Record<string, unknown>) =>
+    isWinstonEnabled
+      ? winstonLogger.debug(message, metadata)
+      : console.log(colors.magenta(message), metadata ?? ""),
+  // eslint-disable-next-line no-extra-parens
+  warn: (message: string, metadata?: Record<string, unknown>) =>
+    isWinstonEnabled
+      ? winstonLogger.warn(message, metadata)
+      : console.log(colors.yellow(message), metadata ?? ""),
+  // eslint-disable-next-line no-extra-parens
+  http: (message: string, metadata?: Record<string, unknown>) =>
+    isWinstonEnabled
+      ? winstonLogger.http(message, metadata)
+      : console.log(colors.blue(message), metadata ?? ""),
+  // eslint-disable-next-line no-extra-parens
+  error: (message: string, metadata?: Record<string, unknown>) =>
+    isWinstonEnabled
+      ? winstonLogger.error(message, metadata)
+      : console.log(colors.red(message), formatConsoleMetaData(metadata) ?? ""),
+};
 
 export const morganStream = {
   write: (message: string) => {

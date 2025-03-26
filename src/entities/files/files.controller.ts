@@ -8,7 +8,7 @@ import { deleteFileFromDisk } from "@/common/multer/delete-file-from-disk";
 import { BaseController } from "@/common/base/base.controller";
 import { createResponse } from "@/utils/create-response";
 import { StatusCodes } from "http-status-codes";
-import { FilesService } from "./files.service";
+import { FilesService } from "@/entities/files/files.service";
 import { PrismaClient, file as File } from "@prisma/client";
 import _ from "lodash";
 
@@ -70,7 +70,7 @@ export class FilesController extends BaseController<File, UploadFilesDto, Update
   upload = async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
     const { loggedUser } = req;
     try {
-      const { tags, userId, name, fileViews } = req.body;
+      const { tags, userId, name, views } = req.body;
 
       const { path } = await saveFileToDisk(req.file);
       logger.info(`[${this.collectionName} Controller] Creating new ${this.collectionName}`, {
@@ -85,7 +85,7 @@ export class FilesController extends BaseController<File, UploadFilesDto, Update
         path,
         userId,
         tags,
-        views: fileViews ? Number(fileViews) : 0,
+        views: views ?? 0,
       };
       const created = await this.baseService.create(fileUpload);
 
@@ -123,7 +123,7 @@ export class FilesController extends BaseController<File, UploadFilesDto, Update
         name: _.isEmpty(updateData.name) ? existFile.name : updateData.name,
         userId: _.isEmpty(updateData.userId) ? existFile.userId : updateData.userId,
         tags: _.isEmpty(updateData.tags) ? existFile.tags : updateData.tags,
-        views: _.isEmpty(updateData.fileViews) ? existFile.views : Number(updateData.fileViews),
+        views: _.isEmpty(updateData.views) ? existFile.views : updateData.views,
       };
       const updated = await this.baseService.update(id, fileData);
 

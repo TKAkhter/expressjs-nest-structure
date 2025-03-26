@@ -7,7 +7,7 @@ import { StatusCodes } from "http-status-codes";
 import { UsersService } from "@/entities/users/users.service";
 import { sendMail } from "@/common/mail-sender/mail-sender";
 import { BaseRepository } from "@/common/base/base.repository";
-import { CreateUsersDto, UpdateUsersDto } from "../users/users.dto";
+import { CreateUsersDto, UpdateUsersDto } from "@/entities/users/users.dto";
 import { env } from "@/config/env";
 import { createTemplate } from "@/template/create-template";
 import { user as User } from "@prisma/client";

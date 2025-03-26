@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
-import { ZodTypeAny } from "zod";
+import { ZodError, ZodTypeAny } from "zod";
 import { logger } from "@/common/winston/winston";
 import { createResponse } from "@/utils/create-response";
 
@@ -16,16 +16,15 @@ export const zodValidation =
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      logger.warn("Zod Validation Error", error);
-      return res
-        .status(StatusCodes.BAD_REQUEST)
-        .json(
-          createResponse({
-            req,
-            data: error,
-            message: "Zod Validation Error",
-            status: StatusCodes.BAD_REQUEST,
-          }),
-        );
+      const errorMessage = `Validation Error: ${(error as ZodError).errors.map((e) => e.message).join(", ")}`;
+      logger.warn(errorMessage, error);
+      return res.status(StatusCodes.BAD_REQUEST).json(
+        createResponse({
+          req,
+          data: error,
+          message: errorMessage,
+          status: StatusCodes.BAD_REQUEST,
+        }),
+      );
     }
   };

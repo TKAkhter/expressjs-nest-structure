@@ -5,7 +5,7 @@ import { logger } from "@/common/winston/winston";
 import { CustomRequest } from "@/types/request";
 import { createResponse } from "@/utils/create-response";
 import { BaseController } from "@/common/base/base.controller";
-import { CreateUsersDto, UpdateUsersDto } from "./users.dto";
+import { CreateUsersDto, UpdateUsersDto } from "@/entities/users/users.dto";
 import { PrismaClient, user as User } from "@prisma/client";
 
 const prisma = new PrismaClient();

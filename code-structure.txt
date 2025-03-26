@@ -28,6 +28,7 @@
 │   │       └── winston.ts
 │   ├── config/
 │   │   ├── prisma/
+│   │   │   ├── errors.prisma.ts
 │   │   │   └── prisma.ts
 │   │   ├── redis/
 │   │   │   └── redis.ts
@@ -38,20 +39,20 @@
 │   │   │   ├── auth.dto.ts
 │   │   │   ├── auth.route.ts
 │   │   │   └── auth.services.ts
-│   │   ├── files/
-│   │   │   ├── files.controller.ts
-│   │   │   ├── files.dto.ts
-│   │   │   ├── files.route.ts
-│   │   │   └── files.service.ts
+│   │   ├── file/
+│   │   │   ├── file.controller.ts
+│   │   │   ├── file.dto.ts
+│   │   │   ├── file.route.ts
+│   │   │   └── file.service.ts
 │   │   ├── health/
 │   │   │   ├── health.controller.ts
 │   │   │   ├── health.helper.ts
 │   │   │   └── health.route.ts
-│   │   └── users/
-│   │       ├── users.controller.ts
-│   │       ├── users.dto.ts
-│   │       ├── users.route.ts
-│   │       └── users.service.ts
+│   │   └── user/
+│   │       ├── user.controller.ts
+│   │       ├── user.dto.ts
+│   │       ├── user.route.ts
+│   │       └── user.service.ts
 │   ├── generated/
 │   │   └── zod/
 │   │       └── index.ts
@@ -84,15 +85,12 @@
 │   ├── auth.validation.test.ts
 │   ├── files.test.ts
 │   └── test.helper.ts
-├── uploads/
 ├── .DS_Store
 ├── .env
 ├── .env.example
 ├── .gitignore
 ├── .prettierignore
 ├── .prettierrc
-├── code-structure.txt
-├── code.txt
 ├── eslint.config.mjs
 ├── jest.config.ts
 ├── jest.setup.ts

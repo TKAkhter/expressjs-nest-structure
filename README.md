@@ -123,6 +123,54 @@ http://localhost:3000/api-docs
 
 ---
 
+## **🚀 GitHub Releases & Versioning**
+
+This project follows **Semantic Versioning (`vX.Y.Z`)** with automatic **tags and releases** on every PR merged into `main`.
+
+### **🔹 Version Rules:**
+| Change Type | Keyword in PR Title/Body | Example Version Change
+|--|--|--| 
+| Major Update | `#major` |`v1.0.0 → v2.0.0` |
+| Minor Update | `#minor` |`v1.0.0 → v1.1.0` |
+| Patch Update | _(Default, no keyword)_ |`v1.0.0 → v1.0.1` |
+
+### Example PRs and Resulting Versions
+
+#### **PR with a Patch Version Bump (Default)**
+
+📌 **PR Title:** `Fixed authentication bug`  
+📌 **PR Body:** _"Resolved a minor issue in login flow."_  
+🔹 **Result:** `v1.0.0 → v1.0.1`
+
+----------
+
+#### **PR with a Minor Version Bump**
+
+📌 **PR Title:** `Added new profile feature #minor`  
+📌 **PR Body:** _"Implemented user profile page."_  
+🔹 **Result:** `v1.0.0 → v1.1.0`
+
+----------
+
+#### **PR with a Major Version Bump**
+
+📌 **PR Title:** `Revamped API structure #major`  
+📌 **PR Body:** _"Breaking changes: Updated API structure."_  
+🔹 **Result:** `v1.0.0 → v2.0.0`
+
+----------
+
+### **🛠 How Releases Work Automatically**
+
+**When a PR is merged into `main`**, GitHub Actions runs the release workflow.  
+It checks the **PR title and body** for `#major` or `#minor`.  
+**Creates a new tag and GitHub release** based on the versioning rule.
+
+### **🎯 Steps to Enable Auto Releases**
+1.  **Ensure the GitHub workflow file is in place** at `.github/workflows/release.yml`.
+2.  **Create PRs with meaningful titles & descriptions**.
+3.  **Merge the PR into `main`**, and a new version **tag & release** will be created automatically.
+
 ## 🏗 Deployment
 
 ### **Docker (Optional)**

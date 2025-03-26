@@ -1,5 +1,5 @@
 {
-  "name": "advance-expressjs-boilerplate",
+  "name": "express-typescript-boilerplate-advance",
   "version": "1.0.0",
   "description": "",
   "main": "build/src/server.js",
@@ -23,10 +23,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/TKAkhter/epressjs-nest-structure"
+    "url": "git+https://github.com/TKAkhter/express-typescript-boilerplate-advance"
   },
   "bugs": {
-    "url": "https://github.com/TKAkhter/epressjs-nest-structure/issues"
+    "url": "https://github.com/TKAkhter/express-typescript-boilerplate-advance/issues"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
@@ -34,7 +34,7 @@
       "prettier --write"
     ]
   },
-  "homepage": "https://github.com/TKAkhter/epressjs-nest-structure#readme",
+  "homepage": "https://github.com/TKAkhter/express-typescript-boilerplate-advance#readme",
   "keywords": [],
   "author": "",
   "license": "ISC",

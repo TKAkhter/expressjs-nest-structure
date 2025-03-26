@@ -116,7 +116,7 @@ dist
 File: ./README.md
 --------------------------------------------------
 Content of ./README.md:
-# epressjs-nest-structure
+# express-typescript-boilerplate-advance
 
 repo to file command
 python3 repo2file/dump.py ./advance-expressjs-boilerplate ./advance-expressjs-boilerplate/code.txt node_modules
@@ -216,10 +216,10 @@ Content of ./package.json:
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/TKAkhter/epressjs-nest-structure"
+    "url": "git+https://github.com/TKAkhter/express-typescript-boilerplate-advance"
   },
   "bugs": {
-    "url": "https://github.com/TKAkhter/epressjs-nest-structure/issues"
+    "url": "https://github.com/TKAkhter/express-typescript-boilerplate-advance/issues"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
@@ -227,7 +227,7 @@ Content of ./package.json:
       "prettier --write"
     ]
   },
-  "homepage": "https://github.com/TKAkhter/epressjs-nest-structure#readme",
+  "homepage": "https://github.com/TKAkhter/express-typescript-boilerplate-advance#readme",
   "keywords": [],
   "author": "",
   "license": "ISC",

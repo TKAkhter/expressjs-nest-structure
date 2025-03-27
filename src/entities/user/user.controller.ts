@@ -6,9 +6,10 @@ import { CustomRequest } from "@/types/request";
 import { createResponse } from "@/utils/create-response";
 import { BaseController } from "@/common/base/base.controller";
 import { CreateUserDto, UpdateUserDto } from "@/entities/user/user.dto";
-import { PrismaClient, user as User } from "@prisma/client";
+import { user as User } from "@prisma/client";
+import { prismaInstance } from "@/config/prisma/prisma";
 
-const prisma = new PrismaClient();
+const prisma = prismaInstance();
 const IGNORE_FIELDS = { password: true };
 
 export class UserController extends BaseController<User, CreateUserDto, UpdateUserDto> {

@@ -1,6 +1,6 @@
 import { UpdateUserDto, CreateUserDto } from "@/entities/user/user.dto";
 import { env } from "@/config/env";
-import { hash } from "bcrypt";
+import { hash } from "bcryptjs";
 import createHttpError from "http-errors";
 import { StatusCodes } from "http-status-codes";
 import { logger } from "@/common/winston/winston";

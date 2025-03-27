@@ -9,10 +9,11 @@ import { BaseController } from "@/common/base/base.controller";
 import { createResponse } from "@/utils/create-response";
 import { StatusCodes } from "http-status-codes";
 import { FileService } from "@/entities/file/file.service";
-import { PrismaClient, file as File } from "@prisma/client";
+import { file as File } from "@prisma/client";
+import { prismaInstance } from "@/config/prisma/prisma";
 import _ from "lodash";
 
-const prisma = new PrismaClient();
+const prisma = prismaInstance();
 const IGNORE_FIELDS = {};
 
 export class FileController extends BaseController<File, UploadFileDto, UpdateFileDto> {

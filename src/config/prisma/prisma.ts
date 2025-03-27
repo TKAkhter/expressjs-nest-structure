@@ -3,9 +3,12 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
+export const prismaInstance = () => prisma;
+
 export const connectPrisma = async () => {
   try {
-    await prisma.$connect();
+    const prismaClient = prisma;
+    await prismaClient.$connect();
   } catch (error) {
     logger.error("Error connecting to Prisma:", { error });
     throw new Error("Error connecting to Prisma");

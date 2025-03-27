@@ -4,9 +4,9 @@ import { StatusCodes } from "http-status-codes";
 import { env } from "@/config/env";
 import { logger } from "@/common/winston/winston";
 import { CustomRequest } from "@/types/request";
-import { PrismaClient } from "@prisma/client";
+import { prismaInstance } from "@/config/prisma/prisma";
 
-const prisma = new PrismaClient();
+const prisma = prismaInstance();
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const findDeep = (obj: any, keys: string[]): any => {

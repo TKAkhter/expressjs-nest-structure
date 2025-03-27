@@ -1,4 +1,4 @@
-import { compare, hash } from "bcrypt";
+import { compare, hash } from "bcryptjs";
 import { logger } from "@/common/winston/winston";
 import { AuthDto, RegisterDto, ResetPasswordDto } from "@/entities/auth/auth.dto";
 import { generateToken, verifyToken } from "@/common/jwt/jwt";

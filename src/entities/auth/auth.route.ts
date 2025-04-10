@@ -9,6 +9,7 @@ import {
   logoutSchema,
   registerSchema,
   resetPasswordSchema,
+  authResponseSchema,
 } from "@/entities/auth/auth.dto";
 import { AuthController } from "@/entities/auth/auth.controller";
 
@@ -32,7 +33,7 @@ authRegistry.registerPath({
       content: { "application/json": { schema: loginSchema } },
     },
   },
-  responses: createApiResponse(loginSchema, "Login Successfully"),
+  responses: createApiResponse(authResponseSchema, "Login Successfully"),
 });
 authRouter.post("/login", zodValidation(loginSchema), authController.login);
 
@@ -48,7 +49,7 @@ authRegistry.registerPath({
       content: { "application/json": { schema: registerSchema } },
     },
   },
-  responses: createApiResponse(registerSchema, "Register Successfully"),
+  responses: createApiResponse(authResponseSchema, "Register Successfully"),
 });
 authRouter.post("/register", zodValidation(registerSchema), authController.register);
 

@@ -3,7 +3,7 @@ import { UpdateFileDto, UploadFileDto } from "@/entities/file/file.dto";
 import { logger } from "@/common/winston/winston";
 import { CustomRequest } from "@/types/request";
 import { saveFileToDisk } from "@/common/multer/save-file-to-disk";
-import { updateImageToDisk } from "@/common/multer/update-file-to-disk";
+import { updateFileToDisk } from "@/common/multer/update-file-to-disk";
 import { deleteFileFromDisk } from "@/common/multer/delete-file-from-disk";
 import { BaseController } from "@/common/base/base.controller";
 import { createResponse } from "@/utils/create-response";
@@ -118,7 +118,7 @@ export class FileController extends BaseController<File, UploadFileDto, UpdateFi
       }
       const fileName = existFile.path!.split("/").pop();
       if (req.file) {
-        await updateImageToDisk(fileName!, req.file);
+        await updateFileToDisk(fileName!, req.file);
       }
       const fileData = {
         name: _.isEmpty(updateData.name) ? existFile.name : updateData.name,

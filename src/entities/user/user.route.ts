@@ -131,7 +131,7 @@ userRegistry.registerPath({
       content: { "application/json": { schema: updateUserSchema } },
     },
   },
-  responses: createApiResponse(updateUserSchema, `${TAG} Updated Successfully`),
+  responses: createApiResponse(userSchema, `${TAG} Updated Successfully`),
 });
 userRouter.put("/:id", zodValidation(updateUserSchema), userController.update);
 
